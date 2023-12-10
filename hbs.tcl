@@ -1,12 +1,16 @@
 #!/bin/tclsh
 
 namespace eval hbs {
-		set Debug 1
+	set Debug 0
 
+	set BuildDir "build"
 	set Library ""
 	set Standard ""
 	set Tool ""
 	set Top ""
+
+	# Run target
+	set target ""
 
 	set fileList {}
 	set cores [dict create]
@@ -15,7 +19,7 @@ namespace eval hbs {
 		set hbs::fileList [findFiles . *.hbs]
 
 		if {$hbs::Debug} {
-			puts stderr "Found [llength $hbs::fileList] core files:"
+			puts stderr "hbs: found [llength $hbs::fileList] core files:"
 			foreach fileName $hbs::fileList {
 				puts "  $fileName"
 			}
@@ -31,7 +35,7 @@ namespace eval hbs {
 		set core [uplevel 1 [list namespace current]]
 		set targets [uplevel 1 [list info procs]]
 		if {$hbs::Debug} {
-			puts stderr "Registering core $core with following [llength $targets] targets:"
+			puts stderr "hbs: registering core $core with following [llength $targets] targets:"
 			foreach target $targets {
 				puts "  $target"
 			}
@@ -78,6 +82,7 @@ namespace eval hbs {
 
 	proc Run {target} {
 		hbs::clearContext
+		set hbs::target $target
 		hbs::$target
 	}
 
@@ -168,7 +173,63 @@ namespace eval hbs::ghdl {
 		}
 		set lib [hbs::ghdl::library]
 		dict append hbs::ghdl::vhdlFiles $file \
-				[dict create std [hbs::ghdl::standard] lib $lib worklib $lib]
+				[dict create std [hbs::ghdl::standard] work $lib workdir $lib]
+	}
+
+	proc analyze {} {
+		if {$hbs::Debug} {
+			puts "ghdl: starting files analysis"
+		}
+		set buildDir "$hbs::BuildDir/$hbs::target/"
+		dict for {file args} $hbs::ghdl::vhdlFiles {
+			set libDir "$buildDir[dict get $args workdir]"
+
+			# Create library directory if it doesn't exist
+			if {[file exist $libDir] eq 0} {
+				file mkdir $libDir
+			}
+
+			set cmd "ghdl -a --std=[dict get $args std] --work=[dict get $args work] --workdir=$libDir $file"
+
+			puts $cmd
+			if {[catch {eval exec $cmd} output] ne 0} {
+				puts $output
+				exit 1
+			}
+		}
+	}
+
+	proc elaborate {} {
+		set workDir [pwd]
+		set targetDir "$hbs::BuildDir/$hbs::target"
+		cd $targetDir
+		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] $hbs::Top"
+		puts $cmd
+		if {[catch {eval exec $cmd} output] ne 0} {
+			puts $output
+			exit 1
+		}
+		cd $workDir
+	}
+
+	proc run {} {
+		hbs::ghdl::analyze
+		hbs::ghdl::elaborate
+
+		set workDir [pwd]
+		set targetDir "$hbs::BuildDir/$hbs::target"
+		cd $targetDir
+
+		set cmd "./$hbs::Top --wave=ghdl.ghw"
+		puts $cmd
+		if {[catch {eval exec $cmd} output] eq 0} {
+			puts $output
+		} else {
+			puts $output
+			exit 1
+		}
+
+		cd $workDir
 	}
 }
 
@@ -176,7 +237,7 @@ proc hbs::PrintHelp {} {
 	puts "Help message"
 }
 
-if {$::argv0 eq [info script]} {
+if {$argv0 eq [info script]} {
 	if {$argc < 1 } {
 		puts "missing command, check help"
 		exit 1
@@ -192,6 +253,9 @@ if {$::argv0 eq [info script]} {
 
 	hbs::Init
 	switch $cmd {
+		"list-cores" {
+			puts "unimplemented"
+		}
 		"run" {
 			hbs::Run $target
 		}
