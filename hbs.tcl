@@ -25,7 +25,8 @@ namespace eval hbs {
     }
 
     proc Register {} {
-        set file [uplevel 1 [list file normalize [info script]]]
+        set file [file normalize [info script]]
+        puts $file
         set core [uplevel 1 [list namespace current]]
         set targets [uplevel 1 [list info procs]]
         if {$hbs::Debug} {
@@ -36,21 +37,31 @@ namespace eval hbs {
         }
 
         dict append hbs::cores $core [dict create file $file targets $targets]
-        #puts $hbs::cores
+        puts $hbs::cores
     }
 
     proc AddDependency {} {
 
     }
 
-    proc AddFile {files} {
+    # args is the list of patterns used for globbing files.
+    proc AddFile {args} {
+        set core [uplevel 1 [list namespace current]]
+        set dir [file dirname [dict get [dict get $hbs::cores $core] file]]
+
+        set files {}
+
+        foreach pattern $args {
+            foreach file [glob -nocomplain -path "$dir/" $pattern] {
+                lappend files $file
+            }
+        }
+
         switch $hbs::Tool {
-           "ghdl" -
-           "GHDL" {
+                   "GHDL" {
               hbs::ghdl::AddFile $files
            }
-           "Vivado" -
-           "vivado" {
+           "Vivado" {
               hbs::vivado::AddFile $files
            }
            "" {
@@ -127,14 +138,14 @@ namespace eval hbs::ghdl {
         }
     }
 
-    proc Library {} {
+    proc library {} {
         if {$hbs::Library eq "" } {
             return "work"
         }
         return $hbs::Library
     }
 
-    proc Standard {} {
+    proc standard {} {
         switch $hbs::Standard {
             # 2008 is the default one
             ""     { return "08" }
@@ -154,9 +165,8 @@ namespace eval hbs::ghdl {
         if {$hbs::Debug} {
             puts "ghdl: adding file $file"
         }
-        set lib [hbs::ghdl::Library]
+        set lib [hbs::ghdl::library]
         dict append hbs::ghdl::vhdlFiles $file \
-                [dict create std [hbs::ghdl::Standard] lib $lib worklib $lib]
-        puts $hbs::ghdl::vhdlFiles
+                [dict create std [hbs::ghdl::standard] lib $lib worklib $lib]
     }
 }
