@@ -1,5 +1,7 @@
+#!/bin/tclsh
+
 namespace eval hbs {
-	set Debug 1
+		set Debug 1
 
 	set Library ""
 	set Standard ""
@@ -13,7 +15,7 @@ namespace eval hbs {
 		set hbs::fileList [findFiles . *.hbs]
 
 		if {$hbs::Debug} {
-			puts "Found [llength $hbs::fileList] core files:"
+			puts stderr "Found [llength $hbs::fileList] core files:"
 			foreach fileName $hbs::fileList {
 				puts "  $fileName"
 			}
@@ -25,19 +27,18 @@ namespace eval hbs {
 	}
 
 	proc Register {} {
-		set file [file normalize [info script]]
-		puts $file
+			set file [file normalize [info script]]
 		set core [uplevel 1 [list namespace current]]
 		set targets [uplevel 1 [list info procs]]
 		if {$hbs::Debug} {
-			puts "Registering core $core with following [llength $targets] targets:"
+			puts stderr "Registering core $core with following [llength $targets] targets:"
 			foreach target $targets {
 				puts "  $target"
 			}
 		}
 
 		dict append hbs::cores $core [dict create file $file targets $targets]
-		puts $hbs::cores
+		#puts $hbs::cores
 	}
 
 	proc AddDependency {} {
@@ -139,7 +140,7 @@ namespace eval hbs::ghdl {
 	}
 
 	proc library {} {
-		if {$hbs::Library eq "" } {
+		if {$hbs::Library eq ""} {
 			return "work"
 		}
 		return $hbs::Library
@@ -148,7 +149,7 @@ namespace eval hbs::ghdl {
 	proc standard {} {
 		switch $hbs::Standard {
 			# 2008 is the default one
-			""	 { return "08" }
+			""     { return "08" }
 			"1987" { return "87" }
 			"1993" { return "93" }
 			"2000" { return "00" }
@@ -168,5 +169,35 @@ namespace eval hbs::ghdl {
 		set lib [hbs::ghdl::library]
 		dict append hbs::ghdl::vhdlFiles $file \
 				[dict create std [hbs::ghdl::standard] lib $lib worklib $lib]
+	}
+}
+
+proc hbs::PrintHelp {} {
+	puts "Help message"
+}
+
+if {$::argv0 eq [info script]} {
+	if {$argc < 1 } {
+		puts "missing command, check help"
+		exit 1
+	}
+
+	set cmd [lindex $argv 0]
+	if {$cmd eq "help"} {
+		hbs::PrintHelp
+		exit 0
+	}
+
+	set target [lindex $argv [expr {$argc - 1}]]
+
+	hbs::Init
+	switch $cmd {
+		"run" {
+			hbs::Run $target
+		}
+		default {
+			puts stderr "unknown command $cmd"
+			exit 1
+		}
 	}
 }
