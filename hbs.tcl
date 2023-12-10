@@ -10,7 +10,7 @@ namespace eval hbs {
     set cores [dict create]
 
     proc Init {} {
-            set hbs::fileList [findFiles . *.hbs]
+        set hbs::fileList [findFiles . *.hbs]
 
         if {$hbs::Debug} {
             puts "Found [llength $hbs::fileList] core files:"
@@ -112,7 +112,7 @@ namespace eval hbs::ghdl {
     set vhdlFiles [dict create]
 
     proc AddFile {files} {
-            foreach file $files {
+        foreach file $files {
             set extension [file extension $file]
             switch $extension {
                 ".vhd" -
