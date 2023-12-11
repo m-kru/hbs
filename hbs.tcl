@@ -106,6 +106,14 @@ namespace eval hbs {
 		}
 	}
 
+	# targetDir returns build directory for given target.
+	proc targetDir {} {
+		if {$hbs::BuildDir eq ""} {
+			puts stderr "hbs: can't create target directory, hbs::BuildDir, not set"
+			exit 1
+		}
+	}
+
 	# findFiles
 	# basedir - the directory to start looking in
 	# pattern - A pattern, as defined by the glob command, that the files must match
@@ -247,7 +255,14 @@ namespace eval hbs::ghdl {
 }
 
 proc hbs::PrintHelp {} {
-	puts "Help message"
+	puts "Usage"
+	puts ""
+	puts "  hbs.tcl command"
+	puts ""
+	puts "The commands are:"
+	puts ""
+	puts "  help        Print help message"
+	puts "  list-cores  List cores found in .hbs files"
 }
 
 if {$argv0 eq [info script]} {
