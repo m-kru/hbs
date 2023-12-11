@@ -44,7 +44,7 @@ namespace eval hbs {
 
 		set targetsDict [dict create]
 		foreach target $targets {
-			dict append targetsDict $target {}
+			dict append targetsDict $target [dict create files {} dependencies {}]
 		}
 
 		dict append hbs::cores $core [dict create file $file targets $targetsDict]
@@ -55,9 +55,9 @@ namespace eval hbs {
 	# AddDep adds target dependencies.
 	proc AddDep {args} {
 		set core [uplevel 1 [list namespace current]]
-		set target [lindex [info level 1] 0]
+		set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
 
-		puts "core: $core, target: $target"
+		#puts "core: $core, target: $target"
 
 		set parentCore $hbs::thisCore
 		set parentTarget $hbs::thisTarget
@@ -88,8 +88,14 @@ namespace eval hbs {
 			}
 		}
 
+		set targetFiles [dict get $hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget files]
+		foreach file $files {
+			lappend targetFiles $file
+		}
+		dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget files $targetFiles
+
 		switch $hbs::Tool {
-			"GHDL" {
+				"GHDL" {
 				hbs::ghdl::AddFile $files
 			}
 			"Vivado" {
@@ -152,24 +158,40 @@ namespace eval hbs {
 		set targets [dict get $info targets]
 		set targetsSize [dict size $targets]
 		set t 0
-		foreach {target deps} $targets {
-			puts -nonewline "\t\t\t\"$target\": \["
+		foreach {target filesAndDeps} $targets {
+			puts "\t\t\t\"$target\": \{"
 
+			set deps [dict get $filesAndDeps dependencies]
+			puts -nonewline "\t\t\t\t\"dependencies\": \["
 			set depsLen [llength $deps]
 			set d 0
 			foreach dep $deps {
 				puts -nonewline "\"$dep\""
-				incr i
+				incr d
 				if {$d < $depsLen} {
 					puts -nonewline ", "
 				}
 			}
+			puts "\],"
+
+			set files [dict get $filesAndDeps files]
+			puts -nonewline "\t\t\t\t\"files\": \["
+			set filesLen [llength $files]
+			set f 0
+			foreach file $files {
+				puts -nonewline "\"$file\""
+				incr f
+				if {$f < $filesLen} {
+					puts -nonewline ", "
+				}
+			}
+			puts "\]"
 
 			incr t
 			if {$t < $targetsSize} {
-				puts "\], "
+				puts "\n\t\t\t\}, "
 			} else {
-				puts "\]"
+				puts "\n\t\t\t\}"
 			}
 		}
 		puts "\t\t\}"
