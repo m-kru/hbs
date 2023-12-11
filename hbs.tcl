@@ -9,8 +9,9 @@ namespace eval hbs {
 	set Tool ""
 	set Top ""
 
-	# Run target
-	set target ""
+	# Core and target currently being run
+	set thisCore ""
+	set thisTarget ""
 
 	set fileList {}
 	set cores [dict create]
@@ -31,7 +32,7 @@ namespace eval hbs {
 	}
 
 	proc Register {} {
-			set file [file normalize [info script]]
+		set file [file normalize [info script]]
 		set core [uplevel 1 [list namespace current]]
 		set targets [uplevel 1 [list info procs]]
 		if {$hbs::Debug} {
@@ -41,17 +42,37 @@ namespace eval hbs {
 			}
 		}
 
-		dict append hbs::cores $core [dict create file $file targets $targets]
+		set targetsDict [dict create]
+		foreach target $targets {
+			dict append targetsDict $target {}
+		}
+
+		dict append hbs::cores $core [dict create file $file targets $targetsDict]
+
 		#puts $hbs::cores
 	}
 
 	# AddDep adds target dependencies.
 	proc AddDep {args} {
 		set core [uplevel 1 [list namespace current]]
+		set target [lindex [info level 1] 0]
+
+		puts "core: $core, target: $target"
+
+		set parentCore $hbs::thisCore
+		set parentTarget $hbs::thisTarget
+
+		set ctx [hbs::saveContext]
 
 		foreach target $args {
 			hbs::clearContext
+
+			set hbs::thisCore [hbs::getCoreFromTargetPath $target]
+			set hbs::thisTarget [hbs::getTargetFromTargetPath $target]
+
 		}
+	
+		hbs::restoreContext $ctx
 	}
 
 	# args is the list of patterns used for globbing files.
@@ -87,7 +108,8 @@ namespace eval hbs {
 
 	proc Run {target} {
 		hbs::clearContext
-		set hbs::target $target
+		set hbs::thisCore [hbs::getCoreFromTargetPath $target]
+		set hbs::thisTarget [hbs::getTargetFromTargetPath $target]
 		hbs::$target
 	}
 
@@ -96,26 +118,81 @@ namespace eval hbs {
 		set hbs::Standard ""
 		set hbs::Tool ""
 		set hbs::Top ""
+		set hbs::thisCore ""
+		set hbs::thisTarget ""
 	}
 
-	# dumpCore dumps single core info into JSON
-	proc dumpCore {info} {
-		puts "\t\t\"file\": \"[dict get $info file]\""
+	proc saveContext {} {
+		set ctx [dict create \
+				Library $hbs::Library \
+				Standard $hbs::Standard \
+				Tool $hbs::Tool \
+				Top $hbs::Top \
+				thisCore $hbs::thisCore \
+				thisTarget $hbs::thisTarget]
+		return $ctx
+	}
 
-		puts -nonewline "\t\t\"targets\": \["
-		puts "\]"
+	proc restoreContext {ctx} {
+		set hbs::Library [dict get $ctx Library]
+		set hbs::Standard [dict get $ctx Standard]
+		set hbs::Tool [dict get $ctx Tool]
+		set hbs::Top [dict get $ctx Top]
+		set hbs::thisCore [dict get $ctx thisCore]
+		set hbs::thisTarget [dict get $ctx thisTarget]
+	}
+
+	# dumpCoreInfo dumps single core info into JSON
+	proc dumpCoreInfo {info} {
+		# file
+		puts "\t\t\"file\": \"[dict get $info file]\","
+
+		# targets
+		puts "\t\t\"targets\": \{"
+		set targets [dict get $info targets]
+		set targetsSize [dict size $targets]
+		set t 0
+		foreach {target deps} $targets {
+			puts -nonewline "\t\t\t\"$target\": \["
+
+			set depsLen [llength $deps]
+			set d 0
+			foreach dep $deps {
+				puts -nonewline "\"$dep\""
+				incr i
+				if {$d < $depsLen} {
+					puts -nonewline ", "
+				}
+			}
+
+			incr t
+			if {$t < $targetsSize} {
+				puts "\], "
+			} else {
+				puts "\]"
+			}
+		}
+		puts "\t\t\}"
 	}
 
 	proc dumpCores {} {
-			puts "{"
+		puts "\{"
 
+		set coresSize [dict size $hbs::cores]
+		set c 0
 		dict for {core info} $hbs::cores {
-			puts "\t\"[string replace $core 0 6 ""]\": {"
-				hbs::dumpCore $info
-			puts "\t}"
+			puts "\t\"[string replace $core 0 6 ""]\": \{"
+			hbs::dumpCoreInfo $info
+
+			incr c
+			if { $c < $coresSize } {
+				puts "\t\},"
+			} else {
+				puts "\t\}"
+			}
 		}
 	
-		puts "}"
+		puts "\}"
 	}
 
 	proc listCores {} {
@@ -132,6 +209,23 @@ namespace eval hbs {
 			puts stderr "hbs: can't create target directory, hbs::BuildDir, not set"
 			exit 1
 		}
+	}
+
+	# getCoreFromTargetPath returns core path from the target path
+	proc getCoreFromTargetPath {path} {
+		set parts [split $path ::]
+		# Remove target
+		set parts [lreplace $parts end end]
+		# Remove {}
+		set parts [lreplace $parts end end]
+		# TCL split command leaves {} in places of splits.
+		# Hence, one ':' is enough here.
+		return [join $parts :]
+	}
+
+	# getTargetFromTargetPath returns target name from the target path
+	proc getTargetFromTargetPath {path} {
+		return [lindex [split $path ::] end]
 	}
 
 	# findFiles
@@ -221,7 +315,7 @@ namespace eval hbs::ghdl {
 		if {$hbs::Debug} {
 			puts "ghdl: starting files analysis"
 		}
-		set buildDir "$hbs::BuildDir/$hbs::target/"
+		set buildDir "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget/"
 		dict for {file args} $hbs::ghdl::vhdlFiles {
 			set libDir "$buildDir[dict get $args workdir]"
 
@@ -242,7 +336,7 @@ namespace eval hbs::ghdl {
 
 	proc elaborate {} {
 		set workDir [pwd]
-		set targetDir "$hbs::BuildDir/$hbs::target"
+		set targetDir "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget"
 		cd $targetDir
 		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] $hbs::Top"
 		puts $cmd
@@ -258,7 +352,7 @@ namespace eval hbs::ghdl {
 		hbs::ghdl::elaborate
 
 		set workDir [pwd]
-		set targetDir "$hbs::BuildDir/$hbs::target"
+		set targetDir "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget"
 		cd $targetDir
 
 		set cmd "./$hbs::Top --wave=ghdl.ghw"
