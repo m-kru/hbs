@@ -45,8 +45,13 @@ namespace eval hbs {
 		#puts $hbs::cores
 	}
 
-	proc AddDependency {} {
+	# AddDep adds target dependencies.
+	proc AddDep {args} {
+		set core [uplevel 1 [list namespace current]]
 
+		foreach target $args {
+			hbs::clearContext
+		}
 	}
 
 	# args is the list of patterns used for globbing files.
@@ -91,6 +96,14 @@ namespace eval hbs {
 		set hbs::Standard ""
 		set hbs::Tool ""
 		set hbs::Top ""
+	}
+
+	proc listCores {} {
+		set cores [lsort [dict keys $hbs::cores]]
+		foreach core $cores {
+			# Drop the "::hbs::" prefix
+			puts [string replace $core 0 6 ""]
+		}
 	}
 
 	# findFiles
@@ -254,7 +267,7 @@ if {$argv0 eq [info script]} {
 	hbs::Init
 	switch $cmd {
 		"list-cores" {
-			puts "unimplemented"
+			hbs::listCores
 		}
 		"run" {
 			hbs::Run $target
