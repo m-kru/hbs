@@ -149,72 +149,72 @@ namespace eval hbs {
 	}
 
 	# dumpCoreInfo dumps single core info into JSON
-	proc dumpCoreInfo {info} {
+	proc dumpCoreInfo {info chnnl} {
 		# file
-		puts "\t\t\"file\": \"[dict get $info file]\","
+		puts $chnnl "\t\t\"file\": \"[dict get $info file]\","
 
 		# targets
-		puts "\t\t\"targets\": \{"
+		puts $chnnl "\t\t\"targets\": \{"
 		set targets [dict get $info targets]
 		set targetsSize [dict size $targets]
 		set t 0
 		foreach {target filesAndDeps} $targets {
-			puts "\t\t\t\"$target\": \{"
+			puts $chnnl "\t\t\t\"$target\": \{"
 
 			set deps [dict get $filesAndDeps dependencies]
-			puts -nonewline "\t\t\t\t\"dependencies\": \["
+			puts -nonewline $chnnl "\t\t\t\t\"dependencies\": \["
 			set depsLen [llength $deps]
 			set d 0
 			foreach dep $deps {
-				puts -nonewline "\"$dep\""
+				puts -nonewline $chnnl "\"$dep\""
 				incr d
 				if {$d < $depsLen} {
-					puts -nonewline ", "
+					puts $chnnl -nonewline ", "
 				}
 			}
-			puts "\],"
+			puts $chnnl "\],"
 
 			set files [dict get $filesAndDeps files]
-			puts -nonewline "\t\t\t\t\"files\": \["
+			puts -nonewline $chnnl "\t\t\t\t\"files\": \["
 			set filesLen [llength $files]
 			set f 0
 			foreach file $files {
-				puts -nonewline "\"$file\""
+				puts -nonewline $chnnl "\"$file\""
 				incr f
 				if {$f < $filesLen} {
-					puts -nonewline ", "
+					puts -nonewline $chnnl ", "
 				}
 			}
-			puts "\]"
+			puts $chnnl "\]"
 
 			incr t
 			if {$t < $targetsSize} {
-				puts "\n\t\t\t\}, "
+				puts $chnnl "\n\t\t\t\}, "
 			} else {
-				puts "\n\t\t\t\}"
+				puts $chnnl "\n\t\t\t\}"
 			}
 		}
-		puts "\t\t\}"
+		puts $chnnl "\t\t\}"
 	}
 
-	proc dumpCores {} {
-		puts "\{"
+	proc dumpCores {{chnnl stdout}} {
+		puts $chnnl "\{"
 
 		set coresSize [dict size $hbs::cores]
 		set c 0
 		dict for {core info} $hbs::cores {
-			puts "\t\"[string replace $core 0 6 ""]\": \{"
-			hbs::dumpCoreInfo $info
+			puts $chnnl "\t\"[string replace $core 0 6 ""]\": \{"
+			hbs::dumpCoreInfo $info $chnnl
 
 			incr c
 			if { $c < $coresSize } {
-				puts "\t\},"
+				puts $chnnl "\t\},"
 			} else {
-				puts "\t\}"
+				puts $chnnl "\t\}"
 			}
 		}
 	
-		puts "\}"
+		puts $chnnl "\}"
 	}
 
 	proc listCores {} {
@@ -385,6 +385,10 @@ namespace eval hbs::ghdl {
 			puts $output
 			exit 1
 		}
+
+
+		set coresJSON [open cores.json w]
+		hbs::dumpCores $coresJSON
 
 		cd $workDir
 	}
