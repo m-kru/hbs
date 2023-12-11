@@ -98,6 +98,26 @@ namespace eval hbs {
 		set hbs::Top ""
 	}
 
+	# dumpCore dumps single core info into JSON
+	proc dumpCore {info} {
+		puts "\t\t\"file\": \"[dict get $info file]\""
+
+		puts -nonewline "\t\t\"targets\": \["
+		puts "\]"
+	}
+
+	proc dumpCores {} {
+			puts "{"
+
+		dict for {core info} $hbs::cores {
+			puts "\t\"[string replace $core 0 6 ""]\": {"
+				hbs::dumpCore $info
+			puts "\t}"
+		}
+	
+		puts "}"
+	}
+
 	proc listCores {} {
 		set cores [lsort [dict keys $hbs::cores]]
 		foreach core $cores {
@@ -257,12 +277,15 @@ namespace eval hbs::ghdl {
 proc hbs::PrintHelp {} {
 	puts "Usage"
 	puts ""
-	puts "  hbs.tcl command"
+	puts "  hbs.tcl <command> \[arguments\]"
 	puts ""
 	puts "The commands are:"
 	puts ""
-	puts "  help        Print help message"
-	puts "  list-cores  List cores found in .hbs files"
+	puts "  help          Print help message"
+	puts "  dump-cores    Dump info about cores in JSON format"
+	puts "  list-cores    List cores found in .hbs files"
+	puts "  list-targets  List targets for given core"
+	puts "  run           Run given target"
 }
 
 if {$argv0 eq [info script]} {
@@ -281,14 +304,20 @@ if {$argv0 eq [info script]} {
 
 	hbs::Init
 	switch $cmd {
+		"dump-cores" {
+			hbs::dumpCores
+		}
 		"list-cores" {
 			hbs::listCores
+		}
+		"list-targets" {
+			puts "unimplemented"
 		}
 		"run" {
 			hbs::Run $target
 		}
 		default {
-			puts stderr "unknown command $cmd"
+			puts stderr "unknown command $cmd, check help"
 			exit 1
 		}
 	}
