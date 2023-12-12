@@ -167,15 +167,42 @@ namespace eval hbs {
 		}
 	}
 
-	proc Run {target} {
+	proc RunTarget {targetPath} {
 		hbs::clearContext
-		set hbs::thisCore [hbs::getCoreFromTargetPath $target]
-		set hbs::thisTarget [hbs::getTargetFromTargetPath $target]
-		hbs::$target
+		set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
+		set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
+		hbs::$targetPath
+	}
+
+	# Run runs target in which it is called.
+	# The stage parameter controls when the tool stops and must be one of:
+	#   project - stop after project creation,
+	#   synthesis - stop after synthesis,
+	#   implementation - stop after implementation,
+	#   bitstream - stop after bitstream generation.
+	proc Run {{stage ""}} {
+		switch $stage {
+			"" -
+			"synthesis" -
+			"implementation" {
+				;
+			}
+			default {
+				"hbs::Run: invalid stage $stage"
+			}
+		}
+		switch $hbs::Tool {
+			"ghdl" {
+				hbs::ghdl::run $stage
+			}
+			"vivado" {
+				hbs::vivado::run $stage
+			}
+		}
 	}
 
 	proc clearContext {} {
-		set hbs::Library ""
+			set hbs::Library ""
 		set hbs::Standard ""
 		set hbs::Tool ""
 		set hbs::Top ""
@@ -417,14 +444,19 @@ namespace eval hbs::ghdl {
 		cd $targetDir
 		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] $hbs::Top"
 		puts $cmd
-		if {[catch {eval exec $cmd} output] ne 0} {
-			puts $output
+		if {[catch {eval exec $cmd} output] != 0} {
+			puts stderr $output
 			exit 1
 		}
 		cd $workDir
 	}
 
-	proc run {} {
+	proc run {stage} {
+		if {stage != ""} {
+			puts stderr "ghdl: ghdl does not support run stages"
+			exit 1
+		}
+
 		hbs::ghdl::analyze
 		hbs::ghdl::elaborate
 
@@ -437,10 +469,9 @@ namespace eval hbs::ghdl {
 		if {[catch {eval exec $cmd} output] eq 0} {
 			puts $output
 		} else {
-			puts $output
+			puts stderr $output
 			exit 1
 		}
-
 
 		set coresJSON [open cores.json w]
 		hbs::dumpCores $coresJSON
@@ -543,8 +574,13 @@ namespace eval hbs::vivado {
 		read_vhdl -library [hbs::vivado::library] [hbs::vivado::VHDLStandard] $file
 	}
 
-	proc run {} {
+	proc run {stage} {
 		set_property top $hbs::Top [current_fileset]
+
+		if {$stage == "project"} {
+			close_project
+			exit 0
+		}
 	}
 }
 
@@ -588,7 +624,7 @@ if {$argv0 eq [info script]} {
 			puts "unimplemented"
 		}
 		"run" {
-			hbs::Run $target
+			hbs::RunTarget $target
 		}
 		default {
 			puts stderr "unknown command $cmd, check help"
