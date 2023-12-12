@@ -73,6 +73,10 @@ namespace eval hbs {
 		set hbs::Top $top
 	}
 
+	proc SetLib {lib} {
+		set hbs::Library $lib
+	}
+
 	proc Init {} {
 			set hbs::fileList [findFiles . *.hbs]
 
@@ -204,7 +208,7 @@ namespace eval hbs {
 	}
 
 	proc clearContext {} {
-			set hbs::Library ""
+		set hbs::Library ""
 		set hbs::Standard ""
 		set hbs::Tool ""
 		set hbs::Top ""
@@ -360,6 +364,7 @@ namespace eval hbs {
 
 namespace eval hbs::ghdl {
 	set vhdlFiles [dict create]
+	set libDirs [dict create]
 
 	proc AddFile {files} {
 		foreach file $files {
@@ -400,10 +405,19 @@ namespace eval hbs::ghdl {
 		}
 	}
 
+	proc libs {} {
+		set libs ""
+		foreach libDir [dict keys $hbs::ghdl::libDirs] {
+			set libs "$libs -P$libDir"
+		}
+		return $libs
+	}
+
 	proc AddVHDLFile {file} {
 		if {$hbs::Debug} {
 			puts "ghdl: adding file $file"
 		}
+
 		set lib [hbs::ghdl::library]
 		dict append hbs::ghdl::vhdlFiles $file \
 				[dict create std [hbs::ghdl::standard] work $lib workdir $lib]
@@ -413,16 +427,17 @@ namespace eval hbs::ghdl {
 		if {$hbs::Debug} {
 			puts "ghdl: starting files analysis"
 		}
-		set buildDir "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget/"
+
 		dict for {file args} $hbs::ghdl::vhdlFiles {
-			set libDir "$buildDir[dict get $args workdir]"
+			set libDir [file normalize "$hbs::targetDir/[dict get $args workdir]"]
 
 			# Create library directory if it doesn't exist
 			if {[file exist $libDir] eq 0} {
 				file mkdir $libDir
 			}
+			dict set hbs::ghdl::libDirs $libDir ""
 
-			set cmd "ghdl -a --std=[dict get $args std] --work=[dict get $args work] --workdir=$libDir $file"
+			set cmd "ghdl -a --std=[dict get $args std] --work=[dict get $args work] --workdir=$libDir [hbs::ghdl::libs] $file"
 
 			puts $cmd
 			if {[catch {eval exec $cmd} output] ne 0} {
@@ -435,7 +450,7 @@ namespace eval hbs::ghdl {
 	proc elaborate {} {
 		set workDir [pwd]
 		cd $hbs::targetDir
-		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] $hbs::Top"
+		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] [hbs::ghdl::libs] $hbs::Top"
 		puts $cmd
 		if {[catch {eval exec $cmd} output] != 0} {
 			puts stderr $output
@@ -445,7 +460,7 @@ namespace eval hbs::ghdl {
 	}
 
 	proc run {stage} {
-		if {stage != ""} {
+		if {$stage != ""} {
 			puts stderr "ghdl: ghdl does not support run stages"
 			exit 1
 		}
