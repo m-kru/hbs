@@ -452,11 +452,36 @@ namespace eval hbs::ghdl {
 namespace eval hbs::vivado {
 	proc AddFile {files} {
 		foreach file $files {
+			if {$hbs::Debug} {
+				puts "vivado: adding file $file"
+			}
+
 			set extension [file extension $file]
 			switch $extension {
+				".bd" {
+					hbs::vivado:AddBlockDesignFile $file
+				}
+				".mem" {
+					hbs::vivado::AddMemFile $file
+				}
+				".v" {
+					hbs::vivado::AddVerilogFile $file
+				}
+				".sv" {
+					hbs::vivado::AddSystemVerilogFile $file
+				}
 				".vhd" -
 				".vhdl" {
 					hbs::vivado::AddVHDLFile $file
+				}
+				".tcl" {
+					hbs::vivado::AddTclFile $file
+				}
+				".xci" {
+					hbs::vivado::AddXCIFile $file
+				}
+				".xdc" {
+					hbs::vivado::AddXDCFile $file
 				}
 				default {
 					puts stderr "vivado: unhandled file extension '$extension'"
@@ -486,10 +511,35 @@ namespace eval hbs::vivado {
 		}
 	}
 
+	proc AddBlockDesignFile {file} {
+		read_bd $file
+	}
+
+	proc AddMemFile {file} {
+		read_mem $file
+	}
+
+	proc AddTclFile {file} {
+		source $file
+	}
+
+	proc AddXCIFile {file} {
+			read_ip $file
+	}
+
+	proc AddXDCFile {file} {
+		read_xdc $file
+	}
+
+	proc AddVerilogFile {file} {
+		read_vhdl -library [hbs::vivado::library] $file
+	}
+
+	proc AddSystemVerilogFile {file} {
+		read_vhdl -library [hbs::vivado::library] -sv $file
+	}
+
 	proc AddVHDLFile {file} {
-		if {$hbs::Debug} {
-			puts "vivado: adding file $file"
-		}
 		read_vhdl -library [hbs::vivado::library] [hbs::vivado::VHDLStandard] $file
 	}
 
