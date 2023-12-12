@@ -28,19 +28,27 @@ namespace eval hbs {
 				set hbs::Tool $tool
 			}
 			"Vivado" {
-				# Check if the script is already run by Vivado.
+				# Check if the script is already run by Vivado
 				if {[catch {version} ver] == 0} {
 					if {[string match "Vivado*" $ver]} {
 						# Vivado already runs the script
 						set hbs::Tool "Vivado"
-						create_project -force [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
+
+						set prjDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" -]
+						set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
+						create_project -force $prjName $prjDir
 						set_property part $hbs::Device [current_project]
 					}
 				} else {
 					# Run the script with Vivado
+					set prjDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" -]
+					file mkdir $prjDir
+
 					set cmd "vivado \
 							-mode batch \
 							-source [file normalize [info script]] \
+							-journal $prjDir/vivado.jou \
+							-log $prjDir/vivado.log \
 							-tclargs run $hbs::thisCore\:\:$hbs::thisTarget \
 							>@ stdout"
 					if {[catch {eval exec $cmd} output] == 0} {
