@@ -14,6 +14,8 @@ namespace eval hbs {
 	set thisCore ""
 	set thisTarget ""
 
+	set targetDir ""
+
 	set fileList {}
 	set cores [dict create]
 
@@ -34,9 +36,9 @@ namespace eval hbs {
 						# Vivado already runs the script
 						set hbs::Tool "vivado"
 
-						set prjDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+						set hbs::targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 						set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
-						create_project -force $prjName $prjDir
+						create_project -force $prjName $hbs::targetDir
 						set_property part $hbs::Device [current_project]
 					}
 				} else {
@@ -307,14 +309,6 @@ namespace eval hbs {
 		}
 	}
 
-	# targetDir returns build directory for given target.
-	proc targetDir {} {
-		if {$hbs::BuildDir eq ""} {
-			puts stderr "hbs: can't create target directory, hbs::BuildDir, not set"
-			exit 1
-		}
-	}
-
 	# getCoreFromTargetPath returns core path from the target path
 	proc getCoreFromTargetPath {path} {
 		set parts [split $path ::]
@@ -440,8 +434,7 @@ namespace eval hbs::ghdl {
 
 	proc elaborate {} {
 		set workDir [pwd]
-		set targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
-		cd $targetDir
+		cd $hbs::targetDir
 		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] $hbs::Top"
 		puts $cmd
 		if {[catch {eval exec $cmd} output] != 0} {
@@ -457,12 +450,13 @@ namespace eval hbs::ghdl {
 			exit 1
 		}
 
+		set hbs::targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+
 		hbs::ghdl::analyze
 		hbs::ghdl::elaborate
 
 		set workDir [pwd]
-		set targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
-		cd $targetDir
+		cd $hbs::targetDir
 
 		set cmd "./$hbs::Top --wave=ghdl.ghw"
 		puts $cmd
@@ -473,8 +467,8 @@ namespace eval hbs::ghdl {
 			exit 1
 		}
 
-		set coresJSON [open cores.json w]
-		hbs::dumpCores $coresJSON
+		set hbsJSON [open hbs.json w]
+		hbs::dumpCores $hbsJSON
 
 		cd $workDir
 	}
@@ -555,7 +549,7 @@ namespace eval hbs::vivado {
 	}
 
 	proc AddXCIFile {file} {
-			read_ip $file
+		read_ip $file
 	}
 
 	proc AddXDCFile {file} {
@@ -575,6 +569,9 @@ namespace eval hbs::vivado {
 	}
 
 	proc run {stage} {
+		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
+		hbs::dumpCores $hbsJSON
+
 		set_property top $hbs::Top [current_fileset]
 
 		if {$stage == "project"} {
