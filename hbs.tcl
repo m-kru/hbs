@@ -175,8 +175,22 @@ namespace eval hbs {
 
 	proc RunTarget {targetPath} {
 		hbs::clearContext
-		set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
-		set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
+		set core [hbs::getCoreFromTargetPath $targetPath]
+		set target [hbs::getTargetFromTargetPath $targetPath]
+
+		if {[dict exists $hbs::cores ::hbs::$core] == 0} {
+			puts stderr "core '$core' not found, maybe the core is not registered \(hsb::Register\)"
+			exit 1
+		}
+		if {[dict exists $hbs::cores ::hbs::$core targets $target] == 0} {
+			puts stderr "core '$core' found, but it doesn't have target '$target', '$core' has following targets:"
+			hbs::listTargets $core stderr
+			exit 1
+		}
+
+		set hbs::thisCore $core
+		set hbs::thisTarget $target
+
 		hbs::$targetPath
 	}
 
@@ -310,6 +324,14 @@ namespace eval hbs {
 		foreach core $cores {
 			# Drop the "::hbs::" prefix
 			puts [string replace $core 0 6 ""]
+		}
+	}
+
+	proc listTargets {core {chnnl stdout}} {
+		set core [dict get $hbs::cores ::hbs::$core]
+		set targets [dict get $core targets]
+		foreach target [dict keys $targets] {
+			puts $chnnl $target
 		}
 	}
 
@@ -622,9 +644,10 @@ if {$argv0 eq [info script]} {
 		exit 0
 	}
 
-	set target [lindex $argv [expr {$argc - 1}]]
+	set targetPath [lindex $argv [expr {$argc - 1}]]
 
 	hbs::Init
+
 	switch $cmd {
 		"dump-cores" {
 			hbs::dumpCores
@@ -633,10 +656,11 @@ if {$argv0 eq [info script]} {
 			hbs::listCores
 		}
 		"list-targets" {
-			puts "unimplemented"
+			# In this case the targetPath argument is actually the corePath.
+			hbs::listTargets $targetPath
 		}
 		"run" {
-			hbs::RunTarget $target
+			hbs::RunTarget $targetPath
 		}
 		default {
 			puts stderr "unknown command $cmd, check help"
