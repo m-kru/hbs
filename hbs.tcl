@@ -24,24 +24,24 @@ namespace eval hbs {
 		}
 
 		switch $tool {
-			"GHDL" {
+			"ghdl" {
 				set hbs::Tool $tool
 			}
-			"Vivado" {
+			"vivado" {
 				# Check if the script is already run by Vivado
 				if {[catch {version} ver] == 0} {
 					if {[string match "Vivado*" $ver]} {
 						# Vivado already runs the script
-						set hbs::Tool "Vivado"
+						set hbs::Tool "vivado"
 
-						set prjDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" -]
+						set prjDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 						set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
 						create_project -force $prjName $prjDir
 						set_property part $hbs::Device [current_project]
 					}
 				} else {
 					# Run the script with Vivado
-					set prjDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" -]
+					set prjDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 					file mkdir $prjDir
 
 					set cmd "vivado \
@@ -61,7 +61,7 @@ namespace eval hbs {
 				}
 			}
 			default {
-				puts stderr "hbs: unknown tool $tool"
+				puts stderr "hbs: unknown tool $tool, supported tools: ghdl, vivado"
 				exit 1
 			}
 		}
@@ -150,10 +150,10 @@ namespace eval hbs {
 		dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget files $targetFiles
 
 		switch $hbs::Tool {
-				"GHDL" {
+			"ghdl" {
 				hbs::ghdl::AddFile $files
 			}
-			"Vivado" {
+			"vivado" {
 				hbs::vivado::AddFile $files
 			}
 			"" {
@@ -161,7 +161,7 @@ namespace eval hbs {
 				exit 1
 			}
 			default {
-				puts stderr "uknown tool $hbs::Tool"
+				puts stderr "hbs: uknown tool $hbs::Tool"
 				exit 1
 			}
 		}
@@ -413,7 +413,7 @@ namespace eval hbs::ghdl {
 
 	proc elaborate {} {
 		set workDir [pwd]
-		set targetDir "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget"
+		set targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 		cd $targetDir
 		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] $hbs::Top"
 		puts $cmd
@@ -429,7 +429,7 @@ namespace eval hbs::ghdl {
 		hbs::ghdl::elaborate
 
 		set workDir [pwd]
-		set targetDir "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget"
+		set targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 		cd $targetDir
 
 		set cmd "./$hbs::Top --wave=ghdl.ghw"
