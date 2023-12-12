@@ -105,6 +105,11 @@ namespace eval hbs {
 
 		set targetsDict [dict create]
 		foreach target $targets {
+			# Ignore targets starting with the floor '_' character
+			if {[string match "_*" $target]} {
+				continue
+			}
+
 			dict append targetsDict $target [dict create files {} dependencies {}]
 		}
 
