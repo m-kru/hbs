@@ -4,6 +4,7 @@ namespace eval hbs {
 	set Debug 0
 
 	set BuildDir "build"
+	set Device ""
 	set Library ""
 	set Standard ""
 	set Tool ""
@@ -16,8 +17,54 @@ namespace eval hbs {
 	set fileList {}
 	set cores [dict create]
 
+	proc SetTool {tool} {
+		if {$hbs::Tool !=  ""} {
+			puts stderr "hbs: can't set tool to $tool, tool already set to $hbs::Tool"
+			exit 1
+		}
+
+		switch $tool {
+			"GHDL" {
+				set hbs::Tool $tool
+			}
+			"Vivado" {
+				# Check if the script is already run by Vivado.
+				if {[catch {version} ver] == 0} {
+					if {[string match "Vivado*" $ver]} {
+						# Vivado already runs the script
+						set hbs::Tool "Vivado"
+						create_project -force [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
+						set_property part $hbs::Device [current_project]
+					}
+				} else {
+					# Run the script with Vivado
+					set cmd "vivado \
+							-mode batch \
+							-source [file normalize [info script]] \
+							-tclargs run $hbs::thisCore\:\:$hbs::thisTarget \
+							>@ stdout"
+					if {[catch {eval exec $cmd} output] == 0} {
+						exit 0
+					} else {
+						puts "hbs: $output"
+						puts stderr "hbs: vivado exited with error"
+						exit 1
+					}
+				}
+			}
+			default {
+				puts stderr "hbs: unknown tool $tool"
+				exit 1
+			}
+		}
+	}
+
+	proc SetTop {top} {
+		set hbs::Top $top
+	}
+
 	proc Init {} {
-		set hbs::fileList [findFiles . *.hbs]
+			set hbs::fileList [findFiles . *.hbs]
 
 		if {$hbs::Debug} {
 			puts stderr "hbs: found [llength $hbs::fileList] core files:"
@@ -102,7 +149,7 @@ namespace eval hbs {
 				hbs::vivado::AddFile $files
 			}
 			"" {
-				puts stderr "hbs::Tool not set"
+				puts stderr "hbs: can't add file, hbs::Tool not set"
 				exit 1
 			}
 			default {
@@ -391,6 +438,55 @@ namespace eval hbs::ghdl {
 		hbs::dumpCores $coresJSON
 
 		cd $workDir
+	}
+}
+
+namespace eval hbs::vivado {
+	proc AddFile {files} {
+		foreach file $files {
+			set extension [file extension $file]
+			switch $extension {
+				".vhd" -
+				".vhdl" {
+					hbs::vivado::AddVHDLFile $file
+				}
+				default {
+					puts stderr "vivado: unhandled file extension '$extension'"
+					exit 1
+				}
+			}
+		}
+	}
+
+	proc library {} {
+		if {$hbs::Library eq ""} {
+			return "xil_defaultlib"
+		}
+		return $hbs::Library
+	}
+
+	proc VHDLStandard {} {
+		switch $hbs::Standard {
+			# 2008 is the default one
+			""     { return "-vhdl2008" }
+			"2008" { return "-vhdl2008" }
+			"2019" { return "-vhdl2019" }
+			default {
+				puts stderr "vivado: invalid hbs::Standard $hbs::Standard for VHDL file"
+				exit 1
+			}
+		}
+	}
+
+	proc AddVHDLFile {file} {
+		if {$hbs::Debug} {
+			puts "vivado: adding file $file"
+		}
+		read_vhdl -library [hbs::vivado::library] [hbs::vivado::VHDLStandard] $file
+	}
+
+	proc run {} {
+		set_property top $hbs::Top [current_fileset]
 	}
 }
 
