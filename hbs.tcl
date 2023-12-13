@@ -266,31 +266,51 @@ namespace eval hbs {
 		foreach {target filesAndDeps} $targets {
 			puts $chnnl "\t\t\t\"$target\": \{"
 
+			# Dump dependencies
 			set deps [dict get $filesAndDeps dependencies]
-			puts -nonewline $chnnl "\t\t\t\t\"dependencies\": \["
 			set depsLen [llength $deps]
+
+			if {$depsLen > 0} {
+				puts $chnnl "\t\t\t\t\"dependencies\": \["
+			} else {
+				puts $chnnl "\t\t\t\t\"dependencies\": \[\],"
+			}
+
 			set d 0
 			foreach dep $deps {
-				puts -nonewline $chnnl "\"$dep\""
+				puts -nonewline $chnnl "\t\t\t\t\t\"$dep\""
 				incr d
 				if {$d < $depsLen} {
-					puts $chnnl -nonewline ", "
+					puts $chnnl ", "
 				}
 			}
-			puts $chnnl "\],"
 
+			if {$depsLen > 0} {
+				puts $chnnl "\n\t\t\t\t\],"
+			}
+
+			# Dump files
 			set files [dict get $filesAndDeps files]
-			puts -nonewline $chnnl "\t\t\t\t\"files\": \["
 			set filesLen [llength $files]
+
+			if {$filesLen > 0} {
+				puts $chnnl "\t\t\t\t\"files\": \["
+			} else {
+				puts $chnnl "\t\t\t\t\"files\": \[\]"
+			}
+
 			set f 0
 			foreach file $files {
-				puts -nonewline $chnnl "\"$file\""
+				puts -nonewline $chnnl "\t\t\t\t\t\"$file\""
 				incr f
 				if {$f < $filesLen} {
-					puts -nonewline $chnnl ", "
+					puts $chnnl ", "
 				}
 			}
-			puts $chnnl "\]"
+
+			if {$filesLen > 0} {
+				puts $chnnl "\n\t\t\t\t\]"
+			}
 
 			incr t
 			if {$t < $targetsSize} {
