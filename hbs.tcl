@@ -123,19 +123,19 @@ namespace eval hbs {
 		set core [uplevel 1 [list namespace current]]
 		set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
 
-		#puts "core: $core, target: $target"
-
-		set parentCore $hbs::thisCore
-		set parentTarget $hbs::thisTarget
-
 		set ctx [hbs::saveContext]
 
-		foreach target $args {
+		foreach targetPath $args {
+			# Add dependency to the core info dictionary
+			set deps [dict get $hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies]
+			lappend deps $targetPath
+			dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies $deps
+
+			# Run dependency target
 			hbs::clearContext
-
-			set hbs::thisCore [hbs::getCoreFromTargetPath $target]
-			set hbs::thisTarget [hbs::getTargetFromTargetPath $target]
-
+			set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
+			set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
+			hbs::$targetPath
 		}
 	
 		hbs::restoreContext $ctx
@@ -168,7 +168,7 @@ namespace eval hbs {
 				hbs::vivado::AddFile $files
 			}
 			"" {
-				puts stderr "hbs: can't add file, hbs::Tool not set"
+				puts stderr "hbs: can't add file $file, hbs::Tool not set"
 				exit 1
 			}
 			default {
@@ -229,7 +229,6 @@ namespace eval hbs {
 	proc clearContext {} {
 		set hbs::Library ""
 		set hbs::Standard ""
-		set hbs::Tool ""
 		set hbs::Top ""
 		set hbs::thisCore ""
 		set hbs::thisTarget ""
@@ -239,7 +238,6 @@ namespace eval hbs {
 		set ctx [dict create \
 				Library $hbs::Library \
 				Standard $hbs::Standard \
-				Tool $hbs::Tool \
 				Top $hbs::Top \
 				thisCore $hbs::thisCore \
 				thisTarget $hbs::thisTarget]
@@ -249,10 +247,10 @@ namespace eval hbs {
 	proc restoreContext {ctx} {
 		set hbs::Library [dict get $ctx Library]
 		set hbs::Standard [dict get $ctx Standard]
-		set hbs::Tool [dict get $ctx Tool]
 		set hbs::Top [dict get $ctx Top]
 		set hbs::thisCore [dict get $ctx thisCore]
 		set hbs::thisTarget [dict get $ctx thisTarget]
+		puts $ctx
 	}
 
 	# dumpCoreInfo dumps single core info into JSON
