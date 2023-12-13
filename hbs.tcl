@@ -294,9 +294,9 @@ namespace eval hbs {
 
 			incr t
 			if {$t < $targetsSize} {
-				puts $chnnl "\n\t\t\t\}, "
+				puts $chnnl "\t\t\t\}, "
 			} else {
-				puts $chnnl "\n\t\t\t\}"
+				puts $chnnl "\t\t\t\}"
 			}
 		}
 		puts $chnnl "\t\t\}"
