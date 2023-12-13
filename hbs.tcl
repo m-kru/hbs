@@ -53,7 +53,7 @@ namespace eval hbs {
 							-log $prjDir/vivado.log \
 							-tclargs run $hbs::thisCore\:\:$hbs::thisTarget \
 							>@ stdout"
-					if {[catch {eval exec $cmd} output] == 0} {
+					if {[catch {eval exec -ignorestderr $cmd} output] == 0} {
 						exit 0
 					} else {
 						puts "hbs: $output"
@@ -145,6 +145,12 @@ namespace eval hbs {
 	proc AddFile {args} {
 		set core [uplevel 1 [list namespace current]]
 		set dir [file dirname [dict get [dict get $hbs::cores $core] file]]
+
+		if {$args == {}} {
+			set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
+			puts stderr "hbs::AddFile: no files provided, core '[string replace $core 0 6 ""]' target '$target'"
+			exit 1
+		}
 
 		set files {}
 
@@ -483,10 +489,10 @@ namespace eval hbs::ghdl {
 			dict set hbs::ghdl::libDirs $libDir ""
 
 			set cmd "ghdl -a --std=[dict get $args std] --work=[dict get $args work] --workdir=$libDir [hbs::ghdl::libs] $file"
-
 			puts $cmd
-			if {[catch {eval exec $cmd} output] ne 0} {
-				puts $output
+			set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+			if {$exitStatus != 0} {
+				puts stderr "hbs::ghdl::analyze: $file analysis failed with exit status $exitStatus"
 				exit 1
 			}
 		}
@@ -497,8 +503,9 @@ namespace eval hbs::ghdl {
 		cd $hbs::targetDir
 		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] [hbs::ghdl::libs] $hbs::Top"
 		puts $cmd
-		if {[catch {eval exec $cmd} output] != 0} {
-			puts stderr $output
+		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+		if {$exitStatus != 0} {
+			puts stderr "hbs::ghdl::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
 			exit 1
 		}
 		cd $workDir
@@ -520,7 +527,7 @@ namespace eval hbs::ghdl {
 
 		set cmd "./$hbs::Top --wave=ghdl.ghw"
 		puts $cmd
-		if {[catch {eval exec $cmd} output] eq 0} {
+		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
 			puts $output
 		} else {
 			puts stderr $output
