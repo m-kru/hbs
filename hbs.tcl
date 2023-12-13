@@ -356,11 +356,17 @@ namespace eval hbs {
 		}
 	}
 
-	proc listTargets {core {chnnl stdout}} {
-		set core [dict get $hbs::cores ::hbs::$core]
+	proc listTargets {corePath {chnnl stdout}} {
+		if {[dict exists $hbs::cores ::hbs::$corePath] == 0} {
+			puts stderr "core '$corePath' not found, maybe the core is not registered \(hsb::Register\)"
+			exit 1
+		}
+
+		set core [dict get $hbs::cores ::hbs::$corePath]
 		set targets [dict get $core targets]
+
 		foreach target [dict keys $targets] {
-			puts $chnnl $target
+				puts $chnnl $target
 		}
 	}
 
@@ -653,7 +659,7 @@ proc hbs::PrintHelp {} {
 	puts ""
 	puts "  hbs.tcl <command> \[arguments\]"
 	puts ""
-	puts "The commands are:"
+	puts "The command is one of:"
 	puts ""
 	puts "  help          Print help message"
 	puts "  dump-cores    Dump info about cores in JSON format"
