@@ -25,8 +25,20 @@ The command is one of:
 
 Type 'hbs.py help <command>' to obtain more information about particular command."""
 
-run_help = """Usage:
+list_cores_help = """Usage:
 
+  hbs.py list-cores
+
+List cores found in .hbs files."""
+
+list_targets_help = """Usage:
+
+  hbs.py list-targets core-path
+
+List targets for given core. Core path must be absolute."""
+
+run_help = """Usage:
+        
   hbs.py run <target-path>
 
 Run provided target. The target path must be absolute target path containing
@@ -62,6 +74,10 @@ if len(sys.argv) < 2:
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
         print(help_help)
+    elif cmd == "list-cores":
+        print(list_cores_help)
+    elif cmd == "list-targets":
+        print(list_targets_help)
     elif cmd == "run":
         print(run_help)
     elif cmd == "test":
