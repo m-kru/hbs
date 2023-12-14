@@ -178,13 +178,12 @@ def print_test_summary(start_time):
         warnings += r['warnings_count']
 
     print()
-    print("summary:")
-    print(f"  time:     {hours} h {minutes} min {seconds} s")
-    print(f"  targets:  {len(test_results)}")
-    print(f"  \033[92mpassed\033[0m:   {passed}")
-    print(f"  \033[91mfailed\033[0m:   {failed}")
-    print(f"  errors:   {errors}")
-    print(f"  warnings: {warnings}")
+    print(f"time:     {hours} h {minutes} min {seconds} s")
+    print(f"targets:  {len(test_results)}")
+    print(f"\033[92mpassed\033[0m:   {passed}")
+    print(f"\033[91mfailed\033[0m:   {failed}")
+    print(f"errors:   {errors}")
+    print(f"warnings: {warnings}")
 
 
 def test(patterns):
