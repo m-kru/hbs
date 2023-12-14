@@ -25,8 +25,24 @@ The command is one of:
 
 Type 'hbs.py help <command>' to obtain more information about particular command."""
 
-run_help = """Usage:
+dump_cores_help = """Usage:
 
+  hbs.py dump-cores
+
+Dump info about cores found in the .hbs files in JSON format.
+The info is dumped to the stdout. A user can redirect to a file on his own."""
+
+list_cores_help = """Usage:
+
+  hbs.py list-cores [core-path-patterns...]
+
+List cores found in .hbs files.
+If core path patterns are not provided, all cores are listed.
+If core path patterns are provided, only cores whose paths contain
+at least one pattern are listed."""
+
+run_help = """Usage:
+        
   hbs.py run <target-path>
 
 Run provided target. The target path must be absolute target path containing
@@ -62,24 +78,42 @@ if len(sys.argv) < 2:
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
         print(help_help)
+    elif cmd == "dump-cores":
+        print(dump_cores_help)
+    elif cmd == "list-cores":
+        print(list_cores_help)
     elif cmd == "run":
         print(run_help)
     elif cmd == "test":
         print(test_help)
+    else:
+        print(f"invalid command '{cmd}', check help", file=sys.stderr)
+        exit(1)
 
-def target_path_has_pattern(path, patterns):
-    if len(patterns) == 0:
-        return True
-
-    for pattern in patterns:
-        if pattern in path:
+def str_has_substr(string, substrings):
+    """ str_has_substr returns True if given string contains at least one of substrings. """
+    if len(substrings) == 0:
+            return True
+    for ss in substrings:
+        if ss in string:
             return True
     return False
+
+def list_cores(patterns):
+    output = subprocess.check_output([os.path.join(this_script_dir, 'hbs.tcl'), 'list-cores'])
+    output = output.decode('utf-8')
+    if len(patterns) == 0:
+        print(output, end='')
+    else:
+        cores = output.split('\n')
+        for core in cores:
+            if str_has_substr(core, patterns):
+                print(core)
 
 def test(patterns):
     """patterns are target path patterns"""
     hbs_json = subprocess.check_output([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
-    cores = json.loads(hbs_json.decode("utf-8"))
+    cores = json.loads(hbs_json.decode('utf-8'))
 
     test_targets = []
     for core, core_info in cores.items():
@@ -92,14 +126,14 @@ def test(patterns):
                 continue
 
             target_path = core + '::' + target
-            if target_path_has_pattern(target_path, patterns):
+            if str_has_substr(target_path, patterns):
                 test_targets.append(target_path)
 
     test_targets.sort()
     print(test_targets)
 
     workers_count = multiprocessing.cpu_count()
-    print(f"running {len(test_targets)} verification targets with {workers_count} workers")
+    print(f"running {len(test_targets)} targets with {workers_count} workers")
 
 cmd = sys.argv[1]
 
@@ -116,12 +150,8 @@ elif cmd == "dump-cores":
         print("dump-cores command does not accept any arguments", file=sys.stderr)
         exit(1)
     subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
-
 elif cmd == "list-cores":
-    if len(sys.argv) > 2:
-        print("list-cores command does not accept any arguments", file=sys.stderr)
-        exit(1)
-    subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'list-cores'])
+    list_cores(sys.argv[2:])
 elif cmd == "list-targets":
     if len(sys.argv) < 3:
         print("list-targets command requires core path", file=sys.stderr)
