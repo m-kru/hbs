@@ -1,10 +1,13 @@
 #!/bin/python3
 
+from datetime import datetime
 import json
-import multiprocessing
 import os
 import subprocess
 import sys
+
+import concurrent.futures
+import multiprocessing
 
 this_script_dir = os.path.dirname(os.path.abspath(__file__))
 workers = multiprocessing.cpu_count()
@@ -83,6 +86,7 @@ def hbs_help(cmd):
     elif cmd == "test":
         print(test_help)
 
+
 def target_path_has_pattern(path, patterns):
     if len(patterns) == 0:
         return True
@@ -92,8 +96,90 @@ def target_path_has_pattern(path, patterns):
             return True
     return False
 
+
+def run_to_file(target_path):
+    """ run_to_file runs given target and directs output to file. """
+    output = subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'run', target_path],
+        capture_output=True,
+        encoding="utf-8"
+    )
+
+    result = {'target': target_path, 'passed': False}
+    if output.returncode == 0:
+        result['passed'] = True
+
+    errors_count = output.stdout.lower().count("error")
+    warnings_count = output.stdout.lower().count("warn")
+
+    global test_longest_path_len
+    if result['passed'] == True:
+        print(f"{target_path.ljust(test_longest_path_len+1)} \033[92mpassed\033[0m", end='')
+    else:
+        print(f"{target_path.ljust(test_longest_path_len+1)} \033[91mfailed\033[0m", end='')
+
+    if errors_count > 0:
+        print(f"  errors: {errors_count}", end='')
+    if warnings_count > 0:
+        print(f"  warnings: {warnings_count}", end='')
+
+    print("")
+
+    with open(os.path.join('build', target_path.replace('::', '/'), 'output.txt'), "w") as f:
+        f.write("************************************************************\n")
+        f.write("*****                      STDERR                      *****\n")
+        f.write("************************************************************\n\n")
+        f.write(output.stderr)
+        f.write("\n\n")
+        f.write("************************************************************\n")
+        f.write("*****                      STDOUT                      *****\n")
+        f.write("************************************************************\n\n")
+        f.write(output.stdout)
+
+    result['errors_count'] = errors_count
+    result['warnings_count'] = warnings_count
+
+    global test_results
+    test_results.append(result)
+
+
+test_results = []
+test_longest_path_len = 0
+
+def print_test_summary(start_time):
+    s = (datetime.now() - start_time).seconds
+    hours, remainder = divmod(s, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    global test_results
+
+    passed = 0
+    failed = 0
+    errors = 0
+    warnings = 0
+
+    for r in test_results:
+        if r['passed']:
+            passed += 1
+        else:
+            failed += 1
+
+        errors += r['errors_count']
+        warnings += r['warnings_count']
+
+    print()
+    print("summary:")
+    print(f"  time:     {hours} h {minutes} min {seconds} s")
+    print(f"  targets:  {len(test_results)}")
+    print(f"  \033[92mpassed\033[0m:   {passed}")
+    print(f"  \033[91mfailed\033[0m:   {failed}")
+    print(f"  errors:   {errors}")
+    print(f"  warnings: {warnings}")
+
 def test(patterns):
     """patterns are target path patterns"""
+    start_time = datetime.now()
+
     hbs_json = subprocess.check_output([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
     cores = json.loads(hbs_json.decode("utf-8"))
 
@@ -110,12 +196,19 @@ def test(patterns):
             target_path = core + '::' + target
             if target_path_has_pattern(target_path, patterns):
                 test_targets.append(target_path)
+                global test_longest_path_len
+                if len(target_path) > test_longest_path_len:
+                    test_longest_path_len = len(target_path)
 
     test_targets.sort()
-    print(test_targets)
-
     workers_count = multiprocessing.cpu_count()
-    print(f"running {len(test_targets)} targets with {workers_count} workers")
+
+    print(f"running {len(test_targets)} targets with {workers_count} workers\n")
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        executor.map(lambda t: run_to_file(t), test_targets)
+
+    print_test_summary(start_time)
 
 cmd = sys.argv[1]
 
