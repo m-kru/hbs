@@ -256,7 +256,6 @@ namespace eval hbs {
 		set hbs::Top [dict get $ctx Top]
 		set hbs::thisCore [dict get $ctx thisCore]
 		set hbs::thisTarget [dict get $ctx thisTarget]
-		puts $ctx
 	}
 
 	# dumpCoreInfo dumps single core info into JSON
