@@ -74,6 +74,7 @@ if len(sys.argv) < 2:
     print("missing command, check help", file=sys.stderr)
     exit(1)
 
+
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
         print(help_help)
@@ -102,7 +103,7 @@ def run_to_file(target_path):
     output = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'run', target_path],
         capture_output=True,
-        encoding="utf-8"
+        encoding="utf-8",
     )
 
     result = {'target': target_path, 'passed': False}
@@ -114,9 +115,15 @@ def run_to_file(target_path):
 
     global test_longest_path_len
     if result['passed'] == True:
-        print(f"{target_path.ljust(test_longest_path_len+1)} \033[92mpassed\033[0m", end='')
+        print(
+            f"{target_path.ljust(test_longest_path_len+1)} \033[92mpassed\033[0m",
+            end='',
+        )
     else:
-        print(f"{target_path.ljust(test_longest_path_len+1)} \033[91mfailed\033[0m", end='')
+        print(
+            f"{target_path.ljust(test_longest_path_len+1)} \033[91mfailed\033[0m",
+            end='',
+        )
 
     if errors_count > 0:
         print(f"  errors: {errors_count}", end='')
@@ -125,7 +132,9 @@ def run_to_file(target_path):
 
     print("")
 
-    with open(os.path.join('build', target_path.replace('::', '/'), 'output.txt'), "w") as f:
+    with open(
+        os.path.join('build', target_path.replace('::', '/'), 'output.txt'), "w"
+    ) as f:
         f.write("************************************************************\n")
         f.write("*****                      STDERR                      *****\n")
         f.write("************************************************************\n\n")
@@ -145,6 +154,7 @@ def run_to_file(target_path):
 
 test_results = []
 test_longest_path_len = 0
+
 
 def print_test_summary(start_time):
     s = (datetime.now() - start_time).seconds
@@ -176,20 +186,25 @@ def print_test_summary(start_time):
     print(f"  errors:   {errors}")
     print(f"  warnings: {warnings}")
 
+
 def test(patterns):
     """patterns are target path patterns"""
     start_time = datetime.now()
 
-    hbs_json = subprocess.check_output([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
+    hbs_json = subprocess.check_output(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores']
+    )
     cores = json.loads(hbs_json.decode("utf-8"))
 
     test_targets = []
     for core, core_info in cores.items():
         for target in core_info['targets']:
             if not (
-                target == 'tb' or
-                target.startswith('tb_') or target.startswith('tb-') or
-                target.endswith('_tb') or target.endswith('-tb')
+                target == 'tb'
+                or target.startswith('tb_')
+                or target.startswith('tb-')
+                or target.endswith('_tb')
+                or target.endswith('-tb')
             ):
                 continue
 
@@ -209,6 +224,7 @@ def test(patterns):
         executor.map(lambda t: run_to_file(t), test_targets)
 
     print_test_summary(start_time)
+
 
 cmd = sys.argv[1]
 
@@ -238,7 +254,9 @@ elif cmd == "list-targets":
     elif len(sys.argv) > 3:
         print("list-targets command accepts only one core path", file=sys.stderr)
         exit(1)
-    subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'list-targets', sys.argv[2]])
+    subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'list-targets', sys.argv[2]]
+    )
 elif cmd == "run":
     if len(sys.argv) < 3:
         print("run command requires target path", file=sys.stderr)
