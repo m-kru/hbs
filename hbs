@@ -11,7 +11,7 @@ workers = multiprocessing.cpu_count()
 
 help_help = """Usage:
     
-  hbs.py <command> [arguments]
+  hbs <command> [arguments]
 
 The command is one of:
 
@@ -23,34 +23,34 @@ The command is one of:
   run           Run given target
   test          Run testbenches matching given target path
 
-Type 'hbs.py help <command>' to obtain more information about particular command."""
+Type 'hbs help <command>' to obtain more information about particular command."""
 
 list_cores_help = """Usage:
 
-  hbs.py list-cores
+  hbs list-cores
 
 List cores found in .hbs files."""
 
 list_targets_help = """Usage:
 
-  hbs.py list-targets core-path
+  hbs list-targets core-path
 
 List targets for given core. Core path must be absolute."""
 
 run_help = """Usage:
         
-  hbs.py run <target-path>
+  hbs run <target-path>
 
 Run provided target. The target path must be absolute target path containing
 the core path and target name.
 
 Example:
 
-  hbs.py run your::core::path::target-name"""
+  hbs run your::core::path::target-name"""
 
 test_help = """Usage:
 
-  hbs.py test [-workers N] [target-path-patterns...]
+  hbs test [-workers N] [target-path-patterns...]
 
 Run test targets. Test targets are detected automatically.
 A test target is a target which name:
