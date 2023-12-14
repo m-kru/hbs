@@ -115,7 +115,7 @@ def test(patterns):
     print(test_targets)
 
     workers_count = multiprocessing.cpu_count()
-    print(f"running {len(test_targets)} verification targets with {workers_count} workers")
+    print(f"running {len(test_targets)} targets with {workers_count} workers")
 
 cmd = sys.argv[1]
 
@@ -146,6 +146,14 @@ elif cmd == "list-targets":
         print("list-targets command accepts only one core path", file=sys.stderr)
         exit(1)
     subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'list-targets', sys.argv[2]])
+elif cmd == "run":
+    if len(sys.argv) < 3:
+        print("run command requires target path", file=sys.stderr)
+        exit(1)
+    elif len(sys.argv) > 3:
+        print("run command accepts only one target path", file=sys.stderr)
+        exit(1)
+    subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'run', sys.argv[2]])
 elif cmd == "test":
     test(sys.argv[2:])
 else:
