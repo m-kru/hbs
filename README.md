@@ -183,7 +183,7 @@ A test target is a target which name:
 - ends with `-tb` or `_tb`,
 - equals `tb`.
 
-## Running targets
+### Running targets
 
 Hbs allows running any target of registered cores.
 Even if the target itself has nothing to do with the hardware design.
@@ -209,6 +209,30 @@ After `hbs::Run` returns user can continue processing.
 For example, scripts analysing code coverage, or preparing additional reports can be run.
 
 If you are dissatisfied with what the run for your tool does by default, you can always define custom flow within the target, or as a completely separate proc.
+
+Targets can accept arguments provided from the command line.
+This is very useful for example for running flow only to the stage specified from the command line.
+For example below core accept stage arguments.
+```Tcl
+namespace eval core {
+	proc target {stage} {
+		if {$stage == ""} {
+			set stage "bitstream"
+		}
+		puts "Running until $stage"
+		# Below line commented because this is just example.
+		#hbs::Run $stage
+	}
+	hbs::Register
+}
+```
+It can be run with the `stage` value specified as follows.
+```
+[user@host hbs]$ hbs run core::target
+Running until bitstream
+[user@host hbs]$ hbs run core::target synthesis
+Running until synthesis
+```
 
 ## Naming conventions
 
