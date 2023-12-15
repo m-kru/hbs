@@ -215,10 +215,7 @@ This is very useful for example for running flow only to the stage specified fro
 For example below core accept stage arguments.
 ```Tcl
 namespace eval core {
-	proc target {stage} {
-		if {$stage == ""} {
-			set stage "bitstream"
-		}
+	proc target {{stage "bitstream"}} {
 		puts "Running until $stage"
 		# Below line commented because this is just example.
 		#hbs::Run $stage
