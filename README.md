@@ -11,7 +11,7 @@ The first class directly utilizes Tcl (the Tcl approach), examples:
 - [OSVVM-Scripts](https://github.com/OSVVM/OSVVM-Scripts).
 
 The second class tries to abstract away the underlying Tcl commands using declarative formats (the declarative approach), examples:
-- [FuseSuc](https://github.com/olofk/fusesoc),
+- [FuseSoC](https://github.com/olofk/fusesoc),
 - [Hog](https://gitlab.com/hog-cern/Hog),
 - [Hdlmake](https://ohwr.org/project/hdl-make),
 - [bender](https://github.com/pulp-platform/bender).
@@ -212,6 +212,8 @@ If you are dissatisfied with what the run for your tool does by default, you can
 
 ## Naming conventions
 
+### Internal symbol names
+
 Understanding naming conventions is curcial for using or contributing to the hbs.
 All hbs code is hidden under the `hbs` namespace.
 Code related to particular tool is further hidden in the `hbs::{tool}` namespace.
@@ -254,3 +256,9 @@ The `hbs::GetToolType` proc can return `formal`, `simulation`, or `synthesis`.
 The points of this is to avoid error cases when one core maintainer sets the tool to `Vivado`, but another core maintainer has for example following condition in one of the targets `if {$hbs::Tool == "vivado"}`.
 The expression would evaluate to false, although the tool is Vivado.
 The `hbs::Set*` procs make sure users provide lowercase names.
+
+### Core and target names
+
+There is no restriction on core and target names placed in `.hbs` files.
+Everything accepted by the Tcl is valid.
+However, it is recommended to use lowercase and separate words with hyphen character `-`.
