@@ -69,6 +69,26 @@ namespace eval hbs {
 		}
 	}
 
+	# GetToolType reutrns type of the set tool.
+	# Possible values are:
+	#   - formal,
+	#   - simulation,
+	#   - synthesis.
+	proc GetToolType {} {
+			switch $hbs::Tool {
+			"ghdl" {
+				return "simulation"
+			}
+			"vivado" {
+				return "synthesis"
+			}
+			default {
+				puts -stderr "hbs::GetToolType: hbs::Tool not set"
+				exit 1
+			}
+		}
+	}
+
 	proc SetTop {top} {
 		set hbs::Top $top
 	}
@@ -207,10 +227,14 @@ namespace eval hbs {
 
 	# Run runs target in which it is called.
 	# The stage parameter controls when the tool stops and must be one of:
-	#   project - stop after project creation,
-	#   synthesis - stop after synthesis,
+	#   analysis - stop after file analysis,
+	#   bitstream - stop after bitstream generation,
+	#   elaboration - stop after design elaboration,
 	#   implementation - stop after implementation,
-	#   bitstream - stop after bitstream generation.
+	#   project - stop after project creation,
+	#   simulation - stop after simulation,
+	#   synthesis - stop after synthesis.
+	# Not all tools supports all stages. Check documantation for "hbs::{tool}::run".
 	proc Run {{stage ""}} {
 		switch $stage {
 			"" -
@@ -516,16 +540,32 @@ namespace eval hbs::ghdl {
 		cd $workDir
 	}
 
-	proc run {stage} {
-		if {$stage != ""} {
-			puts stderr "ghdl: ghdl does not support run stages"
-			exit 1
+	proc checkStage {stage} {
+		switch $stage {
+			default {
+				puts "$hbs::ghdl::run: invalid stage '$stage', valid stage are: analysis, elaboration and simulation"
+			}
 		}
+	}
+
+	# ghdl::run supports following stages:
+	#   - analysis,
+	#   - elaboration,
+	#   - simulation.
+	proc run {stage} {
+			hbs::ghdl::checkStage $stage
 
 		set hbs::targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 
 		hbs::ghdl::analyze
+		if {$stage == "analysis"} {
+			exit 0
+		}
+
 		hbs::ghdl::elaborate
+		if {$stage == "elaboration"} {
+			exit 0
+		}
 
 		set workDir [pwd]
 		cd $hbs::targetDir
