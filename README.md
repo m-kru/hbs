@@ -96,6 +96,13 @@ namespace eval my-core {
 ```
 This snippet defines one core named `my-core` containing single target named `my-target`.
 The core path is `my-core` and the target path is `my-core::my-target`.
+`hbs::Register` must be called at the end of the core namespace.
+A common mistake is to forget to register a core.
+However, `hbs` tries to remind about cores registration, for example:
+```
+[user@host tmp]$ hbs run lib::core::tb
+core 'lib::core' not found, maybe the core is not registered (hsb::Register)
+```
 
 The core path can be arbitrarily deep, for example:
 ```Tcl
@@ -178,6 +185,72 @@ A test target is a target which name:
 
 ## Running targets
 
+Hbs allows running any target of registered cores.
+Even if the target itself has nothing to do with the hardware design.
+For example, running the following target:
+```Tcl
+namespace eval my-core {
+	proc my-target {} {
+		exec echo "Hello World!" >@ stdout
+	}
+}
+```
+Results with:
+```
+[user@host tmp]$ hbs run my-core::my-target
+Hello World!
+```
+
+However, in most cases the user wants to run target related to the flow of set tool.
+In such a case, instead of calling all of the required tool commands manually, the user can call `hbs::Run`.
+`hbs::Run` as an optional arguments accepts the stage after which the tool flow should stop.
+For more details check `hbs::Run` documentation in the `hbs.tcl` file.
+After `hbs::Run` returns user can continue processing.
+For example, scripts analysing code coverage, or preparing additional reports can be run.
+
+If you are dissatisfied with what the run for your tool does by default, you can always define custom flow within the target, or as a completely separate proc.
+
 ## Naming conventions
 
-All
+Understanding naming conventions is curcial for using or contributing to the hbs.
+All hbs code is hidden under the `hbs` namespace.
+Code related to particular tool is further hidden in the `hbs::{tool}` namespace.
+
+Tcl doesn't allow defining private symbols within namespaces, all symbols are public.
+However, hbs differentiate between public and private symbols.
+Public symbols start with an uppercase letter and private symbols start with a lowercase latter.
+The user shall only use public symbols within `.hbs` files.
+Although using private symbols is discouraged, it is not forbidden, and if you really know what you do feel free to use them.
+
+Hbs namespace consists of variables and procs.
+Even though some varaibles are public, the user shall not set them directly.
+They are public, because they can be safely read from the `.hbs` files, but setting them might require some additional actions.
+For example, `hbs::Tool` is public varaible, but the user shall use `hbs::SetTool` function for setting.
+There is no such requirement for getting value of a public variable.
+For example, see the below snippet:
+```Tcl
+namespace eval vhdl-simple::reset-synchronizer {
+	proc src {} {
+		hbs::SetLib "simple"
+		hbs::AddFile src/reset_synchronizer.vhd
+
+		if {$hbs::Tool == "vivado"} {
+			hbs:AddFile constr/reset_synchronizer.xdc
+			set_property SCOPED_TO_REF Reset_Synchronizer [get_files reset_synchronizer.xdc]
+		} else {
+		    error "vhdl-simple: reset-synchronizer core misses constraint file for your tool"
+		}
+	}
+
+	hbs::Register
+}
+```
+If the tool executing the code is "vivado", then additional constraint file is added attached to particular module.
+Every public `hbs::Variable` has corresponding `hbs::SetVariable` function for setting value of the variable.
+
+All variables representing choices (enumeration) user lowercase strings.
+For example, the `hbs::Tool` can be `ghdl`, `vivado` etc.
+The `hbs::GetToolType` proc can return `formal`, `simulation`, or `synthesis`.
+The points of this is to avoid error cases when one core maintainer sets the tool to `Vivado`, but another core maintainer has for example following condition in one of the targets `if {$hbs::Tool == "vivado"}`.
+The expression would evaluate to false, although the tool is Vivado.
+The `hbs::Set*` procs make sure users provide lowercase names.
