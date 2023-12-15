@@ -1,5 +1,6 @@
 #!/bin/tclsh
 
+# Public API
 namespace eval hbs {
 	set Debug 0
 
@@ -9,7 +10,10 @@ namespace eval hbs {
 	set Standard ""
 	set Tool ""
 	set Top ""
+}
 
+# Private API {
+namespace eval hbs {
 	# Core and target currently being run
 	set thisCore ""
 	set thisTarget ""
@@ -542,8 +546,12 @@ namespace eval hbs::ghdl {
 
 	proc checkStage {stage} {
 		switch $stage {
+			"analysis" -
+			"elaboration" -
+			"simulation" -
+			"" -
 			default {
-				puts "$hbs::ghdl::run: invalid stage '$stage', valid stage are: analysis, elaboration and simulation"
+				puts "hbs::ghdl::run: invalid stage '$stage', valid stage are: analysis, elaboration and simulation"
 			}
 		}
 	}
@@ -553,7 +561,7 @@ namespace eval hbs::ghdl {
 	#   - elaboration,
 	#   - simulation.
 	proc run {stage} {
-			hbs::ghdl::checkStage $stage
+		hbs::ghdl::checkStage $stage
 
 		set hbs::targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 
