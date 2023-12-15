@@ -10,18 +10,6 @@ namespace eval hbs {
 	set Standard ""
 	set Tool ""
 	set Top ""
-}
-
-# Private API {
-namespace eval hbs {
-	# Core and target currently being run
-	set thisCore ""
-	set thisTarget ""
-
-	set targetDir ""
-
-	set fileList {}
-	set cores [dict create]
 
 	proc SetTool {tool} {
 		if {$hbs::Tool !=  ""} {
@@ -101,21 +89,6 @@ namespace eval hbs {
 		set hbs::Library $lib
 	}
 
-	proc Init {} {
-			set hbs::fileList [findFiles . *.hbs]
-
-		if {$hbs::Debug} {
-			puts stderr "hbs: found [llength $hbs::fileList] core files:"
-			foreach fileName $hbs::fileList {
-				puts "  $fileName"
-			}
-		}
-
-		foreach fileName $hbs::fileList {
-			source $fileName
-		}
-	}
-
 	proc Register {} {
 		set file [file normalize [info script]]
 		set core [uplevel 1 [list namespace current]]
@@ -138,8 +111,6 @@ namespace eval hbs {
 		}
 
 		dict append hbs::cores $core [dict create file $file targets $targetsDict]
-
-		#puts $hbs::cores
 	}
 
 	# AddDep adds target dependencies.
@@ -208,27 +179,6 @@ namespace eval hbs {
 		}
 	}
 
-	proc RunTarget {targetPath} {
-		hbs::clearContext
-		set core [hbs::getCoreFromTargetPath $targetPath]
-		set target [hbs::getTargetFromTargetPath $targetPath]
-
-		if {[dict exists $hbs::cores ::hbs::$core] == 0} {
-			puts stderr "core '$core' not found, maybe the core is not registered \(hsb::Register\)"
-			exit 1
-		}
-		if {[dict exists $hbs::cores ::hbs::$core targets $target] == 0} {
-			puts stderr "core '$core' found, but it doesn't have target '$target', '$core' has following targets:"
-			hbs::listTargets $core stderr
-			exit 1
-		}
-
-		set hbs::thisCore $core
-		set hbs::thisTarget $target
-
-		hbs::$targetPath
-	}
-
 	# Run runs target in which it is called.
 	# The stage parameter controls when the tool stops and must be one of:
 	#   analysis - stop after file analysis,
@@ -258,6 +208,54 @@ namespace eval hbs {
 				hbs::vivado::run $stage
 			}
 		}
+	}
+}
+
+# Private API {
+namespace eval hbs {
+	# Core and target currently being run
+	set thisCore ""
+	set thisTarget ""
+
+	set targetDir ""
+
+	set fileList {}
+	set cores [dict create]
+
+	proc init {} {
+		set hbs::fileList [findFiles . *.hbs]
+
+		if {$hbs::Debug} {
+			puts stderr "hbs: found [llength $hbs::fileList] core files:"
+			foreach fileName $hbs::fileList {
+				puts "  $fileName"
+			}
+		}
+
+		foreach fileName $hbs::fileList {
+			source $fileName
+		}
+	}
+
+	proc runTarget {targetPath} {
+		hbs::clearContext
+		set core [hbs::getCoreFromTargetPath $targetPath]
+		set target [hbs::getTargetFromTargetPath $targetPath]
+
+		if {[dict exists $hbs::cores ::hbs::$core] == 0} {
+			puts stderr "core '$core' not found, maybe the core is not registered \(hsb::Register\)"
+			exit 1
+		}
+		if {[dict exists $hbs::cores ::hbs::$core targets $target] == 0} {
+			puts stderr "core '$core' found, but it doesn't have target '$target', '$core' has following targets:"
+			hbs::listTargets $core stderr
+			exit 1
+		}
+
+		set hbs::thisCore $core
+		set hbs::thisTarget $target
+
+		hbs::$targetPath
 	}
 
 	proc clearContext {} {
@@ -418,7 +416,6 @@ namespace eval hbs {
 	# basedir - the directory to start looking in
 	# pattern - A pattern, as defined by the glob command, that the files must match
 	proc findFiles { basedir pattern } {
-
 		# Fix the directory name, this ensures the directory name is in the
 		# native format for the platform and contains a final directory seperator
 		set basedir [string trimright [file join [file normalize $basedir] { }]]
@@ -729,7 +726,7 @@ if {$argv0 eq [info script]} {
 
 	set targetPath [lindex $argv [expr {$argc - 1}]]
 
-	hbs::Init
+	hbs::init
 
 	switch $cmd {
 		"dump-cores" {
@@ -743,7 +740,7 @@ if {$argv0 eq [info script]} {
 			hbs::listTargets $targetPath
 		}
 		"run" {
-			hbs::RunTarget $targetPath
+			hbs::runTarget $targetPath
 		}
 		default {
 			puts stderr "unknown command $cmd, check help"
