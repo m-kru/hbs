@@ -2,18 +2,42 @@
 
 # Public API
 namespace eval hbs {
-	set Debug 0
-
+	# BuildDir is the build directory path.
 	set BuildDir "build"
+	# Device is target device. Often also called part.
 	set Device ""
-	set Library ""
-	set Standard ""
+	# Lib is current library for adding files.
+	set Lib ""
+	# Std is current standard for adding files.
+	set Std ""
+	# Tool is target tool name. It must be lowercase.
 	set Tool ""
+	# Top is name of the top entity/module. Often also called toplevel.
 	set Top ""
 
+	proc SetBuildDir {path} {
+		set hbs::BuildDir $path
+	}
+
+	proc SetDevice {dev} {
+		set hbs::Device $dev
+	}
+
+	proc SetLib {lib} {
+		set hbs::Lib $lib
+	}
+
+	proc SetStd {std} {
+		set hbs::Std $std
+	}
+
+	proc SetTop {top} {
+		set hbs::Top $top
+	}
+
 	proc SetTool {tool} {
-		if {$hbs::Tool !=  ""} {
-			puts stderr "hbs: can't set tool to $tool, tool already set to $hbs::Tool"
+			if {$hbs::Tool !=  ""} {
+			puts stderr "hbs::SeTool: can't set tool to $tool, tool already set to $hbs::Tool"
 			exit 1
 		}
 
@@ -61,7 +85,7 @@ namespace eval hbs {
 		}
 	}
 
-	# GetToolType reutrns type of the set tool.
+	# GetToolType reutrns type of the currently set tool.
 	# Possible values are:
 	#   - formal,
 	#   - simulation,
@@ -81,19 +105,13 @@ namespace eval hbs {
 		}
 	}
 
-	proc SetTop {top} {
-		set hbs::Top $top
-	}
-
-	proc SetLib {lib} {
-		set hbs::Library $lib
-	}
-
+	# Register registers given core.
+	# This proc must be called as the last in the given core namespace.
 	proc Register {} {
-		set file [file normalize [info script]]
+			set file [file normalize [info script]]
 		set core [uplevel 1 [list namespace current]]
 		set targets [uplevel 1 [list info procs]]
-		if {$hbs::Debug} {
+		if {$hbs::debug} {
 			puts stderr "hbs: registering core $core with following [llength $targets] targets:"
 			foreach target $targets {
 				puts "  $target"
@@ -136,7 +154,10 @@ namespace eval hbs {
 		hbs::restoreContext $ctx
 	}
 
+	# AddFile add files to the tool flow.
+	# Multiple files with different extensions can be added in a single call.
 	# args is the list of patterns used for globbing files.
+	# The file paths are relative to the `.hbs` file path where the proc is called.
 	proc AddFile {args} {
 		set core [uplevel 1 [list namespace current]]
 		set dir [file dirname [dict get [dict get $hbs::cores $core] file]]
@@ -211,8 +232,10 @@ namespace eval hbs {
 	}
 }
 
-# Private API {
+# Private API
 namespace eval hbs {
+	set debug 0
+
 	# Core and target currently being run
 	set thisCore ""
 	set thisTarget ""
@@ -225,7 +248,7 @@ namespace eval hbs {
 	proc init {} {
 		set hbs::fileList [findFiles . *.hbs]
 
-		if {$hbs::Debug} {
+		if {$hbs::debug} {
 			puts stderr "hbs: found [llength $hbs::fileList] core files:"
 			foreach fileName $hbs::fileList {
 				puts "  $fileName"
@@ -259,8 +282,8 @@ namespace eval hbs {
 	}
 
 	proc clearContext {} {
-		set hbs::Library ""
-		set hbs::Standard ""
+		set hbs::Lib ""
+		set hbs::Std ""
 		set hbs::Top ""
 		set hbs::thisCore ""
 		set hbs::thisTarget ""
@@ -268,8 +291,8 @@ namespace eval hbs {
 
 	proc saveContext {} {
 		set ctx [dict create \
-				Library $hbs::Library \
-				Standard $hbs::Standard \
+				Lib $hbs::Lib \
+				Std $hbs::Std \
 				Top $hbs::Top \
 				thisCore $hbs::thisCore \
 				thisTarget $hbs::thisTarget]
@@ -277,8 +300,8 @@ namespace eval hbs {
 	}
 
 	proc restoreContext {ctx} {
-		set hbs::Library [dict get $ctx Library]
-		set hbs::Standard [dict get $ctx Standard]
+		set hbs::Lib [dict get $ctx Lib]
+		set hbs::Std [dict get $ctx Std]
 		set hbs::Top [dict get $ctx Top]
 		set hbs::thisCore [dict get $ctx thisCore]
 		set hbs::thisTarget [dict get $ctx thisTarget]
@@ -464,14 +487,14 @@ namespace eval hbs::ghdl {
 	}
 
 	proc library {} {
-		if {$hbs::Library eq ""} {
+		if {$hbs::Lib eq ""} {
 			return "work"
 		}
-		return $hbs::Library
+		return $hbs::Lib
 	}
 
 	proc standard {} {
-		switch $hbs::Standard {
+		switch $hbs::Std {
 			# 2008 is the default one
 			""     { return "08" }
 			"1987" { return "87" }
@@ -480,7 +503,7 @@ namespace eval hbs::ghdl {
 			"2002" { return "02" }
 			"2008" { return "08" }
 			default {
-				puts stderr "ghdl: invalid hbs::Standard $hbs::Standard"
+				puts stderr "ghdl: invalid hbs::Std $hbs::Std"
 				exit 1
 			}
 		}
@@ -495,7 +518,7 @@ namespace eval hbs::ghdl {
 	}
 
 	proc AddVHDLFile {file} {
-		if {$hbs::Debug} {
+		if {$hbs::debug} {
 			puts "ghdl: adding file $file"
 		}
 
@@ -505,7 +528,7 @@ namespace eval hbs::ghdl {
 	}
 
 	proc analyze {} {
-		if {$hbs::Debug} {
+		if {$hbs::debug} {
 			puts "ghdl: starting files analysis"
 		}
 
@@ -594,7 +617,7 @@ namespace eval hbs::ghdl {
 namespace eval hbs::vivado {
 	proc AddFile {files} {
 		foreach file $files {
-			if {$hbs::Debug} {
+			if {$hbs::debug} {
 				puts "vivado: adding file $file"
 			}
 
@@ -634,20 +657,20 @@ namespace eval hbs::vivado {
 	}
 
 	proc library {} {
-		if {$hbs::Library eq ""} {
+		if {$hbs::Lib eq ""} {
 			return "xil_defaultlib"
 		}
-		return $hbs::Library
+		return $hbs::Lib
 	}
 
 	proc VHDLStandard {} {
-		switch $hbs::Standard {
+		switch $hbs::Std {
 			# 2008 is the default one
 			""     { return "-vhdl2008" }
 			"2008" { return "-vhdl2008" }
 			"2019" { return "-vhdl2019" }
 			default {
-				puts stderr "vivado: invalid hbs::Standard $hbs::Standard for VHDL file"
+				puts stderr "vivado: invalid hbs::Std $hbs::Std for VHDL file"
 				exit 1
 			}
 		}
