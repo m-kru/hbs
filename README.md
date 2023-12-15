@@ -78,7 +78,7 @@ There are 3 preferred installation methods.
 
 ## How it works
 
-## Cores detection
+### Cores detection
 
 When user executes `hbs` (or `hbs.tcl`) all directories, starting from the working directory, are recursively scanned to discover `.hbs`  files (symbolic links are also scanned).
 Files with the `.hbs` extension are regular Tcl files that are sourced by the `hbs.tcl` script.
@@ -132,7 +132,7 @@ The first one with core path `my-lib::my-core1`, core name `my-core1`, target pa
 The second one with core path `my-lib::my-core2`, core name `my-core2`, target path `my-lib::my-core2::my-target`, and target name `my-target.`
 `hbs::Register` must be called once for every core.
 
-## Targets detection
+### Targets detection
 
 Hbs automatically detects targets.
 Targets are all procs defined in the scope of namespaces containing a call to the `hbs::Register`.
@@ -167,6 +167,14 @@ The `_tb` proc is a simple proc defined to share calls common for `tb` and `tb-c
 Moreover, all target procs are also regular Tcl procs.
 Such an approach allows for calling them in arbitrarily places.
 The `_tb` proc calls `src` proc because core source files are definitely needed for core testbenches.
+
+### Test targets
+
+Test targets are detected automatically.
+A test target is a target which name:
+- starts with `tb-` or `tb_`,
+- ends with `-tb` or `_tb`,
+- equals `tb`.
 
 ## Running targets
 
