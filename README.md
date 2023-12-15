@@ -230,6 +230,8 @@ Running until bitstream
 [user@host hbs]$ hbs run core::target synthesis
 Running until synthesis
 ```
+Other useful examples of target arguments usage is setting the simulator for test target from the command line, or changing the top level.
+What the target arguments are used for is limited by the user's imagination.
 
 ## Naming conventions
 
