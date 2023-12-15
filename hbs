@@ -28,8 +28,15 @@ The command is one of:
 
 Type 'hbs help <command>' to obtain more information about particular command."""
 
-list_cores_help = """Usage:
+dep_graph_help = """Usage:
 
+  hbs dep-graph [-with-files] hbs.json top-target-path
+
+If -with-files is set, then graph nodes contain also list of files added by given target.
+"""
+
+list_cores_help = """Usage:
+    
   hbs list-cores
 
 List cores found in .hbs files."""
@@ -78,6 +85,8 @@ if len(sys.argv) < 2:
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
         print(help_help)
+    elif cmd == "dep-graph":
+        print(dep_graph_help)
     elif cmd == "list-cores":
         print(list_cores_help)
     elif cmd == "list-targets":
@@ -86,6 +95,8 @@ def hbs_help(cmd):
         print(run_help)
     elif cmd == "test":
         print(test_help)
+    else:
+        print(f"invalid command '{cmd}', check help")
 
 
 def target_path_has_pattern(path, patterns):
