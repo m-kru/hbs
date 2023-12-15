@@ -36,7 +36,7 @@ namespace eval hbs {
 	}
 
 	proc SetTool {tool} {
-			if {$hbs::Tool !=  ""} {
+		if {$hbs::Tool !=  ""} {
 			puts stderr "hbs::SeTool: can't set tool to $tool, tool already set to $hbs::Tool"
 			exit 1
 		}
@@ -91,7 +91,7 @@ namespace eval hbs {
 	#   - simulation,
 	#   - synthesis.
 	proc GetToolType {} {
-			switch $hbs::Tool {
+		switch $hbs::Tool {
 			"ghdl" {
 				return "simulation"
 			}
@@ -108,7 +108,7 @@ namespace eval hbs {
 	# Register registers given core.
 	# This proc must be called as the last in the given core namespace.
 	proc Register {} {
-			set file [file normalize [info script]]
+		set file [file normalize [info script]]
 		set core [uplevel 1 [list namespace current]]
 		set targets [uplevel 1 [list info procs]]
 		if {$hbs::debug} {
