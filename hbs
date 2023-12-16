@@ -75,12 +75,15 @@ If target path patterns are not provided, all test targets are run.
 If target path patterns are provided, only targets whose paths contain
 at least one pattern are run."""
 
+
 def error(msg):
     print(msg, file=sys.stderr)
     exit(1)
 
+
 if len(sys.argv) < 2:
     error("missing command, check help")
+
 
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
@@ -289,7 +292,9 @@ if cmd == "help":
         error("help command accepts one or no argument")
 elif cmd == "graph":
     if len(sys.argv) != 4:
-        error("graph command requires 2 arguments, path to json file with cores and top target path")
+        error(
+            "graph command requires 2 arguments, path to json file with cores and top target path"
+        )
     graph(sys.argv[2], sys.argv[3])
 elif cmd == "dump-cores":
     if len(sys.argv) > 2:
