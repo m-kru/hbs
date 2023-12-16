@@ -75,10 +75,12 @@ If target path patterns are not provided, all test targets are run.
 If target path patterns are provided, only targets whose paths contain
 at least one pattern are run."""
 
-if len(sys.argv) < 2:
-    print("missing command, check help", file=sys.stderr)
+def error(msg):
+    print(msg, file=sys.stderr)
     exit(1)
 
+if len(sys.argv) < 2:
+    error("missing command, check help")
 
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
@@ -104,16 +106,11 @@ def add_target_deps(graph, nodes, cores, target_path):
     core_path = '::'.join(path_parts[:-1])
 
     if core_path not in cores:
-        print(f"core '{core_path}' not found in json file", file=sys.stderr)
-        exit(1)
+        error(f"core '{core_path}' not found in json file")
     core = cores[core_path]
 
     if target_name not in core['targets']:
-        print(
-            f"target '{target_name}' for core '{core_path}' not found in json file",
-            file=sys.stderr,
-        )
-        exit(1)
+        error(f"target '{target_name}' for core '{core_path}' not found in json file")
 
     target = core['targets'][target_name]
 
@@ -289,43 +286,32 @@ if cmd == "help":
     elif len(sys.argv) == 3:
         hbs_help(sys.argv[2])
     else:
-        print("help command accepts one or no argument", file=sys.stderr)
-        exit(1)
+        error("help command accepts one or no argument")
 elif cmd == "graph":
     if len(sys.argv) != 4:
-        print(
-            "graph command requires 2 arguments, path to json file with cores and top target path",
-            file=sys.stderr,
-        )
-        exit(1)
+        error("graph command requires 2 arguments, path to json file with cores and top target path")
     graph(sys.argv[2], sys.argv[3])
 elif cmd == "dump-cores":
     if len(sys.argv) > 2:
-        print("dump-cores command does not accept any arguments", file=sys.stderr)
-        exit(1)
+        error("dump-cores command does not accept any arguments")
     subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
 elif cmd == "list-cores":
     if len(sys.argv) > 2:
-        print("list-cores command does not accept any arguments", file=sys.stderr)
-        exit(1)
+        error("list-cores command does not accept any arguments")
     subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'list-cores'])
 elif cmd == "list-targets":
     if len(sys.argv) < 3:
-        print("list-targets command requires core path", file=sys.stderr)
-        exit(1)
+        error("list-targets command requires core path")
     elif len(sys.argv) > 3:
-        print("list-targets command accepts only one core path", file=sys.stderr)
-        exit(1)
+        error("list-targets command accepts only one core path")
     subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'list-targets', sys.argv[2]]
     )
 elif cmd == "run":
     if len(sys.argv) < 3:
-        print("run command requires at least target path", file=sys.stderr)
-        exit(1)
+        error("run command requires at least target path")
     subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'run', *sys.argv[2:]])
 elif cmd == "test":
     test(sys.argv[2:])
 else:
-    print(f"invalid command '{cmd}', check help")
-    exit(1)
+    error(f"invalid command '{cmd}', check help")
