@@ -214,7 +214,9 @@ namespace eval hbs {
 	#   project - stop after project creation,
 	#   simulation - stop after simulation,
 	#   synthesis - stop after synthesis.
-	# Not all tools supports all stages. Check documantation for "hbs::{tool}::run".
+	# The order is alphabetical. # Not all tools support all stages.
+	# Check documantation for "hbs::{tool}::run". # "hbs::{tool}::run"
+	# documantation must provide run stages in the logical order.
 	proc Run {{stage ""}} {
 		switch $stage {
 			"" -
@@ -735,6 +737,12 @@ namespace eval hbs::vivado {
 		read_vhdl -library [hbs::vivado::library] [hbs::vivado::VHDLStandard] $file
 	}
 
+
+	# vivado::run supports following stages:
+	#   - project,
+	#   - synthesis,
+	#   - implementation.
+	#   - bitstream.
 	proc run {stage} {
 		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
 		hbs::dumpCores $hbsJSON
