@@ -260,7 +260,7 @@ namespace eval hbs {
 		}
 	}
 
-	proc runTarget {targetPath} {
+	proc runTarget {targetPath args} {
 		hbs::clearContext
 		set core [hbs::getCoreFromTargetPath $targetPath]
 		set target [hbs::getTargetFromTargetPath $targetPath]
@@ -278,7 +278,14 @@ namespace eval hbs {
 		set hbs::thisCore $core
 		set hbs::thisTarget $target
 
-		hbs::$targetPath
+		# Below check is required to make default values for target arguments
+		# work as expected. Otherwise empty list is passed when there are no args,
+		# and the default value of first argument is overwritten to be "".
+		if {[llength $args] == 0} {
+			hbs::$targetPath
+		} else {
+			hbs::$targetPath $args
+		}
 	}
 
 	proc clearContext {} {
@@ -747,7 +754,8 @@ if {$argv0 eq [info script]} {
 		exit 0
 	}
 
-	set targetPath [lindex $argv [expr {$argc - 1}]]
+	set targetPath [lindex $argv 1]
+	set args [lreplace $argv 0 1]
 
 	hbs::init
 
@@ -763,7 +771,7 @@ if {$argv0 eq [info script]} {
 			hbs::listTargets $targetPath
 		}
 		"run" {
-			hbs::runTarget $targetPath
+			hbs::runTarget $targetPath {*}$args
 		}
 		default {
 			puts stderr "unknown command $cmd, check help"

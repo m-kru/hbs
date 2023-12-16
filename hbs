@@ -49,10 +49,11 @@ List targets for given core. Core path must be absolute."""
 
 run_help = """Usage:
         
-  hbs run <target-path>
+  hbs run <target-path> [target-args...]
 
 Run provided target. The target path must be absolute target path containing
-the core path and target name.
+the core path and target name. Target arguments are forwarded to the target
+proc call.
 
 Example:
 
@@ -269,12 +270,9 @@ elif cmd == "list-targets":
     )
 elif cmd == "run":
     if len(sys.argv) < 3:
-        print("run command requires target path", file=sys.stderr)
+        print("run command requires at least target path", file=sys.stderr)
         exit(1)
-    elif len(sys.argv) > 3:
-        print("run command accepts only one target path", file=sys.stderr)
-        exit(1)
-    subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'run', sys.argv[2]])
+    subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'run', *sys.argv[2:]])
 elif cmd == "test":
     test(sys.argv[2:])
 else:

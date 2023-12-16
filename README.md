@@ -64,7 +64,7 @@ Or more satiristically:
 - Automatic detection of test targets.
 - Parallel execution of test targets.
 - Dependency graph generation.
-- Only 2 dependencies `tclsh` and `graphviz` (required only if user wants to generate dependency graph).
+- Only 2 dependencies `tclsh` (>= 8.5) and `graphviz` (required only if user wants to generate dependency graph).
 - Arbitrarily deep core paths, no VLNV restriction.
 
 ## Installation
