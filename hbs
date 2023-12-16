@@ -19,7 +19,7 @@ help_help = """Usage:
 The command is one of:
 
   help          Print help message
-  dep-graph     Output dependency graph for given target
+  graph         Output dependency graph for given target
   dump-cores    Dump info about cores in JSON format
   list-cores    List cores found in .hbs files
   list-targets  List targets for given core
@@ -28,12 +28,9 @@ The command is one of:
 
 Type 'hbs help <command>' to obtain more information about particular command."""
 
-dep_graph_help = """Usage:
+graph_help = """Usage:
 
-  hbs dep-graph [-with-files] hbs.json top-target-path
-
-If -with-files is set, then graph nodes contain also list of files added by given target.
-"""
+  hbs graph hbs.json top-target-path"""
 
 list_cores_help = """Usage:
     
@@ -86,8 +83,8 @@ if len(sys.argv) < 2:
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
         print(help_help)
-    elif cmd == "dep-graph":
-        print(dep_graph_help)
+    elif cmd == "graph":
+        print(graph_help)
     elif cmd == "list-cores":
         print(list_cores_help)
     elif cmd == "list-targets":
@@ -98,6 +95,53 @@ def hbs_help(cmd):
         print(test_help)
     else:
         print(f"invalid command '{cmd}', check help")
+
+
+def add_target_deps(graph, nodes, cores, target_path):
+    path_parts = target_path.split('::')
+
+    target_name = path_parts[-1]
+    core_path = '::'.join(path_parts[:-1])
+
+    if core_path not in cores:
+        print(f"core '{core_path}' not found in json file", file=sys.stderr)
+        exit(1)
+    core = cores[core_path]
+
+    if target_name not in core['targets']:
+        print(
+            f"target '{target_name}' for core '{core_path}' not found in json file",
+            file=sys.stderr,
+        )
+        exit(1)
+
+    target = core['targets'][target_name]
+
+    target_node = target_path.replace('::', '/')
+    if target_node not in nodes:
+        nodes[target_name] = True
+        graph.node(target_node, target_path)
+
+    for dep_path in target['dependencies']:
+        dep_node = dep_path.replace('::', '/')
+        if dep_node not in nodes:
+            nodes[dep_node] = True
+            graph.node(dep_node, dep_path)
+
+        graph.edge(target_node, dep_node)
+        add_target_deps(graph, nodes, cores, dep_path)
+
+
+def graph(cores_json_path, target_path):
+    import graphviz
+
+    cores_json = open(cores_json_path)
+    cores = json.load(cores_json)
+
+    nodes = dict()
+    graph = graphviz.Digraph('G', filename=f"{target_path.replace('::', '-')}")
+    add_target_deps(graph, nodes, cores, target_path)
+    graph.render(cleanup=True)
 
 
 def target_path_has_pattern(path, patterns):
@@ -247,12 +291,19 @@ if cmd == "help":
     else:
         print("help command accepts one or no argument", file=sys.stderr)
         exit(1)
+elif cmd == "graph":
+    if len(sys.argv) != 4:
+        print(
+            "graph command requires 2 arguments, path to json file with cores and top target path",
+            file=sys.stderr,
+        )
+        exit(1)
+    graph(sys.argv[2], sys.argv[3])
 elif cmd == "dump-cores":
     if len(sys.argv) > 2:
         print("dump-cores command does not accept any arguments", file=sys.stderr)
         exit(1)
     subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
-
 elif cmd == "list-cores":
     if len(sys.argv) > 2:
         print("list-cores command does not accept any arguments", file=sys.stderr)
