@@ -238,6 +238,34 @@ namespace eval hbs {
 		}
 	}
 
+	# SetGeneric sets generic (Verilog parameter) value. The actual action might
+	# be postponed, as for example, for GHDL the generic values are provided
+	# as command line arguments when running the simulation.
+	#
+	# The proc is named "SetGeneric", not "SetParam" or "SetParameters", because
+	# the term parameter often refers to the EDA tool internal parameters.
+	# The term "generic" is less ambiguous than the term "parameter".
+	# For example, Vivado for setting Verilog parameters also uses the term
+	# generic, https://support.xilinx.com/s/article/52217?language=en_US.
+	proc SetGeneric {name value} {
+		switch $hbs::Tool {
+			"" {
+				puts -stderr "hbs::SetGeneric: can't set generic '$name', hbs::Tool not set"
+				exit 1
+			}
+			"ghdl" {
+				dict append hbs::ghdl::generics $name $value
+			}
+			"vivado" {
+				set_property generic $name=$value [current_fileset]
+			}
+		default {
+				puts -stderr "hbs::SetGeneric: unknown tool '$hbs::Tool'"
+				exit 1
+			}
+		}
+	}
+
 	# TODO: Implement below functionality.
 	proc SetPostAnalysisCallback {} {}
 	proc SetPostBitstreamCallback {} {}
@@ -499,6 +527,8 @@ namespace eval hbs::ghdl {
 	set vhdlFiles [dict create]
 	set libDirs [dict create]
 
+	set generics [dict create]
+
 	proc AddFile {files} {
 		foreach file $files {
 			set extension [file extension $file]
@@ -544,6 +574,14 @@ namespace eval hbs::ghdl {
 			set libs "$libs -P$libDir"
 		}
 		return $libs
+	}
+
+	proc genericArgs {} {
+		set args ""
+		dict for {name value} $hbs::ghdl::generics {
+			set args "$args -g$name=$value"
+		}
+		return $args
 	}
 
 	proc AddVHDLFile {file} {
@@ -627,7 +665,7 @@ namespace eval hbs::ghdl {
 		set workDir [pwd]
 		cd $hbs::targetDir
 
-		set cmd "./$hbs::Top --wave=ghdl.ghw"
+		set cmd "./$hbs::Top --wave=ghdl.ghw [hbs::ghdl::genericArgs]"
 		puts $cmd
 		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
 			puts $output
