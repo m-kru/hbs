@@ -230,6 +230,15 @@ namespace eval hbs {
 			}
 		}
 	}
+
+	# TODO: Implement below functionality.
+	proc SetPostAnalysisCallback {} {}
+	proc SetPostBitstreamCallback {} {}
+	proc SetPostElaborationCallback {} {}
+	proc SetPostImplementationCallback {} {}
+	proc SetPostProjectCallback {} {}
+	proc SetPostSimulationCallback {} {}
+	proc SetPostSynthesisCallback {} {}
 }
 
 # Private API
