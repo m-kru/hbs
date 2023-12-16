@@ -144,11 +144,16 @@ namespace eval hbs {
 			lappend deps $targetPath
 			dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies $deps
 
-			# Run dependency target
-			hbs::clearContext
-			set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
-			set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
-			hbs::$targetPath
+			# Run target only if it hasn't been run yet.
+			if {[dict exists $hbs::runTargets $targetPath] == 0} {
+				# Run dependency target
+				hbs::clearContext
+				set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
+				set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
+				hbs::$targetPath
+
+				dict append hbs::runTargets $targetPath
+			}
 		}
 	
 		hbs::restoreContext $ctx
@@ -254,6 +259,10 @@ namespace eval hbs {
 	set fileList {}
 	set cores [dict create]
 
+	# runTarget is a dict containing targets that already have been run.
+	# During single flow, target can be run only once, even if it has arguments.
+	set runTargets [dict create]
+
 	proc init {} {
 		set hbs::fileList [findFiles . *.hbs]
 
@@ -286,6 +295,8 @@ namespace eval hbs {
 
 		set hbs::thisCore $core
 		set hbs::thisTarget $target
+
+		dict append hbs::runTargets $targetPath
 
 		# Below check is required to make default values for target arguments
 		# work as expected. Otherwise empty list is passed when there are no args,
