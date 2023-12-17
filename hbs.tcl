@@ -52,14 +52,14 @@ namespace eval hbs {
 						# Vivado already runs the script
 						set hbs::Tool "vivado"
 
-						set hbs::targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+						set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 						set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
 						create_project -force $prjName $hbs::targetDir
 						set_property part $hbs::Device [current_project]
 					}
 				} else {
 					# Run the script with Vivado
-					set prjDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+					set prjDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 					file mkdir $prjDir
 
 					set cmd "vivado \
@@ -698,7 +698,10 @@ namespace eval hbs::ghdl {
 	proc run {stage} {
 		hbs::ghdl::checkStage $stage
 
-		set hbs::targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+		set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+		if {[file exist $hbs::targetDir] eq 0} {
+			file mkdir $hbs::targetDir
+		}
 
 		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
 		hbs::dumpCores $hbsJSON
