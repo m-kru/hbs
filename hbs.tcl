@@ -112,7 +112,7 @@ namespace eval hbs {
 		set core [uplevel 1 [list namespace current]]
 		set targets [uplevel 1 [list info procs]]
 		if {$hbs::debug} {
-			puts stderr "hbs: registering core $core with following [llength $targets] targets:"
+			puts stderr "hbs: registering core [string replace $core 0 6 ""] with following [llength $targets] targets:"
 			foreach target $targets {
 				puts "  $target"
 			}
@@ -131,36 +131,36 @@ namespace eval hbs {
 		dict append hbs::cores $core [dict create file $file targets $targetsDict]
 	}
 
-	# AddDep adds target dependencies.
+	# AddDep adds target dependency.
+	# The first argument is target path, all remaining arguments are passed
+	# to the target path proc as arguments.
 	proc AddDep {args} {
 		set core [uplevel 1 [list namespace current]]
 		set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
 
 		set ctx [hbs::saveContext]
 
-		foreach targetPath $args {
-			checkTargetExists $targetPath
+		set targetPath [lindex $args 0]
+		set args [lreplace $args 0 0]
 
-			# Restoring context here is required to correctly track dependencies
-			hbs::restoreContext $ctx
+		checkTargetExists $targetPath
 
-			# Add dependency to the core info dictionary
-			set deps [dict get $hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies]
-			lappend deps $targetPath
-			dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies $deps
+		# Add dependency to the core info dictionary
+		set deps [dict get $hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies]
+		lappend deps $targetPath
+		dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies $deps
 
-			# Run target only if it hasn't been run yet.
-			if {[dict exists $hbs::runTargets $targetPath] == 0} {
-				# Run dependency target
-				hbs::clearContext
-				set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
-				set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
-				hbs::$targetPath
+		# Run target only if it hasn't been run yet.
+		if {[dict exists $hbs::runTargets $targetPath] == 0} {
+			# Run dependency target
+			hbs::clearContext
+			set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
+			set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
+			hbs::$targetPath {*}$args
 
-				dict append hbs::runTargets $targetPath
-			}
+			dict append hbs::runTargets $targetPath
 		}
-	
+
 		hbs::restoreContext $ctx
 	}
 
@@ -170,7 +170,7 @@ namespace eval hbs {
 	# The file paths are relative to the `.hbs` file path where the proc is called.
 	proc AddFile {args} {
 		set core [uplevel 1 [list namespace current]]
-		set dir [file dirname [dict get [dict get $hbs::cores $core] file]]
+		set hbsFileDir [file dirname [dict get [dict get $hbs::cores $core] file]]
 
 		if {$args == {}} {
 			set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
@@ -181,8 +181,15 @@ namespace eval hbs {
 		set files {}
 
 		foreach pattern $args {
-			foreach file [glob -nocomplain -path "$dir/" $pattern] {
-				lappend files $file
+			# Append hbsFileDir only in the case of relative paths
+			if {[string match "/*" $pattern]} {
+				foreach file [glob -nocomplain $pattern] {
+					lappend files $file
+				}
+			} else {
+				foreach file [glob -nocomplain -path "$hbsFileDir/" $pattern] {
+					lappend files $file
+				}
 			}
 		}
 
@@ -295,6 +302,10 @@ namespace eval hbs {
 		exec {*}$args
 
 		cd $workDir
+	}
+
+	proc GetCoreDir {} {
+		return [file dirname [dict get $hbs::cores ::hbs::$hbs::thisCore file]]
 	}
 }
 
