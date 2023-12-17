@@ -586,6 +586,13 @@ namespace eval hbs::ghdl {
 		foreach libDir [dict keys $hbs::ghdl::libDirs] {
 			set libs "$libs -P$libDir"
 		}
+
+		# Check for pre-analyzed libraries
+		set defaultVendorsDir "/usr/local/lib/ghdl/vendors"
+		if {[file exist $defaultVendorsDir]} {
+			set libs "$libs -P$defaultVendorsDir -frelaxed-rules"
+		}
+
 		return $libs
 	}
 
