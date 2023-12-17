@@ -139,7 +139,7 @@ def graph(cores_json_path, target_path):
     cores = json.load(cores_json)
 
     nodes = dict()
-    graph = graphviz.Digraph('G', filename=f"{target_path.replace('::', '-')}")
+    graph = graphviz.Digraph('G', strict=True, filename=f"{target_path.replace('::', '-')}")
     add_target_deps(graph, nodes, cores, target_path)
     graph.render(cleanup=True)
 
