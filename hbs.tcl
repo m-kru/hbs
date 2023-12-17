@@ -139,6 +139,8 @@ namespace eval hbs {
 		set ctx [hbs::saveContext]
 
 		foreach targetPath $args {
+			checkTargetExists $targetPath
+
 			# Add dependency to the core info dictionary
 			set deps [dict get $hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies]
 			lappend deps $targetPath
@@ -220,12 +222,18 @@ namespace eval hbs {
 	proc Run {{stage ""}} {
 		switch $stage {
 			"" -
-			"synthesis" -
-			"implementation" {
+			"analysis" -
+			"bitstream" -
+			"elaboration" -
+			"implementation" -
+			"project" -
+			"simulation" -
+			"synthesis" {
 				;
 			}
 			default {
-				"hbs::Run: invalid stage $stage"
+				puts stderr "hbs::Run: invalid stage $stage"
+				exit 1
 			}
 		}
 		switch $hbs::Tool {
@@ -308,8 +316,7 @@ namespace eval hbs {
 		}
 	}
 
-	proc runTarget {targetPath args} {
-		hbs::clearContext
+	proc checkTargetExists {targetPath} {
 		set core [hbs::getCoreFromTargetPath $targetPath]
 		set target [hbs::getTargetFromTargetPath $targetPath]
 
@@ -322,9 +329,15 @@ namespace eval hbs {
 			hbs::listTargets $core stderr
 			exit 1
 		}
+	}
 
-		set hbs::thisCore $core
-		set hbs::thisTarget $target
+	proc runTarget {targetPath args} {
+		checkTargetExists $targetPath
+
+		hbs::clearContext
+
+		set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
+		set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
 
 		dict append hbs::runTargets $targetPath
 
@@ -633,12 +646,15 @@ namespace eval hbs::ghdl {
 
 	proc checkStage {stage} {
 		switch $stage {
+			"" -
 			"analysis" -
 			"elaboration" -
-			"simulation" -
-			"" -
+			"simulation" {
+				;
+			}
 			default {
-				puts "hbs::ghdl::run: invalid stage '$stage', valid stage are: analysis, elaboration and simulation"
+				puts "hbs::ghdl::run: invalid stage '$stage', valid ghdl stages are: analysis, elaboration and simulation"
+				exit 1
 			}
 		}
 	}
