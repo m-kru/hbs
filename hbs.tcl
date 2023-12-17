@@ -85,12 +85,12 @@ namespace eval hbs {
 		}
 	}
 
-	# GetToolType reutrns type of the currently set tool.
+	# ToolType reutrns type of the currently set tool.
 	# Possible values are:
 	#   - formal,
 	#   - simulation,
 	#   - synthesis.
-	proc GetToolType {} {
+	proc ToolType {} {
 		switch $hbs::Tool {
 			"ghdl" {
 				return "simulation"
@@ -99,7 +99,7 @@ namespace eval hbs {
 				return "synthesis"
 			}
 			default {
-				puts -stderr "hbs::GetToolType: hbs::Tool not set"
+				puts -stderr "hbs::ToolType: hbs::Tool not set"
 				exit 1
 			}
 		}
@@ -304,7 +304,7 @@ namespace eval hbs {
 		cd $workDir
 	}
 
-	proc GetCoreDir {} {
+	proc CoreDir {} {
 		return [file dirname [dict get $hbs::cores ::hbs::$hbs::thisCore file]]
 	}
 }

@@ -276,7 +276,7 @@ Every public `hbs::Variable` has corresponding `hbs::SetVariable` function for s
 
 All variables representing choices (enumeration) user lowercase strings.
 For example, the `hbs::Tool` can be `ghdl`, `vivado` etc.
-The `hbs::GetToolType` proc can return `formal`, `simulation`, or `synthesis`.
+The `hbs::ToolType` proc can return `formal`, `simulation`, or `synthesis`.
 The points of this is to avoid error cases when one core maintainer sets the tool to `Vivado`, but another core maintainer has for example following condition in one of the targets `if {$hbs::Tool == "vivado"}`.
 The expression would evaluate to false, although the tool is Vivado.
 The `hbs::Set*` procs make sure users provide lowercase names.
