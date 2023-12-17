@@ -676,10 +676,10 @@ namespace eval hbs::ghdl {
 	proc run {stage} {
 		hbs::ghdl::checkStage $stage
 
-		set hbsJSON [open hbs.json w]
-		hbs::dumpCores $hbsJSON
-
 		set hbs::targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+
+		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
+		hbs::dumpCores $hbsJSON
 
 		hbs::ghdl::analyze
 		if {$stage == "analysis"} {
