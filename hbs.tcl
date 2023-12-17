@@ -285,6 +285,17 @@ namespace eval hbs {
 	proc SetPostProjectCallback {} {}
 	proc SetPostSimulationCallback {} {}
 	proc SetPostSynthesisCallback {} {}
+
+	proc Exec {args} {
+		set workDir [pwd]
+
+		set hbsFileDir [file dirname [dict get $hbs::cores ::hbs::$hbs::thisCore file]]
+		cd $hbsFileDir
+
+		exec {*}$args
+
+		cd $workDir
+	}
 }
 
 # Private API
