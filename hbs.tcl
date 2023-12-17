@@ -141,6 +141,9 @@ namespace eval hbs {
 		foreach targetPath $args {
 			checkTargetExists $targetPath
 
+			# Restoring context here is required to correctly track dependencies
+			hbs::restoreContext $ctx
+
 			# Add dependency to the core info dictionary
 			set deps [dict get $hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies]
 			lappend deps $targetPath
@@ -673,6 +676,9 @@ namespace eval hbs::ghdl {
 	proc run {stage} {
 		hbs::ghdl::checkStage $stage
 
+		set hbsJSON [open hbs.json w]
+		hbs::dumpCores $hbsJSON
+
 		set hbs::targetDir [regsub :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 
 		hbs::ghdl::analyze
@@ -696,9 +702,6 @@ namespace eval hbs::ghdl {
 			puts stderr $output
 			exit 1
 		}
-
-		set hbsJSON [open hbs.json w]
-		hbs::dumpCores $hbsJSON
 
 		cd $workDir
 	}
