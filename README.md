@@ -83,6 +83,10 @@ There are 3 preferred installation methods.
 
 When user executes `hbs` (or `hbs.tcl`) all directories, starting from the working directory, are recursively scanned to discover `.hbs`  files (symbolic links are also scanned).
 Files with the `.hbs` extension are regular Tcl files that are sourced by the `hbs.tcl` script.
+However, before sourcing `.hbs` files, the file list is sorted in such a way, that script with shorter path depth are sourced before script with longer path depth.
+For example, if following 3 `.hbs` file were found: `a/b/c/foo.hbs`, `d/bar.hbs`, `e/f/baz.hbs`, they would be sourced in the following order: `d/bar.hbs`, `e/f/baz.hbs`, `a/b/c/foo.hbs`.
+Such an approach allows controlling when custom symbols (variables and procs) are ready to use.
+For example, if you have custom proc used in multiple `.hbs` files, then you can create separate `utils.hbs` file containg utility procs, and place it in the the project root directory.
 Within `.hbs` files user defines cores and targets, although user is free to have any valid Tcl code in `.hbs` files.
 
 To register a core user must call `hbs::Register` within the core namespace.

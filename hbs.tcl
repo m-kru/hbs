@@ -328,6 +328,7 @@ namespace eval hbs {
 
 	proc init {} {
 		set hbs::fileList [findFiles . *.hbs]
+		hbs::sortFileList
 
 		if {$hbs::debug} {
 			puts stderr "hbs: found [llength $hbs::fileList] core files:"
@@ -558,6 +559,22 @@ namespace eval hbs {
 			}
 		}
 		return $fileList
+	}
+
+	# sortFileList sorts .hbs file list in such a way, that files with shorter
+	# path depth are sourced as the first ones.
+	proc sortFileList {} {
+		proc cmp {l r} {
+			set li [llength [split $l /]]
+			set ri [llength [split $r /]]
+			if {$li < $ri} {
+				return -1
+			} elseif {$li > $ri} {
+				return 1
+			}
+			return 0
+		}
+		set hbs::fileList [lsort -command cmp $hbs::fileList]
 	}
 }
 
