@@ -306,23 +306,29 @@ elif cmd == "graph":
 elif cmd == "dump-cores":
     if len(sys.argv) > 2:
         error("dump-cores command does not accept any arguments")
-    subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
+    status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
+    exit(status.returncode)
 elif cmd == "list-cores":
     if len(sys.argv) > 2:
         error("list-cores command does not accept any arguments")
-    subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'list-cores'])
+    status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'list-cores'])
+    exit(status.returncode)
 elif cmd == "list-targets":
     if len(sys.argv) < 3:
         error("list-targets command requires core path")
     elif len(sys.argv) > 3:
         error("list-targets command accepts only one core path")
-    subprocess.run(
+    status = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'list-targets', sys.argv[2]]
     )
+    exit(status.returncode)
 elif cmd == "run":
     if len(sys.argv) < 3:
         error("run command requires at least target path")
-    subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'run', *sys.argv[2:]])
+    status = subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'run', *sys.argv[2:]]
+    )
+    exit(status.returncode)
 elif cmd == "test":
     test(sys.argv[2:])
 else:
