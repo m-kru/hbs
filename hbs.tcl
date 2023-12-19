@@ -169,12 +169,11 @@ namespace eval hbs {
 	# args is the list of patterns used for globbing files.
 	# The file paths are relative to the `.hbs` file path where the proc is called.
 	proc AddFile {args} {
-		set core [uplevel 1 [list namespace current]]
-		set hbsFileDir [file dirname [dict get [dict get $hbs::cores $core] file]]
+		set hbsFileDir [file dirname [dict get [dict get $hbs::cores ::hbs::$hbs::thisCore] file]]
 
 		if {$args == {}} {
 			set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
-			puts stderr "hbs::AddFile: no files provided, core '[string replace $core 0 6 ""]' target '$target'"
+			puts stderr "hbs::AddFile: no files provided, core '$hbs::thisCore' target '$target'"
 			exit 1
 		}
 
