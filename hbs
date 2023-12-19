@@ -172,19 +172,13 @@ def run_to_file(target_path):
             [os.path.join(this_script_dir, 'hbs.tcl'), 'run', target_path],
             check=True,
             encoding="utf-8",
-            stdout = log_file,
-            stderr = log_file,
+            stdout=log_file,
+            stderr=log_file,
         )
         result['passed'] = True
-        print(
-            f"{target_path.ljust(test_longest_path_len+1)} \033[92mpassed\033[0m",
-            end='',
-        )
+        msg = f"{target_path.ljust(test_longest_path_len+1)} \033[92mpassed\033[0m"
     except subprocess.CalledProcessError:
-        print(
-            f"{target_path.ljust(test_longest_path_len+1)} \033[91mfailed\033[0m",
-            end='',
-        )
+        msg = f"{target_path.ljust(test_longest_path_len+1)} \033[91mfailed\033[0m"
 
     log_file.close()
     log = open(log_file_path, 'r')
@@ -198,11 +192,11 @@ def run_to_file(target_path):
     log.close()
 
     if errors_count > 0:
-        print(f"  errors: {errors_count}", end='')
+        msg += f"  errors: {errors_count}"
     if warnings_count > 0:
-        print(f"  warnings: {warnings_count}", end='')
+        msg += f"  warnings: {warnings_count}"
 
-    print("")
+    print(msg)
 
     result['errors_count'] = errors_count
     result['warnings_count'] = warnings_count
