@@ -848,7 +848,6 @@ namespace eval hbs::vivado {
 		read_vhdl -library [hbs::vivado::library] [hbs::vivado::VHDLStandard] $file
 	}
 
-
 	# vivado::run supports following stages:
 	#   - project,
 	#   - synthesis,

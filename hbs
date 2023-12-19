@@ -3,6 +3,7 @@
 from datetime import datetime
 import json
 import os
+import pathlib
 import subprocess
 import sys
 
@@ -158,30 +159,43 @@ def target_path_has_pattern(path, patterns):
 
 def run_to_file(target_path):
     """ run_to_file runs given target and directs output to file. """
-    output = subprocess.run(
-        [os.path.join(this_script_dir, 'hbs.tcl'), 'run', target_path],
-        capture_output=True,
-        encoding="utf-8",
-    )
+    log_dir = os.path.join('build', target_path.replace('::', '/'))
+    pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
+    log_file_path = os.path.join(log_dir, 'output.txt')
+    log_file = open(log_file_path, 'w+')
 
     result = {'target': target_path, 'passed': False}
-    if output.returncode == 0:
-        result['passed'] = True
-
-    errors_count = output.stdout.lower().count("error")
-    warnings_count = output.stdout.lower().count("warn")
-
     global test_longest_path_len
-    if result['passed'] == True:
+
+    try:
+        output = subprocess.run(
+            [os.path.join(this_script_dir, 'hbs.tcl'), 'run', target_path],
+            check=True,
+            encoding="utf-8",
+            stdout = log_file,
+            stderr = log_file,
+        )
+        result['passed'] = True
         print(
             f"{target_path.ljust(test_longest_path_len+1)} \033[92mpassed\033[0m",
             end='',
         )
-    else:
+    except subprocess.CalledProcessError:
         print(
             f"{target_path.ljust(test_longest_path_len+1)} \033[91mfailed\033[0m",
             end='',
         )
+
+    log_file.close()
+    log = open(log_file_path, 'r')
+
+    errors_count = 0
+    warnings_count = 0
+    for line in log:
+        errors_count += line.lower().count("error")
+        warnings_count += line.lower().count("warn")
+
+    log.close()
 
     if errors_count > 0:
         print(f"  errors: {errors_count}", end='')
@@ -189,19 +203,6 @@ def run_to_file(target_path):
         print(f"  warnings: {warnings_count}", end='')
 
     print("")
-
-    with open(
-        os.path.join('build', target_path.replace('::', '/'), 'output.txt'), "w"
-    ) as f:
-        f.write("************************************************************\n")
-        f.write("*****                      STDERR                      *****\n")
-        f.write("************************************************************\n\n")
-        f.write(output.stderr)
-        f.write("\n\n")
-        f.write("************************************************************\n")
-        f.write("*****                      STDOUT                      *****\n")
-        f.write("************************************************************\n\n")
-        f.write(output.stdout)
 
     result['errors_count'] = errors_count
     result['warnings_count'] = warnings_count
