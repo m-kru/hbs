@@ -110,6 +110,12 @@ namespace eval hbs {
 	proc Register {} {
 		set file [file normalize [info script]]
 		set core [uplevel 1 [list namespace current]]
+
+		if {[dict exists $hbs::cores $core]} {
+			puts stderr "can't register core '$core' from file $file, core with the same core path already registered from file [dict get $hbs::cores $core file]"
+			exit 1
+		}
+
 		set targets [uplevel 1 [list info procs]]
 		if {$hbs::debug} {
 			puts stderr "hbs: registering core [string replace $core 0 6 ""] with following [llength $targets] targets:"

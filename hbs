@@ -76,8 +76,8 @@ If target path patterns are provided, only targets whose paths contain
 at least one pattern are run."""
 
 
-def error(msg):
-    print(msg, file=sys.stderr)
+def error(msg, end='\n'):
+    print(msg, file=sys.stderr, end=end)
     exit(1)
 
 
@@ -139,7 +139,9 @@ def graph(cores_json_path, target_path):
     cores = json.load(cores_json)
 
     nodes = dict()
-    graph = graphviz.Digraph('G', strict=True, filename=f"{target_path.replace('::', '-')}")
+    graph = graphviz.Digraph(
+        'G', strict=True, filename=f"{target_path.replace('::', '-')}"
+    )
     add_target_deps(graph, nodes, cores, target_path)
     graph.render(cleanup=True)
 
@@ -246,10 +248,15 @@ def test(patterns):
     """patterns are target path patterns"""
     start_time = datetime.now()
 
-    hbs_json = subprocess.check_output(
-        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores']
+    output = subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
+        capture_output=True,
+        encoding="utf-8",
     )
-    cores = json.loads(hbs_json.decode("utf-8"))
+    if output.returncode != 0:
+        error(output.stderr, end='')
+
+    cores = json.loads(output.stdout)
 
     test_targets = []
     for core, core_info in cores.items():
