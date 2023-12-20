@@ -289,13 +289,22 @@ namespace eval hbs {
 		}
 	}
 
+	proc SetPostAnalysisCallback {args} {
+		set hbs::postAnalysisCallback $args
+	}
+
+	proc SetPostElaborationCallback {args} {
+		set hbs::postElaborationCallback $args
+	}
+
+	proc SetPostSimulationCallback {args} {
+		set hbs::postSimulationCallback $args
+	}
+
 	# TODO: Implement below functionality.
-	proc SetPostAnalysisCallback {} {}
 	proc SetPostBitstreamCallback {} {}
-	proc SetPostElaborationCallback {} {}
 	proc SetPostImplementationCallback {} {}
 	proc SetPostProjectCallback {} {}
-	proc SetPostSimulationCallback {} {}
 	proc SetPostSynthesisCallback {} {}
 
 	proc Exec {args} {
@@ -323,6 +332,10 @@ namespace eval hbs {
 	set thisTarget ""
 
 	set targetDir ""
+
+	set postAnalysisCallback ""
+	set postElaborationCallback ""
+	set postSimulationCallback ""
 
 	set fileList {}
 	set cores [dict create]
@@ -729,11 +742,17 @@ namespace eval hbs::ghdl {
 		hbs::dumpCores $hbsJSON
 
 		hbs::ghdl::analyze
+		if {$hbs::postAnalysisCallback != ""} {
+			eval $hbs::postAnalysisCallback
+		}
 		if {$stage == "analysis"} {
 			exit 0
 		}
 
 		hbs::ghdl::elaborate
+		if {$hbs::postElaborationCallback != ""} {
+			eval $hbs::postElaborationCallback
+		}
 		if {$stage == "elaboration"} {
 			exit 0
 		}
@@ -748,6 +767,9 @@ namespace eval hbs::ghdl {
 		} else {
 			puts stderr $output
 			exit 1
+		}
+		if {$hbs::postSimulationCallback != ""} {
+			eval $hbs::postSimulationCallback
 		}
 
 		cd $workDir
