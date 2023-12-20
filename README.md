@@ -77,6 +77,20 @@ There are 3 preferred installation methods.
 2. Copy `hbs` and `hbs.tcl` to one of directories in `$PATH`.
 3. Clone the repo, and add an alias to the `hbs` in `.bashrc` (or equivalent).
 
+## Glossary
+
+- **hbs file** - file with `.hbs` extension containing valid Tcl code.
+- **proc** - Tcl proc.
+- **core** - Tcl namespace in which `hbs::Register` proc is called.
+- **core path** - Tcl namespace path for the core. For example, if `hbs::Register` is called in namespace `lib::pkg::core`, then `lib::pkg::core` is the core path.
+- **core name** - name of the Tcl namespace in which `hbs::Register` is called. For example, if `hbs::Register` is called in namespace `lib::pkg::core`, then `core` is the core name.
+- **target** - proc, which name does not start with the floor character (`_`), defined in core.
+- **target path** - Tcl path for the target. For example, if proc `target` is defined in the core with core path `lib::pkg::core`, then the target path is `lib::pkg::core::target`.
+- **target name** - name of the target in the target path. For example, if the target path is `lib::pkg::core::target`, then the target name is `target`.
+- **to run a target** - to execute commands defined in the target.
+- **depender** - a target depending on at least one another target. Within a depender body the `hbs::AddDep` proc is called at least once.
+- **dependency** - a target on which at least one other target depends. The dependency is an argument for at least one `hbs::AddDep` proc call.
+
 ## How it works
 
 ### Cores detection
@@ -252,8 +266,8 @@ It also tracks dependencies so that generating dependency graph is possible.
 Within single flow each target can be executed at most once.
 This implies, that multiple cores can't add the same dependency target with different arguments (it is still being considered whether this is worth to add).
 However, is there is such a need there are 2 possible solutions.
-1. User can call `hbs::AddDep dependency::target::path args for first case` in single place, and in all other places simply call `dependency::target::path args for another case`. The drawback of this approach is that only the target with `hbs::AddDep` will have depency visible in the depency graph. However, this can be solved by adding an extra `hbs::AddDep dependency::target::path` call.
-2. Add extra targets to the dependency core and use different depency target path in different places.
+1. User can call `hbs::AddDep dependency::target::path args for first case` in single place, and in all other places simply call `dependency::target::path args for another case`. The drawback of this approach is that only the target with `hbs::AddDep` will have dependency visible in the dependency graph. However, this can be solved by adding an extra `hbs::AddDep dependency::target::path` call.
+2. Add extra targets to the dependency core and use different dependency target path in different places.
 
 ## Code generation
 
