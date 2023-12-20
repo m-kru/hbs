@@ -68,6 +68,7 @@ Or more satiristically:
 - Only 2 dependencies `tclsh` (>= 8.5) and `graphviz` (required only if user wants to generate dependency graph).
 - Arbitrarily deep core paths, no VLNV restriction.
 - Support for arguments passing from command line to target being run.
+- Support for arguments passing to dependency targets.
 
 ## Installation
 
