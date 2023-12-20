@@ -22,7 +22,7 @@ The discussion whether it is good or bad makes no sense, it is how it is.
 Most people don't like Tcl (I don't understand why because when you understand its paradigm it is actually quite well designed).
 
 The idea of using some wrapper declarative format seems to be the solution of all problems, at first ...
-However, executing arbitrary Tcl commands in arbitrary place in relatively complex task in the second class of build systems.
+However, executing arbitrary Tcl commands in arbitrary place is a relatively complex task in the second class of build systems.
 They are also overly complicated (my opinion).
 Just look at the number of files in theirs repositories.
 And that is not all, as all of them also have external dependencies.
