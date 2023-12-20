@@ -39,7 +39,7 @@ It also help to avoid bloat.
 Declarative formats are not optimal for in-tree dependency management (my opinion).
 Different dependencies might require completely different commands to be executed to fetch them and prepare for use.
 In such a case, the procedural approach is what is desired.
-In most of the declarative approaches user declares a script that has to called to execute those commands, instead of simply calling the commands.
+In most of the declarative approaches user declares a script that has to be called to execute those commands, instead of simply calling the commands.
 This adds an unnecessary intermediate layer, and increases complexity.
 
 The above drawbacks of the declarative approach determined HBS to directly utilize Tcl.
@@ -58,7 +58,7 @@ Or more satiristically:
 
 ## Core features
 
-- Consists solely of one Tcl script and one Python wrapper script. The Python script is required only for tests run and dependency graph generation.
+- Consists solely of one Tcl script and one Python wrapper script. The Python script is required only for automatic tests run and dependency graph generation.
 - Core targets depend on other cores targets, not solely on cores.
 - Tcl script executed directly by EDA tools, which makes custom commands execution straightforward.
 - Support for globbing when adding files.
