@@ -92,6 +92,9 @@ There are 3 preferred installation methods.
 - **to run a target** - to execute commands defined in the target.
 - **depender** - a target depending on at least one another target. Within a depender body the `hbs::AddDep` proc is called at least once.
 - **dependency** - a target on which at least one other target depends. The dependency is an argument for at least one `hbs::AddDep` proc call.
+- **tool** - a software capable of processing hardware description sources or output from another tool. Example tools are: [GHDL](https://github.com/ghdl/ghdl), [Verilator](https://github.com/verilator/verilator), [yosys](https://github.com/YosysHQ/yosys), [Vivado](https://www.xilinx.com/products/design-tools/vivado.html), etc.
+- **flow** - an ordered set of actions taken by a tool to produce a result specified by a user.
+- **stage** - a piece of a tool flow with a clearly defined task and output. The number and types of stages depend on a tool. For example, the GHDL has *analysis*, *elaboration* and *simulation* stages.
 
 ## How it works
 
