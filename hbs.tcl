@@ -112,7 +112,7 @@ namespace eval hbs {
 		set core [uplevel 1 [list namespace current]]
 
 		if {[dict exists $hbs::cores $core]} {
-			puts stderr "can't register core '$core' from file $file, core with the same core path already registered from file [dict get $hbs::cores $core file]"
+			puts stderr "can't register core '[string replace $core 0 6 ""]' in $file, core with the same path already registered in [dict get $hbs::cores $core file]"
 			exit 1
 		}
 
