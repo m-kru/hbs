@@ -144,8 +144,6 @@ namespace eval hbs {
 		set core [uplevel 1 [list namespace current]]
 		set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
 
-		set ctx [hbs::saveContext]
-
 		set targetPath [lindex $args 0]
 		set args [lreplace $args 0 0]
 
@@ -156,16 +154,30 @@ namespace eval hbs {
 		lappend deps $targetPath
 		dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies $deps
 
-		# Run target only if it hasn't been run yet.
-		if {[dict exists $hbs::runTargets $targetPath] == 0} {
-			# Run dependency target
-			hbs::clearContext
-			set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
-			set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
-			hbs::$targetPath {*}$args
-
-			dict append hbs::runTargets $targetPath
+		# If the given target with given arguments have already been run, don't run it again.
+		if {[dict exists $hbs::runTargets $targetPath] == 1} {
+			foreach prevArgs [dict get $hbs::runTargets $targetPath] {
+				if {$prevArgs == $args} {
+					return
+				}
+			}
+		} else {
+			dict append hbs::runTargets $targetPath {}
 		}
+
+		# Add current arguments to the list of arguemnts target has already been run with.
+		set argsList [dict get $hbs::runTargets $targetPath]
+		lappend argsList $args
+		dict set hbs::runTargets $targetPath $argsList
+
+		set ctx [hbs::saveContext]
+
+		# Run dependency target
+		hbs::clearContext
+		set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
+		set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
+
+		hbs::$targetPath {*}$args
 
 		hbs::restoreContext $ctx
 	}
@@ -391,7 +403,7 @@ namespace eval hbs {
 		if {[llength $args] == 0} {
 			hbs::$targetPath
 		} else {
-			hbs::$targetPath $args
+			hbs::$targetPath {*}$args
 		}
 	}
 
