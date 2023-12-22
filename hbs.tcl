@@ -234,7 +234,7 @@ namespace eval hbs {
 		}
 	}
 
-	# Run runs target in which it is called.
+	# Run runs flow for currently set tool.
 	# The stage parameter controls when the tool stops and must be one of:
 	#   analysis - stop after file analysis,
 	#   bitstream - stop after bitstream generation,
