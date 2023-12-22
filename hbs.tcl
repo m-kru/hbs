@@ -313,6 +313,10 @@ namespace eval hbs {
 		set hbs::postSimulationCallback $args
 	}
 
+	proc SetPostProjectCallback {args} {
+		set hbs::postProjectCallback $args
+	}
+
 	# TODO: Implement below functionality.
 	proc SetPostBitstreamCallback {} {}
 	proc SetPostImplementationCallback {} {}
@@ -348,6 +352,7 @@ namespace eval hbs {
 	set postAnalysisCallback ""
 	set postElaborationCallback ""
 	set postSimulationCallback ""
+	set postProjectCallback ""
 
 	set fileList {}
 	set cores [dict create]
@@ -892,6 +897,10 @@ namespace eval hbs::vivado {
 		hbs::dumpCores $hbsJSON
 
 		set_property top $hbs::Top [current_fileset]
+
+		if {$hbs::postProjectCallback != ""} {
+			eval $hbs::postProjectCallback
+		}
 
 		if {$stage == "project"} {
 			close_project
