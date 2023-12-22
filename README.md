@@ -260,19 +260,18 @@ What the target arguments are used for is limited by the user's imagination.
 ## Dependencies
 
 In HBS targets might depend on other targets (instead of cores depending on cores).
+Such an approach allows for fine grained control of dependencies.
 To declare target dependency user musr call `hbs::AddDep` proc within the target proc.
-The first argument is dependency target path.
-The remaining arguments are optional and are passed to the dependency target proc as arguments.
+The first argument is dependency path.
+The remaining arguments are optional and are passed to the dependency proc as arguments.
 The add N distinct dependencies user must call `hbs::AddDep` N times.
-The ability to pass arguments to dependency targets was evaluated as much more advantageous than the ability to add multiple dependencies with single `hbs::AddDep` call.
+The ability to pass arguments to dependency was evaluated as much more advantageous than the ability to add multiple dependencies with single `hbs::AddDep` call.
 
-`hbs::AddDep` internally simply calls the dependency target with provided arguments.
+`hbs::AddDep` internally simply calls the dependency proc with provided arguments.
 It also tracks dependencies so that generating dependency graph is possible.
-Within single flow each target can be executed at most once.
-This implies, that multiple cores can't add the same dependency target with different arguments (it is still being considered whether this is worth to add).
-However, is there is such a need there are 2 possible solutions.
-1. User can call `hbs::AddDep dependency::target::path args for first case` in single place, and in all other places simply call `dependency::target::path args for another case`. The drawback of this approach is that only the target with `hbs::AddDep` will have dependency visible in the dependency graph. However, this can be solved by adding an extra `hbs::AddDep dependency::target::path` call.
-2. Add extra targets to the dependency core and use different dependency target path in different places.
+Within single flow each target can be run at most once with particular set of arguments.
+This implies, that if multiple targets add the same dependency with the same arguments, then the dependency proc is run only once, during the first `hbs::AddDep` call.
+To enforce some target rerun, user can always directly call the target.
 
 ## Code generation
 
