@@ -97,13 +97,12 @@ namespace eval hbs {
 							-source [file normalize [info script]] \
 							-journal $prjDir/vivado.jou \
 							-log $prjDir/vivado.log \
-							-tclargs run $hbs::thisCore\:\:$hbs::thisTarget \
-							>@ stdout"
-					if {[catch {eval exec -ignorestderr $cmd} output] == 0} {
+							-tclargs run $hbs::thisCore\:\:$hbs::thisTarget"
+					set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+					if {$exitStatus == 0} {
 						exit 0
 					} else {
-						puts $output
-						puts stderr "hbs::SetTool: vivado exited with error"
+						puts stderr "hbs::SetTool: vivado exited with status $exitStatus"
 						exit 1
 					}
 				}
