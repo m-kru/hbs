@@ -954,6 +954,7 @@ proc hbs::PrintHelp {} {
 	puts "  list-cores    List cores found in .hbs files"
 	puts "  list-targets  List targets for given core"
 	puts "  run           Run given target"
+	puts "  version       Print hbs version"
 }
 
 if {$argv0 eq [info script]} {
@@ -986,6 +987,9 @@ if {$argv0 eq [info script]} {
 		}
 		"run" {
 			hbs::runTarget $targetPath {*}$args
+		}
+		"version" {
+			puts 0.0
 		}
 		default {
 			puts stderr "unknown command $cmd, check help"

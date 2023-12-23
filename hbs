@@ -26,6 +26,7 @@ The command is one of:
   list-targets  List targets for given core
   run           Run given target
   test          Run testbenches matching given target path
+  version       Print hbs version
 
 Type 'hbs help <command>' to obtain more information about particular command."""
 
@@ -326,5 +327,10 @@ elif cmd == "run":
     exit(status.returncode)
 elif cmd == "test":
     test(sys.argv[2:])
+elif cmd == "version":
+    if len(sys.argv) > 2:
+        error("version command doesn't accept any arguments")
+    status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'version'])
+    exit(status.returncode)
 else:
     error(f"invalid command '{cmd}', check help")
