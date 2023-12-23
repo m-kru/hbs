@@ -71,6 +71,7 @@ namespace eval hbs {
 		switch $tool {
 			"ghdl" {
 				set hbs::Tool $tool
+				hbs::ghdl::init
 			}
 			"vivado" {
 				# Check if the script is already run by Vivado
@@ -659,9 +660,22 @@ namespace eval hbs {
 
 namespace eval hbs::ghdl {
 	set vhdlFiles [dict create]
-	set libDirs [dict create]
+
+	# Libraries, the key is the libary name, the value is the library directory.
+	set libs [dict create]
+
+	# Library search paths. The name is derived from the fact, that one must add -PDIR arguemnt.
+	set Plibs ""
 
 	set generics [dict create]
+
+	proc init {} {
+		# Check for pre-analyzed libraries
+		set defaultVendorsDir "/usr/local/lib/ghdl/vendors"
+		if {[file exist $defaultVendorsDir]} {
+			set hbs::ghdl::Plibs "$hbs::ghdl::Plibs -P$defaultVendorsDir -frelaxed-rules"
+		}
+	}
 
 	proc addFile {files} {
 		foreach file $files {
@@ -702,21 +716,6 @@ namespace eval hbs::ghdl {
 		}
 	}
 
-	proc libs {} {
-		set libs ""
-		foreach libDir [dict keys $hbs::ghdl::libDirs] {
-			set libs "$libs -P$libDir"
-		}
-
-		# Check for pre-analyzed libraries
-		set defaultVendorsDir "/usr/local/lib/ghdl/vendors"
-		if {[file exist $defaultVendorsDir]} {
-			set libs "$libs -P$defaultVendorsDir -frelaxed-rules"
-		}
-
-		return $libs
-	}
-
 	proc genericArgs {} {
 		set args ""
 		dict for {name value} $hbs::ghdl::generics {
@@ -734,8 +733,7 @@ namespace eval hbs::ghdl {
 		dict append hbs::ghdl::vhdlFiles $file \
 				[dict create \
 				std [hbs::ghdl::standard] \
-				work $lib \
-				workdir $lib \
+				lib $lib \
 				argsPrefix $hbs::ArgsPrefix \
 				argsSuffix $hbs::ArgsSuffix]
 	}
@@ -746,15 +744,19 @@ namespace eval hbs::ghdl {
 		}
 
 		dict for {file args} $hbs::ghdl::vhdlFiles {
-			set libDir [file normalize "$hbs::targetDir/[dict get $args workdir]"]
-
-			# Create library directory if it doesn't exist
-			if {[file exist $libDir] eq 0} {
-				file mkdir $libDir
+			set lib [dict get $args lib]
+			if {[dict exists $hbs::ghdl::libs $lib] == 0} {
+				set libDir [file normalize "$hbs::targetDir/$lib"]
+				# Create library directory if it doesn't exist
+				if {[file exist $libDir] eq 0} {
+					file mkdir $libDir
+				}
+				dict set hbs::ghdl::libs $lib $libDir
+				set hbs::ghdl::Plibs "$hbs::ghdl::Plibs -P$libDir"
 			}
-			dict set hbs::ghdl::libDirs $libDir ""
+			set libDir [dict get $hbs::ghdl::libs $lib]
 
-			set cmd "ghdl -a [dict get $args argsPrefix] --std=[dict get $args std] --work=[dict get $args work] --workdir=$libDir [hbs::ghdl::libs] [dict get $args argsSuffix] $file"
+			set cmd "ghdl -a [dict get $args argsPrefix] --std=[dict get $args std] --work=$lib --workdir=$libDir $hbs::ghdl::Plibs [dict get $args argsSuffix] $file"
 			puts $cmd
 			set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 			if {$exitStatus != 0} {
@@ -767,7 +769,7 @@ namespace eval hbs::ghdl {
 	proc elaborate {} {
 		set workDir [pwd]
 		cd $hbs::targetDir
-		set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] [hbs::ghdl::libs] $hbs::ArgsSuffix $hbs::Top"
+		set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] $hbs::ghdl::Plibs $hbs::ArgsSuffix $hbs::Top"
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
