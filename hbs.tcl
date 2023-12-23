@@ -64,7 +64,7 @@ namespace eval hbs {
 
 	proc SetTool {tool} {
 		if {$hbs::Tool !=  ""} {
-			puts stderr "hbs::SeTool: can't set tool to $tool, tool already set to $hbs::Tool"
+			puts stderr "hbs::SeTool: core '$hbs::thisCore', target '$hbs::thisTarget', can't set tool to '$tool', tool already set to '$hbs::Tool'"
 			exit 1
 		}
 
@@ -109,7 +109,7 @@ namespace eval hbs {
 				}
 			}
 			default {
-				puts stderr "hbs::SetTool: unknown tool $tool, supported tools: ghdl, vivado"
+				puts stderr "hbs::SetTool: core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'vivado'"
 				exit 1
 			}
 		}
