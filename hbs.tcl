@@ -108,7 +108,7 @@ namespace eval hbs {
 				}
 			}
 			default {
-				puts stderr "hbs::SetTool: core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'vivado'"
+				puts stderr "hbs::SetTool: [unknownToolMsg $tool]"
 				exit 1
 			}
 		}
@@ -288,10 +288,16 @@ namespace eval hbs {
 				;
 			}
 			default {
-				puts stderr "hbs::Run: invalid stage $stage"
+				puts stderr "hbs::Run: invalid stage '$stage'"
 				exit 1
 			}
 		}
+
+		set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+		if {[file exist $hbs::targetDir] eq 0} {
+			file mkdir $hbs::targetDir
+		}
+
 		switch $hbs::Tool {
 			"ghdl" {
 				hbs::ghdl::run $stage
@@ -300,7 +306,7 @@ namespace eval hbs {
 				hbs::vivado::run $stage
 			}
 			default {
-				puts stderr "hbs::Run: unknown tool '$hbs::Tool'"
+				puts stderr "hbs::Run: [unknownToolMsg $hbs::Tool]"
 				exit 1
 			}
 		}
@@ -328,7 +334,7 @@ namespace eval hbs {
 				set_property generic $name=$value [current_fileset]
 			}
 		default {
-				puts -stderr "hbs::SetGeneric: unknown tool '$hbs::Tool'"
+				puts -stderr "hbs::SetGeneric: [unknownToolMsg $hbs::Tool]"
 				exit 1
 			}
 		}
@@ -380,6 +386,7 @@ namespace eval hbs {
 	set thisCore ""
 	set thisTarget ""
 
+	# Target output directory
 	set targetDir ""
 
 	set postAnalysisCallback ""
@@ -393,6 +400,10 @@ namespace eval hbs {
 	# runTarget is a dict containing targets that already have been run.
 	# During single flow, target can be run only once, even if it has arguments.
 	set runTargets [dict create]
+
+	proc unknownToolMsg {tool} {
+		return "core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'vivado'"
+	}
 
 	proc init {} {
 		set hbs::fileList [findFiles . *.hbs]
@@ -787,11 +798,6 @@ namespace eval hbs::ghdl {
 	#   - simulation.
 	proc run {stage} {
 		hbs::ghdl::checkStage $stage
-
-		set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
-		if {[file exist $hbs::targetDir] eq 0} {
-			file mkdir $hbs::targetDir
-		}
 
 		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
 		hbs::dumpCores $hbsJSON
