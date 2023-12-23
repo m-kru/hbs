@@ -70,6 +70,22 @@ Or more satiristically:
 - Support for arguments passing from command line to target being run.
 - Support for arguments passing to dependency targets.
 
+## Supported tools
+
+- [GHDL](https://github.com/ghdl/ghdl)
+- [Vivado](https://www.xilinx.com/products/design-tools/vivado.html)
+
+Adding support for a new tool is trivial once you are familiar with the tool interface.
+If you want to add support for a tool you have to create new namespace called `hbs::<tool>`.
+In theory the tool must provide implementation of only two procs, `addFile` for handling files with extensions supported by the tool, and `run` for running the tool flow.
+In practice, it is useful to have additional helper procs.
+Within the tool namespace any valid Tcl code is allowed.
+Try to adjust flow stages to the existing stages.
+However, if you feel more stages are required feel free to propose them.
+In the case of tools utilizing Tcl internally the script has to be run by the embedded Tcl interpreter.
+This is achieved by recursively rerunning the script.
+A good example is the snippet for the `vivado` tool inside the `SetTool` proc.
+
 ## Installation
 
 All installation methods require that `hbs` and `hbs.tcl` are placed in the same directory.
