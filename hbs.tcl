@@ -299,6 +299,10 @@ namespace eval hbs {
 			"vivado" {
 				hbs::vivado::run $stage
 			}
+			default {
+				puts stderr "hbs::Run: unknown tool '$hbs::Tool'"
+				exit 1
+			}
 		}
 	}
 
