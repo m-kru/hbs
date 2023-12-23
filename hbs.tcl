@@ -15,6 +15,12 @@ namespace eval hbs {
 	# Top is name of the top entity/module. Often also called toplevel.
 	set Top ""
 
+	# Custom (set by user) arguments prefix inserted right after command or program name.
+	set ArgsPrefix ""
+	# Custom (set by user) arguments suffix placed at the end of command or program call
+	# or before the final arguemnt.
+	set ArgsSuffix ""
+
 	proc SetBuildDir {path} {
 		set hbs::BuildDir $path
 	}
@@ -33,6 +39,27 @@ namespace eval hbs {
 
 	proc SetTop {top} {
 		set hbs::Top $top
+	}
+
+	proc SetArgsPrefix {prefix} {
+		set hbs::ArgsPrefix $prefix
+	}
+
+	proc ClearArgsPrefix {} {
+		set hbs::ArgsPrefix ""
+	}
+
+	proc SetArgsSuffix {suffix} {
+		set hbs::ArgsSuffix $suffix
+	}
+
+	proc ClearArgsSuffix {} {
+		set hbs::ArgsSuffix ""
+	}
+
+	proc ClearArgsAffixes {} {
+		set hbs::ArgsPrefix ""
+		set hbs::ArgsSuffix ""
 	}
 
 	proc SetTool {tool} {
@@ -54,8 +81,11 @@ namespace eval hbs {
 
 						set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 						set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
-						create_project -force $prjName $hbs::targetDir
-						set_property part $hbs::Device [current_project]
+						create_project \
+								$hbs::ArgsPrefix \
+								-part $hbs::Device [current_project] \
+								-force $prjName $hbs::targetDir \
+								$hbs::ArgsSuffix
 					}
 				} else {
 					# Run the script with Vivado
@@ -688,7 +718,12 @@ namespace eval hbs::ghdl {
 
 		set lib [hbs::ghdl::library]
 		dict append hbs::ghdl::vhdlFiles $file \
-				[dict create std [hbs::ghdl::standard] work $lib workdir $lib]
+				[dict create \
+				std [hbs::ghdl::standard] \
+				work $lib \
+				workdir $lib \
+				argsPrefix $hbs::ArgsPrefix \
+				argsSuffix $hbs::ArgsSuffix]
 	}
 
 	proc analyze {} {
@@ -705,7 +740,7 @@ namespace eval hbs::ghdl {
 			}
 			dict set hbs::ghdl::libDirs $libDir ""
 
-			set cmd "ghdl -a --std=[dict get $args std] --work=[dict get $args work] --workdir=$libDir [hbs::ghdl::libs] $file"
+			set cmd "ghdl -a [dict get $args argsPrefix] --std=[dict get $args std] --work=[dict get $args work] --workdir=$libDir [hbs::ghdl::libs] [dict get $args argsSuffix] $file"
 			puts $cmd
 			set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 			if {$exitStatus != 0} {
@@ -718,7 +753,7 @@ namespace eval hbs::ghdl {
 	proc elaborate {} {
 		set workDir [pwd]
 		cd $hbs::targetDir
-		set cmd "ghdl -e --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] [hbs::ghdl::libs] $hbs::Top"
+		set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] [hbs::ghdl::libs] $hbs::ArgsSuffix $hbs::Top"
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
@@ -777,7 +812,7 @@ namespace eval hbs::ghdl {
 		set workDir [pwd]
 		cd $hbs::targetDir
 
-		set cmd "./$hbs::Top --wave=ghdl.ghw [hbs::ghdl::genericArgs]"
+		set cmd "./$hbs::Top $hbs::ArgsPrefix --wave=ghdl.ghw [hbs::ghdl::genericArgs] $hbs::ArgsSuffix"
 		puts $cmd
 		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
 			puts $output
@@ -901,7 +936,6 @@ namespace eval hbs::vivado {
 		if {$hbs::postProjectCallback != ""} {
 			eval $hbs::postProjectCallback
 		}
-
 		if {$stage == "project"} {
 			return
 		}

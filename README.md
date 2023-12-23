@@ -275,6 +275,15 @@ To enforce some target rerun, user can always directly call the target.
 
 ## Code generation
 
+## Custom arguments
+
+Commands and external programs called by the hbs under the hood have numerous flags and parameters.
+Hbs uses only some of them with some sane default values.
+However, the user is capable of adding extra arguments, which is achieved with `hbs::ArgsPrefix` and `hbs::ArgsSuffix` variables.
+The user shall use `hbs::SetArgsPrefix`, `hbs::ClearArgsPrefix`, `hbs::SetArgsSuffix`, `hbs::ClearArgsSuffix` and `hbs::ClearArgsAffixes` procs to manipulate those variables.
+The `hbs::ArgsPrefix` is inserted right after the command or program name, and `hbs::ArgsSuffix` is placed at the end of command or program call or before the final argument.
+If hbs arguments affixes are insufficient, the user is always free to call commands or programs on his own.
+
 ## Naming conventions
 
 ### Internal symbol names
