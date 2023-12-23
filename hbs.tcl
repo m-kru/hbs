@@ -221,7 +221,7 @@ namespace eval hbs {
 				hbs::ghdl::addFile $files
 			}
 			"vivado" {
-				hbs::vivado::AddFile $files
+				hbs::vivado::addFile $files
 			}
 			"" {
 				puts stderr "hbs: can't add file $file, hbs::Tool not set"
@@ -794,7 +794,7 @@ namespace eval hbs::ghdl {
 }
 
 namespace eval hbs::vivado {
-	proc AddFile {files} {
+	proc addFile {files} {
 		foreach file $files {
 			if {$hbs::debug} {
 				puts "vivado: adding file $file"
@@ -803,29 +803,29 @@ namespace eval hbs::vivado {
 			set extension [file extension $file]
 			switch $extension {
 				".bd" {
-					hbs::vivado:AddBlockDesignFile $file
+					hbs::vivado:addBlockDesignFile $file
 				}
 				".mem" {
-					hbs::vivado::AddMemFile $file
+					hbs::vivado::addMemFile $file
 				}
 				".v" {
-					hbs::vivado::AddVerilogFile $file
+					hbs::vivado::addVerilogFile $file
 				}
 				".sv" {
-					hbs::vivado::AddSystemVerilogFile $file
+					hbs::vivado::addSystemVerilogFile $file
 				}
 				".vhd" -
 				".vhdl" {
-					hbs::vivado::AddVHDLFile $file
+					hbs::vivado::addVhdlFile $file
 				}
 				".tcl" {
-					hbs::vivado::AddTclFile $file
+					hbs::vivado::addTclFile $file
 				}
 				".xci" {
-					hbs::vivado::AddXCIFile $file
+					hbs::vivado::addXciFile $file
 				}
 				".xdc" {
-					hbs::vivado::AddXDCFile $file
+					hbs::vivado::addXdcFile $file
 				}
 				default {
 					puts stderr "vivado: unhandled file extension '$extension'"
@@ -842,7 +842,7 @@ namespace eval hbs::vivado {
 		return $hbs::Lib
 	}
 
-	proc VHDLStandard {} {
+	proc vhdlStandard {} {
 		switch $hbs::Std {
 			# 2008 is the default one
 			""     { return "-vhdl2008" }
@@ -855,36 +855,36 @@ namespace eval hbs::vivado {
 		}
 	}
 
-	proc AddBlockDesignFile {file} {
+	proc addBlockDesignFile {file} {
 		read_bd $file
 	}
 
-	proc AddMemFile {file} {
+	proc addMemFile {file} {
 		read_mem $file
 	}
 
-	proc AddTclFile {file} {
+	proc addTclFile {file} {
 		source $file
 	}
 
-	proc AddXCIFile {file} {
+	proc addXciFile {file} {
 		read_ip $file
 	}
 
-	proc AddXDCFile {file} {
+	proc addXdcFile {file} {
 		read_xdc $file
 	}
 
-	proc AddVerilogFile {file} {
+	proc addVerilogFile {file} {
 		read_vhdl -library [hbs::vivado::library] $file
 	}
 
-	proc AddSystemVerilogFile {file} {
+	proc addSystemVerilogFile {file} {
 		read_vhdl -library [hbs::vivado::library] -sv $file
 	}
 
-	proc AddVHDLFile {file} {
-		read_vhdl -library [hbs::vivado::library] [hbs::vivado::VHDLStandard] $file
+	proc addVhdlFile {file} {
+		read_vhdl -library [hbs::vivado::library] [hbs::vivado::vhdlStandard] $file
 	}
 
 	# vivado::run supports following stages:
