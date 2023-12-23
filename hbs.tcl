@@ -102,14 +102,14 @@ namespace eval hbs {
 					if {[catch {eval exec -ignorestderr $cmd} output] == 0} {
 						exit 0
 					} else {
-						puts "hbs: $output"
-						puts stderr "hbs: vivado exited with error"
+						puts $output
+						puts stderr "hbs::SetTool: vivado exited with error"
 						exit 1
 					}
 				}
 			}
 			default {
-				puts stderr "hbs: unknown tool $tool, supported tools: ghdl, vivado"
+				puts stderr "hbs::SetTool: unknown tool $tool, supported tools: ghdl, vivado"
 				exit 1
 			}
 		}
@@ -129,7 +129,7 @@ namespace eval hbs {
 				return "synthesis"
 			}
 			default {
-				puts -stderr "hbs::ToolType: hbs::Tool not set"
+				puts stderr "hbs::ToolType: hbs::Tool not set"
 				exit 1
 			}
 		}
@@ -148,9 +148,9 @@ namespace eval hbs {
 
 		set targets [uplevel 1 [list info procs]]
 		if {$hbs::debug} {
-			puts stderr "hbs: registering core [string replace $core 0 6 ""] with following [llength $targets] targets:"
+			puts stderr "hbs::Register: registering core [string replace $core 0 6 ""] with following [llength $targets] targets:"
 			foreach target $targets {
-				puts "  $target"
+				puts stderr "  $target"
 			}
 		}
 
@@ -396,7 +396,7 @@ namespace eval hbs {
 		hbs::sortFileList
 
 		if {$hbs::debug} {
-			puts stderr "hbs: found [llength $hbs::fileList] core files:"
+			puts stderr "hbs::init: found [llength $hbs::fileList] hbs files:"
 			foreach fileName $hbs::fileList {
 				puts "  $fileName"
 			}
@@ -682,7 +682,7 @@ namespace eval hbs::ghdl {
 			"2002" { return "02" }
 			"2008" { return "08" }
 			default {
-				puts stderr "ghdl: invalid hbs::Std $hbs::Std"
+				puts stderr "ghdl::standard: invalid hbs::Std $hbs::Std"
 				exit 1
 			}
 		}
@@ -713,7 +713,7 @@ namespace eval hbs::ghdl {
 
 	proc addVhdlFile {file} {
 		if {$hbs::debug} {
-			puts "ghdl: adding file $file"
+			puts "ghdl::addVhdlFile: adding file $file"
 		}
 
 		set lib [hbs::ghdl::library]
@@ -744,7 +744,7 @@ namespace eval hbs::ghdl {
 			puts $cmd
 			set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 			if {$exitStatus != 0} {
-				puts stderr "hbs::ghdl::analyze: $file analysis failed with exit status $exitStatus"
+				puts stderr "ghdl::analyze: $file analysis failed with exit status $exitStatus"
 				exit 1
 			}
 		}
@@ -757,7 +757,7 @@ namespace eval hbs::ghdl {
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
-			puts stderr "hbs::ghdl::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
+			puts stderr "ghdl::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
 			exit 1
 		}
 		cd $workDir
@@ -772,7 +772,7 @@ namespace eval hbs::ghdl {
 				;
 			}
 			default {
-				puts "hbs::ghdl::run: invalid stage '$stage', valid ghdl stages are: analysis, elaboration and simulation"
+				puts "ghdl::checkStage: invalid stage '$stage', valid ghdl stages are: analysis, elaboration and simulation"
 				exit 1
 			}
 		}
