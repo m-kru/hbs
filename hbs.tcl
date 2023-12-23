@@ -218,7 +218,7 @@ namespace eval hbs {
 
 		switch $hbs::Tool {
 			"ghdl" {
-				hbs::ghdl::AddFile $files
+				hbs::ghdl::addFile $files
 			}
 			"vivado" {
 				hbs::vivado::AddFile $files
@@ -619,16 +619,16 @@ namespace eval hbs::ghdl {
 
 	set generics [dict create]
 
-	proc AddFile {files} {
+	proc addFile {files} {
 		foreach file $files {
 			set extension [file extension $file]
 			switch $extension {
 				".vhd" -
 				".vhdl" {
-					hbs::ghdl::AddVHDLFile $file
+					hbs::ghdl::addVhdlFile $file
 				}
 				default {
-					puts stderr "ghdl: unhandled file extension '$extension'"
+					puts stderr "ghdl::addFile: unhandled file extension '$extension'"
 					exit 1
 				}
 			}
@@ -681,7 +681,7 @@ namespace eval hbs::ghdl {
 		return $args
 	}
 
-	proc AddVHDLFile {file} {
+	proc addVhdlFile {file} {
 		if {$hbs::debug} {
 			puts "ghdl: adding file $file"
 		}
