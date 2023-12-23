@@ -763,7 +763,7 @@ namespace eval hbs::ghdl {
 			eval $hbs::postAnalysisCallback
 		}
 		if {$stage == "analysis"} {
-			exit 0
+			return
 		}
 
 		hbs::ghdl::elaborate
@@ -771,7 +771,7 @@ namespace eval hbs::ghdl {
 			eval $hbs::postElaborationCallback
 		}
 		if {$stage == "elaboration"} {
-			exit 0
+			return
 		}
 
 		set workDir [pwd]
@@ -903,8 +903,7 @@ namespace eval hbs::vivado {
 		}
 
 		if {$stage == "project"} {
-			close_project
-			exit 0
+			return
 		}
 	}
 }
