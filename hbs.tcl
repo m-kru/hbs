@@ -936,7 +936,7 @@ namespace eval hbs::vivado {
 	# vivado::run supports following stages:
 	#   - project,
 	#   - synthesis,
-	#   - implementation.
+	#   - implementation,
 	#   - bitstream.
 	proc run {stage} {
 		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
