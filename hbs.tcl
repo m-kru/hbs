@@ -974,18 +974,12 @@ if {$argv0 eq [info script]} {
 		exit 1
 	}
 
-	set cmd [lindex $argv 0]
-	if {$cmd eq "help"} {
-		hbs::PrintHelp
-		exit 0
-	}
-
-	set targetPath [lindex $argv 1]
-	set args [lreplace $argv 0 1]
-
 	hbs::init
 
-	switch $cmd {
+	switch [lindex $argv 0] {
+		"help" {
+			hbs::PrintHelp
+		}
 		"dump-cores" {
 			hbs::dumpCores
 		}
@@ -993,11 +987,13 @@ if {$argv0 eq [info script]} {
 			hbs::listCores
 		}
 		"list-targets" {
-			# In this case the targetPath argument is actually the corePath.
-			hbs::listTargets $targetPath
+			set corePath [lindex $argv 1]
+			hbs::listTargets $corePath
 		}
 		"run" {
-			hbs::runTarget $targetPath {*}$args
+			set targetPath [lindex $argv 1]
+			set targetArgs [lreplace $argv 0 1]
+			hbs::runTarget $targetPath {*}$targetArgs
 		}
 		"version" {
 			puts 0.0
