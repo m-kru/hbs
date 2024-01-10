@@ -324,7 +324,9 @@ elif cmd == "run":
     status = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'run', *sys.argv[2:]]
     )
-    if status.returncode != 0:
+    if status.returncode == 0:
+        print("\033[92m\nsuccess\033[0m")
+    else:
         print("\033[91m\nfailure\033[0m")
     exit(status.returncode)
 elif cmd == "test":
