@@ -675,11 +675,8 @@ namespace eval hbs {
 namespace eval hbs::ghdl {
 	set vhdlFiles [dict create]
 
-	# Libraries, the key is the libary name, the value is the library directory.
-	set libs [dict create]
-
-	# Library search paths. The name is derived from the fact, that one must add -PDIR arguemnt.
-	set Plibs ""
+	# Library search paths (-PDIR arguemnt).
+	set libs ""
 
 	set generics [dict create]
 
@@ -687,7 +684,7 @@ namespace eval hbs::ghdl {
 		# Check for pre-analyzed libraries
 		set defaultVendorsDir "/usr/local/lib/ghdl/vendors"
 		if {[file exist $defaultVendorsDir]} {
-			set hbs::ghdl::Plibs "$hbs::ghdl::Plibs -P$defaultVendorsDir -frelaxed-rules"
+			set hbs::ghdl::libs "$hbs::ghdl::libs -P$defaultVendorsDir -frelaxed-rules"
 		}
 	}
 
@@ -757,20 +754,11 @@ namespace eval hbs::ghdl {
 			puts "ghdl: starting files analysis"
 		}
 
-		dict for {file args} $hbs::ghdl::vhdlFiles {
-			set lib [dict get $args lib]
-			if {[dict exists $hbs::ghdl::libs $lib] == 0} {
-				set libDir [file normalize "$hbs::targetDir/$lib"]
-				# Create library directory if it doesn't exist
-				if {[file exist $libDir] eq 0} {
-					file mkdir $libDir
-				}
-				dict set hbs::ghdl::libs $lib $libDir
-				set hbs::ghdl::Plibs "$hbs::ghdl::Plibs -P$libDir"
-			}
-			set libDir [dict get $hbs::ghdl::libs $lib]
+		set workDir [pwd]
+		cd $hbs::targetDir
 
-			set cmd "ghdl -a [dict get $args argsPrefix] --std=[dict get $args std] --work=$lib --workdir=$libDir $hbs::ghdl::Plibs [dict get $args argsSuffix] $file"
+		dict for {file args} $hbs::ghdl::vhdlFiles {
+			set cmd "ghdl -a [dict get $args argsPrefix] --std=[dict get $args std] $hbs::ghdl::libs --work=[dict get $args lib] [dict get $args argsSuffix] $file"
 			puts $cmd
 			set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 			if {$exitStatus != 0} {
@@ -778,18 +766,38 @@ namespace eval hbs::ghdl {
 				exit 1
 			}
 		}
+
+		cd $workDir
 	}
 
 	proc elaborate {} {
 		set workDir [pwd]
 		cd $hbs::targetDir
-		set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::standard] --workdir=[hbs::ghdl::library] $hbs::ghdl::Plibs $hbs::ArgsSuffix $hbs::Top"
+
+		set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::standard] $hbs::ghdl::libs $hbs::ArgsSuffix $hbs::Top"
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
 			puts stderr "ghdl::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
 			exit 1
 		}
+
+		cd $workDir
+	}
+
+	proc simulate {} {
+		set workDir [pwd]
+		cd $hbs::targetDir
+
+		set cmd "./$hbs::Top $hbs::ArgsPrefix --wave=$hbs::Top.ghw [hbs::ghdl::genericArgs] $hbs::ArgsSuffix"
+		puts $cmd
+		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
+			puts $output
+		} else {
+			puts stderr $output
+			exit 1
+		}
+
 		cd $workDir
 	}
 
@@ -834,22 +842,10 @@ namespace eval hbs::ghdl {
 			return
 		}
 
-		set workDir [pwd]
-		cd $hbs::targetDir
-
-		set cmd "./$hbs::Top $hbs::ArgsPrefix --wave=ghdl.ghw [hbs::ghdl::genericArgs] $hbs::ArgsSuffix"
-		puts $cmd
-		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
-			puts $output
-		} else {
-			puts stderr $output
-			exit 1
-		}
+		hbs::ghdl::simulate
 		if {$hbs::postSimulationCallback != ""} {
 			eval $hbs::postSimulationCallback
 		}
-
-		cd $workDir
 	}
 }
 
