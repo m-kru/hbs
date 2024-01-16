@@ -74,6 +74,7 @@ Or more satiristically:
 ## Supported tools
 
 - [GHDL](https://github.com/ghdl/ghdl)
+- [NVC](https://github.com/nickg/nvc)
 - [Vivado](https://www.xilinx.com/products/design-tools/vivado.html)
 
 Adding support for a new tool is trivial once you are familiar with the tool interface.

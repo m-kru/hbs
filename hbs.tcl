@@ -73,6 +73,10 @@ namespace eval hbs {
 				set hbs::Tool $tool
 				hbs::ghdl::init
 			}
+			"nvc" {
+				set hbs::Tool $tool
+				hbs::nvc::init
+			}
 			"vivado" {
 				# Check if the script is already run by Vivado
 				if {[catch {version} ver] == 0} {
@@ -122,7 +126,8 @@ namespace eval hbs {
 	#   - synthesis.
 	proc ToolType {} {
 		switch $hbs::Tool {
-			"ghdl" {
+			"ghdl" -
+			"nvc" {
 				return "simulation"
 			}
 			"vivado" {
@@ -250,6 +255,9 @@ namespace eval hbs {
 			"ghdl" {
 				hbs::ghdl::addFile $files
 			}
+			"nvc" {
+				hbs::nvc::addFile $files
+			}
 			"vivado" {
 				hbs::vivado::addFile $files
 			}
@@ -303,6 +311,9 @@ namespace eval hbs {
 			"ghdl" {
 				hbs::ghdl::run $stage
 			}
+			"nvc" {
+				hbs::nvc::run $stage
+			}
 			"vivado" {
 				hbs::vivado::run $stage
 			}
@@ -330,6 +341,9 @@ namespace eval hbs {
 			}
 			"ghdl" {
 				dict append hbs::ghdl::generics $name $value
+			}
+			"nvc" {
+				dict append hbs::nvc::generics $name $value
 			}
 			"vivado" {
 				set_property generic $name=$value [current_fileset]
@@ -403,7 +417,7 @@ namespace eval hbs {
 	set runTargets [dict create]
 
 	proc unknownToolMsg {tool} {
-		return "core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'vivado'"
+		return "core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'nvc', 'vivado'"
 	}
 
 	proc init {} {
@@ -824,6 +838,183 @@ namespace eval hbs::ghdl {
 		cd $hbs::targetDir
 
 		set cmd "./$hbs::Top $hbs::ArgsPrefix --wave=ghdl.ghw [hbs::ghdl::genericArgs] $hbs::ArgsSuffix"
+		puts $cmd
+		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
+			puts $output
+		} else {
+			puts stderr $output
+			exit 1
+		}
+		if {$hbs::postSimulationCallback != ""} {
+			eval $hbs::postSimulationCallback
+		}
+
+		cd $workDir
+	}
+}
+
+namespace eval hbs::nvc {
+	set vhdlFiles [dict create]
+
+	# Libraries, the key is the libary name, the value is the library directory.
+	set libs [dict create]
+
+	# Library search paths. The name is derived from the fact, that one must add -L path arguemnt.
+	set Llibs "-L ."
+
+	set generics [dict create]
+
+	proc init {} {
+		# Check for pre-analyzed libraries
+		set defaultVendorsDir "$::env(HOME)/.nvc/lib"
+		if {[file exist $defaultVendorsDir]} {
+			set hbs::nvc::Llibs "$hbs::nvc::Llibs -L $defaultVendorsDir"
+		}
+	}
+
+	proc addFile {files} {
+		foreach file $files {
+			set extension [file extension $file]
+			switch $extension {
+				".vhd" -
+				".vhdl" {
+					hbs::nvc::addVhdlFile $file
+				}
+				default {
+					puts stderr "nvc::addFile: unhandled file extension '$extension'"
+					exit 1
+				}
+			}
+		}
+	}
+
+	proc library {} {
+		if {$hbs::Lib eq ""} {
+			return "work"
+		}
+		return $hbs::Lib
+	}
+
+	proc standard {} {
+		switch $hbs::Std {
+			# 20019 is the default one
+			""     { return "2019" }
+			"1993" { return "1993" }
+			"2000" { return "2000" }
+			"2002" { return "2002" }
+			"2008" { return "2008" }
+			"2019" { return "2019" }
+			default {
+				puts stderr "nvc::standard: invalid hbs::Std $hbs::Std"
+				exit 1
+			}
+		}
+	}
+
+	proc genericArgs {} {
+		set args ""
+		dict for {name value} $hbs::nvc::generics {
+			set args "$args -g $name=$value"
+		}
+		return $args
+	}
+
+	proc addVhdlFile {file} {
+		if {$hbs::debug} {
+			puts "nvc::addVhdlFile: adding file $file"
+		}
+
+		set lib [hbs::nvc::library]
+		dict append hbs::nvc::vhdlFiles $file \
+				[dict create \
+				std [hbs::nvc::standard] \
+				lib $lib \
+				argsPrefix $hbs::ArgsPrefix \
+				argsSuffix $hbs::ArgsSuffix]
+	}
+
+	proc analyze {} {
+		if {$hbs::debug} {
+			puts "nvc: starting files analysis"
+		}
+
+		set workDir [pwd]
+		cd $hbs::targetDir
+
+		dict for {file args} $hbs::nvc::vhdlFiles {
+			set lib [dict get $args lib]
+			set cmd "nvc [dict get $args argsPrefix] --std=[dict get $args std] $hbs::nvc::Llibs --work=$lib -a $file [dict get $args argsSuffix]"
+			puts $cmd
+			set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+			if {$exitStatus != 0} {
+				puts stderr "nvc::analyze: $file analysis failed with exit status $exitStatus"
+				exit 1
+			}
+		}
+
+		cd $workDir
+	}
+
+	proc elaborate {} {
+		set workDir [pwd]
+		cd $hbs::targetDir
+
+		set cmd "nvc $hbs::ArgsPrefix --std=[hbs::nvc::standard] $hbs::nvc::Llibs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
+		puts $cmd
+		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+		if {$exitStatus != 0} {
+			puts stderr "nvc::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
+			exit 1
+		}
+
+		cd $workDir
+	}
+
+	proc checkStage {stage} {
+		switch $stage {
+			"" -
+			"analysis" -
+			"elaboration" -
+			"simulation" {
+				;
+			}
+			default {
+				puts "nvc::checkStage: invalid stage '$stage', valid nvc stages are: analysis, elaboration and simulation"
+				exit 1
+			}
+		}
+	}
+
+	# nvc::run supports following stages:
+	#   - analysis,
+	#   - elaboration,
+	#   - simulation.
+	proc run {stage} {
+		hbs::nvc::checkStage $stage
+
+		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
+		hbs::dumpCores $hbsJSON
+
+		hbs::nvc::analyze
+		if {$hbs::postAnalysisCallback != ""} {
+			eval $hbs::postAnalysisCallback
+		}
+		if {$stage == "analysis"} {
+			return
+		}
+
+		hbs::nvc::elaborate
+		if {$hbs::postElaborationCallback != ""} {
+			eval $hbs::postElaborationCallback
+		}
+		if {$stage == "elaboration"} {
+			return
+		}
+
+		set workDir [pwd]
+		cd $hbs::targetDir
+
+		set cmd "nvc $hbs::ArgsPrefix --std=[hbs::nvc::standard] $hbs::nvc::Llibs -r $hbs::Top --wave $hbs::ArgsSuffix"
 		puts $cmd
 		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
 			puts $output
