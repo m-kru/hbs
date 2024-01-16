@@ -852,11 +852,8 @@ namespace eval hbs::ghdl {
 namespace eval hbs::nvc {
 	set vhdlFiles [dict create]
 
-	# Libraries, the key is the libary name, the value is the library directory.
-	set libs [dict create]
-
 	# Library search paths. The name is derived from the fact, that one must add -L path arguemnt.
-	set Llibs "-L ."
+	set libs "-L."
 
 	set generics [dict create]
 
@@ -864,7 +861,7 @@ namespace eval hbs::nvc {
 		# Check for pre-analyzed libraries
 		set defaultVendorsDir "$::env(HOME)/.nvc/lib"
 		if {[file exist $defaultVendorsDir]} {
-			set hbs::nvc::Llibs "$hbs::nvc::Llibs -L $defaultVendorsDir"
+			set hbs::nvc::libs "$hbs::nvc::libs -L$defaultVendorsDir"
 		}
 	}
 
@@ -939,7 +936,7 @@ namespace eval hbs::nvc {
 
 		dict for {file args} $hbs::nvc::vhdlFiles {
 			set lib [dict get $args lib]
-			set cmd "nvc [dict get $args argsPrefix] --std=[dict get $args std] $hbs::nvc::Llibs --work=$lib -a $file [dict get $args argsSuffix]"
+			set cmd "nvc [dict get $args argsPrefix] --std=[dict get $args std] $hbs::nvc::libs --work=$lib -a $file [dict get $args argsSuffix]"
 			puts $cmd
 			set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 			if {$exitStatus != 0} {
@@ -955,11 +952,27 @@ namespace eval hbs::nvc {
 		set workDir [pwd]
 		cd $hbs::targetDir
 
-		set cmd "nvc $hbs::ArgsPrefix --std=[hbs::nvc::standard] $hbs::nvc::Llibs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
+		set cmd "nvc $hbs::ArgsPrefix --std=[hbs::nvc::standard] $hbs::nvc::libs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
 			puts stderr "nvc::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
+			exit 1
+		}
+
+		cd $workDir
+	}
+
+	proc simulate {} {
+		set workDir [pwd]
+		cd $hbs::targetDir
+
+		set cmd "nvc $hbs::ArgsPrefix --std=[hbs::nvc::standard] $hbs::nvc::libs -r $hbs::Top --wave $hbs::ArgsSuffix"
+		puts $cmd
+		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
+			puts $output
+		} else {
+			puts stderr $output
 			exit 1
 		}
 
@@ -1007,22 +1020,10 @@ namespace eval hbs::nvc {
 			return
 		}
 
-		set workDir [pwd]
-		cd $hbs::targetDir
-
-		set cmd "nvc $hbs::ArgsPrefix --std=[hbs::nvc::standard] $hbs::nvc::Llibs -r $hbs::Top --wave $hbs::ArgsSuffix"
-		puts $cmd
-		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
-			puts $output
-		} else {
-			puts stderr $output
-			exit 1
-		}
+		hbs::nvc::simulate
 		if {$hbs::postSimulationCallback != ""} {
 			eval $hbs::postSimulationCallback
 		}
-
-		cd $workDir
 	}
 }
 
