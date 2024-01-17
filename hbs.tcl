@@ -84,13 +84,13 @@ namespace eval hbs {
 						# Vivado already runs the script
 						set hbs::Tool "vivado"
 
+						if {$hbs::debug} { puts "hbs::SetTool: creating vivado project" }
+
 						set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 						set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
-						create_project \
-								$hbs::ArgsPrefix \
-								-part $hbs::Device [current_project] \
-								-force $prjName $hbs::targetDir \
-								$hbs::ArgsSuffix
+						eval "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
+
+						if {$hbs::debug} { puts "hbs::SetTool: vivado project created successfully" }
 					}
 				} else {
 					# Run the script with Vivado
@@ -1031,7 +1031,7 @@ namespace eval hbs::vivado {
 	proc addFile {files} {
 		foreach file $files {
 			if {$hbs::debug} {
-				puts "vivado: adding file $file"
+				puts "hbs::vivado::addFile: adding file $file"
 			}
 
 			set extension [file extension $file]
@@ -1130,6 +1130,18 @@ namespace eval hbs::vivado {
 		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
 		hbs::dumpCores $hbsJSON
 
+		if {$hbs::Device == ""} {
+			puts "hbs::vivado::run: cannot set part, hbs::Device not set"
+			exit 1
+		}
+		if {$hbs::debug} {puts "hbs::vivado::run: setting part $hbs::Device"}
+		set_property part $hbs::Device [current_project]
+
+		if {$hbs::Top == ""} {
+			puts "hbs::vivado::run: cannot set top, hbs::Top not set"
+			exit 1
+		}
+		if {$hbs::debug} {puts "hbs::vivado::run: setting top $hbs::Top"}
 		set_property top $hbs::Top [current_fileset]
 
 		if {$hbs::postProjectCallback != ""} {
