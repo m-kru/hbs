@@ -373,11 +373,14 @@ namespace eval hbs {
 		set hbs::postProjectCallback $args
 	}
 
+	proc SetPostSynthesisCallback {args} {
+		set hbs::postSynthesisCallback $args
+	}
+
 	# TODO: Implement below functionality.
 	proc SetPostBitstreamCallback {} {}
 	proc SetPostImplementationCallback {} {}
 	proc SetPostProjectCallback {} {}
-	proc SetPostSynthesisCallback {} {}
 
 	proc Exec {args} {
 		set workDir [pwd]
@@ -397,7 +400,7 @@ namespace eval hbs {
 
 # Private API
 namespace eval hbs {
-	set debug 1
+	set debug 0
 
 	# dbg formats and prints debug message if hbs::debug is not 0.
 	proc dbg {msg} {
@@ -416,6 +419,7 @@ namespace eval hbs {
 	set postElaborationCallback ""
 	set postSimulationCallback ""
 	set postProjectCallback ""
+	set postSynthesisCallback ""
 
 	set fileList {}
 	set cores [dict create]
@@ -1119,15 +1123,36 @@ namespace eval hbs::vivado-prj {
 		read_vhdl -library [hbs::vivado-prj::library] [hbs::vivado-prj::vhdlStandard] $file
 	}
 
+	proc checkStage {stage} {
+		switch $stage {
+			"" -
+			"project" -
+			"synthesis" -
+			"implementation" -
+			"bitstream" {
+				;
+			}
+			default {
+				puts "vivado-prj::checkStage: invalid stage '$stage', valid vivado-prj stages are: project, synthesis, implementation and bitstream"
+				exit 1
+			}
+		}
+	}
+
 	# vivado-prj::run supports following stages:
 	#   - project,
 	#   - synthesis,
 	#   - implementation.
 	#   - bitstream.
 	proc run {stage} {
+		hbs::vivado-prj::checkStage $stage
+
 		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
 		hbs::dumpCores $hbsJSON
 
+		#
+		# Project
+		#
 		if {$hbs::Device == ""} {
 			puts "hbs::vivado-prj::run: cannot set part, hbs::Device not set"
 			exit 1
@@ -1148,6 +1173,25 @@ namespace eval hbs::vivado-prj {
 			eval $hbs::postProjectCallback
 		}
 		if {$stage == "project"} {
+			return
+		}
+
+		#
+		# Synthesis
+		#
+		set cmd "launch_runs $hbs::ArgsPrefix synth_1 $hbs::ArgsSuffix"
+		puts $cmd
+		eval $cmd
+		set cmd "wait_on_run synth_1"
+		puts $cmd
+		eval $cmd
+		if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
+			error "ERROR: synth_1 failed"
+		}
+		if {$hbs::postSynthesisCallback != ""} {
+			eval $hbs::postSynthesisCallback
+		}
+		if {$stage == "synthesis"} {
 			return
 		}
 	}
