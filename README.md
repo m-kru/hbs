@@ -75,7 +75,7 @@ Or more satiristically:
 
 - [GHDL](https://github.com/ghdl/ghdl)
 - [NVC](https://github.com/nickg/nvc)
-- [Vivado](https://www.xilinx.com/products/design-tools/vivado.html)
+- [Vivado](https://www.xilinx.com/products/design-tools/vivado.html) (currently only project mode is supported)
 
 Adding support for a new tool is trivial once you are familiar with the tool interface.
 If you want to add support for a tool you have to create new namespace called `hbs::<tool>`.

@@ -77,12 +77,12 @@ namespace eval hbs {
 				set hbs::Tool $tool
 				hbs::nvc::init
 			}
-			"vivado" {
+			"vivado-prj" {
 				# Check if the script is already run by Vivado
 				if {[catch {version} ver] == 0} {
 					if {[string match "Vivado*" $ver]} {
 						# Vivado already runs the script
-						set hbs::Tool "vivado"
+						set hbs::Tool "vivado-prj"
 
 						hbs::dbg "creating vivado project"
 
@@ -132,7 +132,7 @@ namespace eval hbs {
 			"nvc" {
 				return "simulation"
 			}
-			"vivado" {
+			"vivado-prj" {
 				return "synthesis"
 			}
 			default {
@@ -260,8 +260,8 @@ namespace eval hbs {
 			"nvc" {
 				hbs::nvc::addFile $files
 			}
-			"vivado" {
-				hbs::vivado::addFile $files
+			"vivado-prj" {
+				hbs::vivado-prj::addFile $files
 			}
 			"" {
 				puts stderr "hbs: can't add file $file, hbs::Tool not set"
@@ -316,8 +316,8 @@ namespace eval hbs {
 			"nvc" {
 				hbs::nvc::run $stage
 			}
-			"vivado" {
-				hbs::vivado::run $stage
+			"vivado-prj" {
+				hbs::vivado-prj::run $stage
 			}
 			default {
 				puts stderr "hbs::Run: [unknownToolMsg $hbs::Tool]"
@@ -347,7 +347,7 @@ namespace eval hbs {
 			"nvc" {
 				dict append hbs::nvc::generics $name $value
 			}
-			"vivado" {
+			"vivado-prj" {
 				set_property generic $name=$value [current_fileset]
 			}
 		default {
@@ -425,7 +425,7 @@ namespace eval hbs {
 	set runTargets [dict create]
 
 	proc unknownToolMsg {tool} {
-		return "core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'nvc', 'vivado'"
+		return "core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'nvc', 'vivado-prj' \(project mode\)"
 	}
 
 	proc init {} {
@@ -1027,7 +1027,7 @@ namespace eval hbs::nvc {
 	}
 }
 
-namespace eval hbs::vivado {
+namespace eval hbs::vivado-prj {
 	proc addFile {files} {
 		foreach file $files {
 			hbs::dbg "adding file $file"
@@ -1035,29 +1035,29 @@ namespace eval hbs::vivado {
 			set extension [file extension $file]
 			switch $extension {
 				".bd" {
-					hbs::vivado:addBlockDesignFile $file
+					hbs::vivado-prj:addBlockDesignFile $file
 				}
 				".mem" {
-					hbs::vivado::addMemFile $file
+					hbs::vivado-prj::addMemFile $file
 				}
 				".v" {
-					hbs::vivado::addVerilogFile $file
+					hbs::vivado-prj::addVerilogFile $file
 				}
 				".sv" {
-					hbs::vivado::addSystemVerilogFile $file
+					hbs::vivado-prj::addSystemVerilogFile $file
 				}
 				".vhd" -
 				".vhdl" {
-					hbs::vivado::addVhdlFile $file
+					hbs::vivado-prj::addVhdlFile $file
 				}
 				".tcl" {
-					hbs::vivado::addTclFile $file
+					hbs::vivado-prj::addTclFile $file
 				}
 				".xci" {
-					hbs::vivado::addXciFile $file
+					hbs::vivado-prj::addXciFile $file
 				}
 				".xdc" {
-					hbs::vivado::addXdcFile $file
+					hbs::vivado-prj::addXdcFile $file
 				}
 				default {
 					puts stderr "vivado: unhandled file extension '$extension'"
@@ -1108,18 +1108,18 @@ namespace eval hbs::vivado {
 	}
 
 	proc addVerilogFile {file} {
-		read_vhdl -library [hbs::vivado::library] $file
+		read_vhdl -library [hbs::vivado-prj::library] $file
 	}
 
 	proc addSystemVerilogFile {file} {
-		read_vhdl -library [hbs::vivado::library] -sv $file
+		read_vhdl -library [hbs::vivado-prj::library] -sv $file
 	}
 
 	proc addVhdlFile {file} {
-		read_vhdl -library [hbs::vivado::library] [hbs::vivado::vhdlStandard] $file
+		read_vhdl -library [hbs::vivado-prj::library] [hbs::vivado-prj::vhdlStandard] $file
 	}
 
-	# vivado::run supports following stages:
+	# vivado-prj::run supports following stages:
 	#   - project,
 	#   - synthesis,
 	#   - implementation.
@@ -1129,7 +1129,7 @@ namespace eval hbs::vivado {
 		hbs::dumpCores $hbsJSON
 
 		if {$hbs::Device == ""} {
-			puts "hbs::vivado::run: cannot set part, hbs::Device not set"
+			puts "hbs::vivado-prj::run: cannot set part, hbs::Device not set"
 			exit 1
 		}
 		set cmd "set_property part $hbs::Device \[current_project\]"
@@ -1137,7 +1137,7 @@ namespace eval hbs::vivado {
 		eval $cmd
 
 		if {$hbs::Top == ""} {
-			puts "hbs::vivado::run: cannot set top, hbs::Top not set"
+			puts "hbs::vivado-prj::run: cannot set top, hbs::Top not set"
 			exit 1
 		}
 		set cmd "set_property top $hbs::Top \[current_fileset\]"
