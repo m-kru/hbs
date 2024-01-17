@@ -88,7 +88,9 @@ namespace eval hbs {
 
 						set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 						set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
-						eval "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
+						set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
+						puts $cmd
+						eval $cmd
 
 						hbs::dbg "vivado project created successfully"
 					}
@@ -1130,15 +1132,17 @@ namespace eval hbs::vivado {
 			puts "hbs::vivado::run: cannot set part, hbs::Device not set"
 			exit 1
 		}
-		hbs::dbg "setting part $hbs::Device"
-		set_property part $hbs::Device [current_project]
+		set cmd "set_property part $hbs::Device \[current_project\]"
+		puts $cmd
+		eval $cmd
 
 		if {$hbs::Top == ""} {
 			puts "hbs::vivado::run: cannot set top, hbs::Top not set"
 			exit 1
 		}
-		hbs::dbg "setting top $hbs::Top"
-		set_property top $hbs::Top [current_fileset]
+		set cmd "set_property top $hbs::Top \[current_fileset\]"
+		puts $cmd
+		eval $cmd
 
 		if {$hbs::postProjectCallback != ""} {
 			eval $hbs::postProjectCallback
