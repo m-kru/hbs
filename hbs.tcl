@@ -377,10 +377,12 @@ namespace eval hbs {
 		set hbs::postSynthesisCallback $args
 	}
 
+	proc SetPostImplementationCallback {args} {
+		set hbs::postImplementationCallback $args
+	}
+
 	# TODO: Implement below functionality.
 	proc SetPostBitstreamCallback {} {}
-	proc SetPostImplementationCallback {} {}
-	proc SetPostProjectCallback {} {}
 
 	proc Exec {args} {
 		set workDir [pwd]
@@ -420,6 +422,7 @@ namespace eval hbs {
 	set postSimulationCallback ""
 	set postProjectCallback ""
 	set postSynthesisCallback ""
+	set postImplementationCallback ""
 
 	set fileList {}
 	set cores [dict create]
@@ -1192,6 +1195,25 @@ namespace eval hbs::vivado-prj {
 			eval $hbs::postSynthesisCallback
 		}
 		if {$stage == "synthesis"} {
+			return
+		}
+
+		#
+		# Implementation
+		#
+		set cmd "launch_runs $hbs::ArgsPrefix impl_1 $hbs::ArgsSuffix"
+		puts $cmd
+		eval $cmd
+		set cmd "wait_on_run impl_1"
+		puts $cmd
+		eval $cmd
+		if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
+			error "ERROR: impl_1 failed"
+		}
+		if {$hbs::postImplementationCallback != ""} {
+			eval $hbs::postImplementationCallback
+		}
+		if {$stage == "implementation"} {
 			return
 		}
 	}
