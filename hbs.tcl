@@ -84,13 +84,13 @@ namespace eval hbs {
 						# Vivado already runs the script
 						set hbs::Tool "vivado"
 
-						if {$hbs::debug} { puts "hbs::SetTool: creating vivado project" }
+						hbs::dbg "creating vivado project"
 
 						set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
 						set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
 						eval "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
 
-						if {$hbs::debug} { puts "hbs::SetTool: vivado project created successfully" }
+						hbs::dbg "vivado project created successfully"
 					}
 				} else {
 					# Run the script with Vivado
@@ -395,7 +395,13 @@ namespace eval hbs {
 
 # Private API
 namespace eval hbs {
-	set debug 0
+	set debug 1
+
+	# dbg formats and prints debug message if hbs::debug is not 0.
+	proc dbg {msg} {
+		if {$hbs::debug == 0} { return }
+		puts stderr "[lindex [info level -1] 0]: $msg"
+	}
 
 	# Core and target currently being run
 	set thisCore ""
@@ -736,9 +742,7 @@ namespace eval hbs::ghdl {
 	}
 
 	proc addVhdlFile {file} {
-		if {$hbs::debug} {
-			puts "ghdl::addVhdlFile: adding file $file"
-		}
+		hbs::dbg  "adding file $file"
 
 		set lib [hbs::ghdl::library]
 		dict append hbs::ghdl::vhdlFiles $file \
@@ -750,9 +754,7 @@ namespace eval hbs::ghdl {
 	}
 
 	proc analyze {} {
-		if {$hbs::debug} {
-			puts "ghdl: starting files analysis"
-		}
+		hbs::dbg "starting files analysis"
 
 		set workDir [pwd]
 		cd $hbs::targetDir
@@ -913,9 +915,7 @@ namespace eval hbs::nvc {
 	}
 
 	proc addVhdlFile {file} {
-		if {$hbs::debug} {
-			puts "nvc::addVhdlFile: adding file $file"
-		}
+		hbs::dbg "adding file $file"
 
 		set lib [hbs::nvc::library]
 		dict append hbs::nvc::vhdlFiles $file \
@@ -927,9 +927,7 @@ namespace eval hbs::nvc {
 	}
 
 	proc analyze {} {
-		if {$hbs::debug} {
-			puts "nvc: starting files analysis"
-		}
+		hbs::dbg "starting files analysis"
 
 		set workDir [pwd]
 		cd $hbs::targetDir
@@ -1030,9 +1028,7 @@ namespace eval hbs::nvc {
 namespace eval hbs::vivado {
 	proc addFile {files} {
 		foreach file $files {
-			if {$hbs::debug} {
-				puts "hbs::vivado::addFile: adding file $file"
-			}
+			hbs::dbg "adding file $file"
 
 			set extension [file extension $file]
 			switch $extension {
@@ -1134,14 +1130,14 @@ namespace eval hbs::vivado {
 			puts "hbs::vivado::run: cannot set part, hbs::Device not set"
 			exit 1
 		}
-		if {$hbs::debug} {puts "hbs::vivado::run: setting part $hbs::Device"}
+		hbs::dbg "setting part $hbs::Device"
 		set_property part $hbs::Device [current_project]
 
 		if {$hbs::Top == ""} {
 			puts "hbs::vivado::run: cannot set top, hbs::Top not set"
 			exit 1
 		}
-		if {$hbs::debug} {puts "hbs::vivado::run: setting top $hbs::Top"}
+		hbs::dbg "setting top $hbs::Top"
 		set_property top $hbs::Top [current_fileset]
 
 		if {$hbs::postProjectCallback != ""} {
