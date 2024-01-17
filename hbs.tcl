@@ -381,8 +381,9 @@ namespace eval hbs {
 		set hbs::postImplementationCallback $args
 	}
 
-	# TODO: Implement below functionality.
-	proc SetPostBitstreamCallback {} {}
+	proc SetPostBitstreamCallback {args} {
+		set hbs::postBitstreamCallback $args
+	}
 
 	proc Exec {args} {
 		set workDir [pwd]
@@ -417,12 +418,14 @@ namespace eval hbs {
 	# Target output directory
 	set targetDir ""
 
+	# Stage callbacks
 	set postAnalysisCallback ""
 	set postElaborationCallback ""
 	set postSimulationCallback ""
 	set postProjectCallback ""
 	set postSynthesisCallback ""
 	set postImplementationCallback ""
+	set postBitstreamCallback ""
 
 	set fileList {}
 	set cores [dict create]
@@ -1215,6 +1218,19 @@ namespace eval hbs::vivado-prj {
 		}
 		if {$stage == "implementation"} {
 			return
+		}
+
+		#
+		# Bitstream
+		#
+		set cmd "open_run impl_1"
+		puts $cmd
+		eval $cmd
+		set cmd "write_bitstream $hbs::ArgsPrefix [get_property DIRECTORY [current_run]]/[current_project].bit $hbs::ArgsSuffix"
+		puts $cmd
+		eval $cmd
+		if {$hbs::postBitstreamCallback != ""} {
+			eval $hbs::postBitstreamCallback
 		}
 	}
 }
