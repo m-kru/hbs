@@ -79,7 +79,6 @@ namespace eval hbs {
 			}
 			"nvc" {
 				set hbs::Tool $tool
-				hbs::nvc::init
 			}
 			"vivado-prj" {
 				# Check if the script is already run by Vivado
@@ -874,14 +873,6 @@ namespace eval hbs::nvc {
 	set libs "-L."
 
 	set generics [dict create]
-
-	proc init {} {
-		# Check for pre-analyzed libraries
-		set defaultVendorsDir "$::env(HOME)/.nvc/lib"
-		if {[file exist $defaultVendorsDir]} {
-			set hbs::nvc::libs "$hbs::nvc::libs -L$defaultVendorsDir"
-		}
-	}
 
 	proc addFile {files} {
 		foreach file $files {
