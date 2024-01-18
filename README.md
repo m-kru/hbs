@@ -15,8 +15,9 @@ The second class tries to abstract away the underlying Tcl commands using declar
 - [Hog](https://gitlab.com/hog-cern/Hog),
 - [Hdlmake](https://ohwr.org/project/hdl-make),
 - [bender](https://github.com/pulp-platform/bender),
-- [bazel_rules_hdl](https://github.com/hdl/bazel_rules_hdl).
-- [SiliconCompiler](https://github.com/siliconcompiler/siliconcompiler)
+- [bazel_rules_hdl](https://github.com/hdl/bazel_rules_hdl),
+- [SiliconCompiler](https://github.com/siliconcompiler/siliconcompiler),
+- [HAMMER](https://github.com/ucb-bar/hammer).
 
 EDA tools are built around Tcl.
 The discussion whether it is good or bad makes no sense, it is how it is.
