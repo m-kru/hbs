@@ -117,6 +117,9 @@ namespace eval hbs {
 					}
 				}
 			}
+			"xsim" {
+				set hbs::Tool $tool
+			}
 			default {
 				puts stderr "hbs::SetTool: [unknownToolMsg $tool]"
 				exit 1
@@ -132,7 +135,8 @@ namespace eval hbs {
 	proc ToolType {} {
 		switch $hbs::Tool {
 			"ghdl" -
-			"nvc" {
+			"nvc" -
+			"xsim" {
 				return "simulation"
 			}
 			"vivado-prj" {
@@ -266,6 +270,9 @@ namespace eval hbs {
 			"vivado-prj" {
 				hbs::vivado-prj::addFile $files
 			}
+			"xsim" {
+				hbs::xsim::addFile $files
+			}
 			"" {
 				puts stderr "hbs: can't add file $file, hbs::Tool not set"
 				exit 1
@@ -322,6 +329,9 @@ namespace eval hbs {
 			"vivado-prj" {
 				hbs::vivado-prj::run $stage
 			}
+			"xsim" {
+				hbs::xsim::run $stage
+			}
 			default {
 				puts stderr "hbs::Run: [unknownToolMsg $hbs::Tool]"
 				exit 1
@@ -352,6 +362,9 @@ namespace eval hbs {
 			}
 			"vivado-prj" {
 				set_property generic $name=$value [current_fileset]
+			}
+			"xsim" {
+				dict append hbs::xsim::generics $name $value
 			}
 		default {
 				puts -stderr "hbs::SetGeneric: [unknownToolMsg $hbs::Tool]"
@@ -438,7 +451,7 @@ namespace eval hbs {
 	set runTargets [dict create]
 
 	proc unknownToolMsg {tool} {
-		return "core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'nvc', 'vivado-prj' \(project mode\)"
+		return "core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'nvc', 'vivado-prj' \(project mode\), 'xsim'"
 	}
 
 	proc init {} {
@@ -869,7 +882,7 @@ namespace eval hbs::ghdl {
 namespace eval hbs::nvc {
 	set vhdlFiles [dict create]
 
-	# Library search paths. The name is derived from the fact, that one must add -L path arguemnt.
+	# Library search paths.
 	set libs "-L."
 
 	set generics [dict create]
@@ -899,7 +912,7 @@ namespace eval hbs::nvc {
 
 	proc standard {} {
 		switch $hbs::Std {
-			# 20019 is the default one
+			# 2019 is the default one
 			""     { return "2019" }
 			"1993" { return "1993" }
 			"2000" { return "2000" }
@@ -1032,6 +1045,7 @@ namespace eval hbs::nvc {
 	}
 }
 
+# Vivado (Project Mode)
 namespace eval hbs::vivado-prj {
 	proc addFile {files} {
 		foreach file $files {
@@ -1083,6 +1097,9 @@ namespace eval hbs::vivado-prj {
 		switch $hbs::Std {
 			# 2008 is the default one
 			""     { return "-vhdl2008" }
+			"1993" { return "" }
+			"2000" { return "" }
+			"2002" { return "" }
 			"2008" { return "-vhdl2008" }
 			"2019" { return "-vhdl2019" }
 			default {
@@ -1226,6 +1243,245 @@ namespace eval hbs::vivado-prj {
 		eval $cmd
 		if {$hbs::postBitstreamCallback != ""} {
 			eval $hbs::postBitstreamCallback
+		}
+	}
+}
+
+# AMD xsim simulator.
+#
+# Custom Tcl batch script for running simulation can be added by adding .tcl file:
+#   hbs::AddFile your-xsim-run.tcl
+# Only one Tcl batch file can be set. Adding consecutive Tcl file results in error.
+# If you want to change the Tcl batch file depending on the run, then implement
+# the logic in the .hbs file.
+namespace eval hbs::xsim {
+	set hdlFiles [dict create]
+	set tclBatchFile ""
+
+	set generics [dict create]
+
+	proc addFile {files} {
+		foreach file $files {
+			set extension [file extension $file]
+			switch $extension {
+				".v" -
+				".sv" -
+				".vhd" -
+				".vhdl" {
+					hbs::xsim::addHdlFile $file
+				}
+				".tcl" {
+					hbs::xsim::setTclBatchFile $file
+				}
+				default {
+					puts stderr "xsim::addFile: unhandled file extension '$extension'"
+					exit 1
+				}
+			}
+		}
+	}
+
+	proc setTclBatchFile {file} {
+		if {$hbs::xsim::tclBatchFile != ""} {
+			puts stderr "xsim::setTclBatchFile: cannot set file to $file, file already set to $hbs::xsim::tclBatchFile"
+			exit 1
+		}
+		set hbs::xsim::tclBatchFile $file
+	}
+
+	proc library {} {
+		if {$hbs::Lib eq ""} {
+			return "work"
+		}
+		return $hbs::Lib
+	}
+
+	proc standard {} {
+		switch $hbs::Std {
+			# 2019 is the default one
+			""     { return "--2008" }
+			"1993" { return "" }
+			"2000" { return "" }
+			"2002" { return "" }
+			"2008" { return "--2008" }
+			"2019" { return "--2019" }
+			default {
+				puts stderr "xsim::standard: invalid hbs::Std $hbs::Std"
+				exit 1
+			}
+		}
+	}
+
+	proc genericArgs {} {
+		set args ""
+		dict for {name value} $hbs::xsim::generics {
+			set args "$args -d $name=$value"
+		}
+		return $args
+	}
+
+	proc addHdlFile {file} {
+		hbs::dbg "adding file $file"
+
+		set lib [hbs::xsim::library]
+		# Verilog and SystemVerilog have no standard
+		set std ""
+		# Only VHDL has standard
+		set extension [file extension $file]
+		if {$extension == ".vhd" || $extension == ".vhdl"} {
+			set std [hbs::xsim::standard]
+		}
+		dict append hbs::xsim::hdlFiles $file \
+				[dict create \
+				std $std \
+				lib $lib \
+				argsPrefix $hbs::ArgsPrefix \
+				argsSuffix $hbs::ArgsSuffix]
+	}
+
+	proc analyzeVhdl {file args_} {
+		set cmd "xvhdl [dict get $args_ argsPrefix] --work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
+		puts $cmd
+		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+		if {$exitStatus != 0} {
+			puts stderr "xsim::analyzeVhdl: $file analysis failed with exit status $exitStatus"
+			exit 1
+		}
+	}
+
+	proc analyzeVerilog {file args_} {
+		set lib [dict get $args_ lib]
+		set cmd "xvlog [dict get $args_ argsPrefix] --work $lib $file [dict get $args_ argsSuffix]"
+		puts $cmd
+		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+		if {$exitStatus != 0} {
+			puts stderr "xsim::analyzeVerilog: $file analysis failed with exit status $exitStatus"
+			exit 1
+		}
+	}
+
+	proc analyzeSystemVerilog {file args_} {
+		set lib [dict get $args_ lib]
+		set cmd "xvlog --sv [dict get $args_ argsPrefix] --work $lib $file [dict get $args_ argsSuffix]"
+		puts $cmd
+		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+		if {$exitStatus != 0} {
+			puts stderr "xsim::analyzeSystemVerilog: $file analysis failed with exit status $exitStatus"
+			exit 1
+		}
+	}
+
+	proc analyze {} {
+		hbs::dbg "starting files analysis"
+
+		set workDir [pwd]
+		cd $hbs::targetDir
+
+		dict for {file args} $hbs::xsim::hdlFiles {
+			switch [file extension $file] {
+				".v" {
+					hbs::xsim::analyzeVerilog $file $args
+				}
+				".sv" {
+					hbs::xsim::analyzeSystemVerilog $file $args
+				}
+				".vhd" -
+				".vhdl" {
+					hbs::xsim::analyzeVhdl $file $args
+				}
+			}
+		}
+
+		cd $workDir
+	}
+
+	proc elaborate {} {
+		set workDir [pwd]
+		cd $hbs::targetDir
+
+		set cmd "xelab $hbs::ArgsPrefix --debug all [hbs::xsim::genericArgs] $hbs::Top $hbs::ArgsSuffix"
+		puts $cmd
+		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+		if {$exitStatus != 0} {
+			puts stderr "xsim::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
+			exit 1
+		}
+
+		cd $workDir
+	}
+
+	proc simulate {} {
+		set workDir [pwd]
+		cd $hbs::targetDir
+
+		set batchFile $hbs::xsim::tclBatchFile
+		if {$batchFile == ""} {
+			exec -ignorestderr echo "log_wave -recursive *\nrun all\nexit" > run.tcl
+			set batchFile "run.tcl"
+		}
+
+		set cmd "xsim $hbs::ArgsPrefix --stats --tclbatch $batchFile $hbs::Top $hbs::ArgsSuffix"
+		puts $cmd
+		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
+			puts $output
+		} else {
+			puts stderr $output
+			exit 1
+		}
+
+		cd $workDir
+	}
+
+	proc checkStage {stage} {
+		switch $stage {
+			"" -
+			"analysis" -
+			"elaboration" -
+			"simulation" {
+				;
+			}
+			default {
+				puts "xsim::checkStage: invalid stage '$stage', valid xsim stages are: analysis, elaboration and simulation"
+				exit 1
+			}
+		}
+	}
+
+	# xsim::run supports following stages:
+	#   - analysis,
+	#   - elaboration,
+	#   - simulation.
+	proc run {stage} {
+		hbs::xsim::checkStage $stage
+
+		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
+		hbs::dumpCores $hbsJSON
+
+		set exitStatus [catch {eval exec -ignorestderr "which xsim" >@ stdout}]
+		if {$exitStatus != 0} {
+			puts stderr "xsim::analyze: xsim not found, probably vivado settings script is not sourced"
+			exit 1
+		}
+
+		hbs::xsim::analyze
+		if {$hbs::postAnalysisCallback != ""} {
+			eval $hbs::postAnalysisCallback
+		}
+		if {$stage == "analysis"} {
+			return
+		}
+
+		hbs::xsim::elaborate
+		if {$hbs::postElaborationCallback != ""} {
+			eval $hbs::postElaborationCallback
+		}
+		if {$stage == "elaboration"} {
+			return
+		}
+
+		hbs::xsim::simulate
+		if {$hbs::postSimulationCallback != ""} {
+			eval $hbs::postSimulationCallback
 		}
 	}
 }
