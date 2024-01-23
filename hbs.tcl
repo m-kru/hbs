@@ -1340,7 +1340,7 @@ namespace eval hbs::xsim {
 	}
 
 	proc analyzeVhdl {file args_} {
-		set cmd "xvhdl [dict get $args_ argsPrefix] --work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
+		set cmd "xvhdl [dict get $args_ argsPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
@@ -1351,7 +1351,7 @@ namespace eval hbs::xsim {
 
 	proc analyzeVerilog {file args_} {
 		set lib [dict get $args_ lib]
-		set cmd "xvlog [dict get $args_ argsPrefix] --work $lib $file [dict get $args_ argsSuffix]"
+		set cmd "xvlog [dict get $args_ argsPrefix] -work $lib $file [dict get $args_ argsSuffix]"
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
@@ -1362,7 +1362,7 @@ namespace eval hbs::xsim {
 
 	proc analyzeSystemVerilog {file args_} {
 		set lib [dict get $args_ lib]
-		set cmd "xvlog --sv [dict get $args_ argsPrefix] --work $lib $file [dict get $args_ argsSuffix]"
+		set cmd "xvlog -sv [dict get $args_ argsPrefix] -work $lib $file [dict get $args_ argsSuffix]"
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
@@ -1399,7 +1399,7 @@ namespace eval hbs::xsim {
 		set workDir [pwd]
 		cd $hbs::targetDir
 
-		set cmd "xelab $hbs::ArgsPrefix --debug all [hbs::xsim::genericArgs] $hbs::Top $hbs::ArgsSuffix"
+		set cmd "xelab $hbs::ArgsPrefix -debug all [hbs::xsim::genericArgs] $hbs::Top $hbs::ArgsSuffix"
 		puts $cmd
 		set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
 		if {$exitStatus != 0} {
@@ -1420,7 +1420,7 @@ namespace eval hbs::xsim {
 			set batchFile "run.tcl"
 		}
 
-		set cmd "xsim $hbs::ArgsPrefix --stats --tclbatch $batchFile $hbs::Top $hbs::ArgsSuffix"
+		set cmd "xsim $hbs::ArgsPrefix -stats -tclbatch $batchFile $hbs::Top $hbs::ArgsSuffix"
 		puts $cmd
 		if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
 			puts $output
@@ -1457,7 +1457,7 @@ namespace eval hbs::xsim {
 		set hbsJSON [open "$hbs::targetDir/hbs.json" w]
 		hbs::dumpCores $hbsJSON
 
-		set exitStatus [catch {eval exec -ignorestderr "which xsim" >@ stdout}]
+		set exitStatus [catch {eval exec -ignorestderr "which xsim"}]
 		if {$exitStatus != 0} {
 			puts stderr "xsim::analyze: xsim not found, probably vivado settings script is not sourced"
 			exit 1
