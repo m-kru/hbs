@@ -11,6 +11,8 @@ The first class directly utilizes Tcl (the Tcl approach), examples:
 - [OSVVM-Scripts](https://github.com/OSVVM/OSVVM-Scripts).
 
 The second class tries to abstract away the underlying Tcl commands using declarative formats (the declarative approach), examples:
+- [Blockwork](https://blockwork.intuity.io/),
+- [flgen](https://github.com/pezy-computing/flgen)
 - [FuseSoC](https://github.com/olofk/fusesoc),
 - [Hog](https://gitlab.com/hog-cern/Hog),
 - [Hdlmake](https://ohwr.org/project/hdl-make),
