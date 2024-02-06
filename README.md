@@ -347,10 +347,10 @@ If the tool executing the code is "vivado", then additional constraint file is a
 Every public `hbs::Variable` has corresponding `hbs::SetVariable` function for setting value of the variable.
 
 All variables representing choices (enumeration) user lowercase strings.
-For example, the `hbs::Tool` can be `ghdl`, `vivado` etc.
+For example, the `hbs::Tool` can be `ghdl`, `vivado-prj` etc.
 The `hbs::ToolType` proc can return `formal`, `simulation`, or `synthesis`.
-The points of this is to avoid error cases when one core maintainer sets the tool to `Vivado`, but another core maintainer has for example following condition in one of the targets `if {$hbs::Tool == "vivado"}`.
-The expression would evaluate to false, although the tool is Vivado.
+The points of this is to avoid error cases when one core maintainer sets the tool to `GHDL`, but another core maintainer has, for example, following condition in one of the targets `if {$hbs::Tool == "ghdl"}`.
+The expression would evaluate to false, although the tool is GHDL.
 The `hbs::Set*` procs make sure users provide lowercase names.
 
 ### Core and target names
