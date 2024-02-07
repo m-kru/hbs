@@ -1130,11 +1130,11 @@ namespace eval hbs::vivado-prj {
 	}
 
 	proc addVerilogFile {file} {
-		read_vhdl -library [hbs::vivado-prj::library] $file
+		read_verilog -library [hbs::vivado-prj::library] $file
 	}
 
 	proc addSystemVerilogFile {file} {
-		read_vhdl -library [hbs::vivado-prj::library] -sv $file
+		read_verilog -library [hbs::vivado-prj::library] -sv $file
 	}
 
 	proc addVhdlFile {file} {
