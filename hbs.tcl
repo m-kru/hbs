@@ -25,41 +25,23 @@ namespace eval hbs {
 	# or before the final arguemnt.
 	set ArgsSuffix ""
 
-	proc SetBuildDir {path} {
-		set hbs::BuildDir $path
-	}
+	proc SetBuildDir {path} { set hbs::BuildDir $path }
 
-	proc SetDevice {dev} {
-		set hbs::Device $dev
-	}
+	proc SetDevice {dev} { set hbs::Device $dev }
 
-	proc SetLib {lib} {
-		set hbs::Lib $lib
-	}
+	proc SetLib {lib} { set hbs::Lib $lib }
 
-	proc SetStd {std} {
-		set hbs::Std $std
-	}
+	proc SetStd {std} { set hbs::Std $std }
 
-	proc SetTop {top} {
-		set hbs::Top $top
-	}
+	proc SetTop {top} { set hbs::Top $top }
 
-	proc SetArgsPrefix {prefix} {
-		set hbs::ArgsPrefix $prefix
-	}
+	proc SetArgsPrefix {prefix} { set hbs::ArgsPrefix $prefix }
 
-	proc ClearArgsPrefix {} {
-		set hbs::ArgsPrefix ""
-	}
+	proc ClearArgsPrefix {} { set hbs::ArgsPrefix "" }
 
-	proc SetArgsSuffix {suffix} {
-		set hbs::ArgsSuffix $suffix
-	}
+	proc SetArgsSuffix {suffix} { set hbs::ArgsSuffix $suffix }
 
-	proc ClearArgsSuffix {} {
-		set hbs::ArgsSuffix ""
-	}
+	proc ClearArgsSuffix {} { set hbs::ArgsSuffix "" }
 
 	proc ClearArgsAffixes {} {
 		set hbs::ArgsPrefix ""
@@ -763,9 +745,7 @@ namespace eval hbs::ghdl {
 	}
 
 	proc library {} {
-		if {$hbs::Lib eq ""} {
-			return "work"
-		}
+		if {$hbs::Lib eq ""} { return "work" }
 		return $hbs::Lib
 	}
 
@@ -882,15 +862,11 @@ namespace eval hbs::ghdl {
 
 		hbs::ghdl::analyze
 		hbs::evalPostAnalCbs
-		if {$stage == "analysis"} {
-			return
-		}
+		if {$stage == "analysis"} { return }
 
 		hbs::ghdl::elaborate
 		hbs::evalPostElabCbs
-		if {$stage == "elaboration"} {
-			return
-		}
+		if {$stage == "elaboration"} { return }
 
 		hbs::ghdl::simulate
 		hbs::evalPostSimCbs
@@ -1042,15 +1018,11 @@ namespace eval hbs::nvc {
 
 		hbs::nvc::analyze
 		hbs::evalPostAnalCbs
-		if {$stage == "analysis"} {
-			return
-		}
+		if {$stage == "analysis"} { return }
 
 		hbs::nvc::elaborate
 		hbs::evalPostElabCbs
-		if {$stage == "elaboration"} {
-			return
-		}
+		if {$stage == "elaboration"} { return }
 
 		hbs::nvc::simulate
 		hbs::evalPostSimCbs
@@ -1099,9 +1071,7 @@ namespace eval hbs::vivado-prj {
 	}
 
 	proc library {} {
-		if {$hbs::Lib eq ""} {
-			return "xil_defaultlib"
-		}
+		if {$hbs::Lib eq ""} { return "xil_defaultlib" }
 		return $hbs::Lib
 	}
 
@@ -1200,9 +1170,7 @@ namespace eval hbs::vivado-prj {
 		eval $cmd
 
 		hbs::evalPostPrjCbs
-		if {$stage == "project"} {
-			return
-		}
+		if {$stage == "project"} { return }
 
 		#
 		# Synthesis
@@ -1217,9 +1185,7 @@ namespace eval hbs::vivado-prj {
 			error "ERROR: synth_1 failed"
 		}
 		hbs::evalPostSynthCbs
-		if {$stage == "synthesis"} {
-			return
-		}
+		if {$stage == "synthesis"} { return }
 
 		#
 		# Implementation
@@ -1234,9 +1200,7 @@ namespace eval hbs::vivado-prj {
 			error "ERROR: impl_1 failed"
 		}
 		hbs::evalPostImplCbs
-		if {$stage == "implementation"} {
-			return
-		}
+		if {$stage == "implementation"} { return }
 
 		#
 		# Bitstream
@@ -1469,15 +1433,11 @@ namespace eval hbs::xsim {
 
 		hbs::xsim::analyze
 		hbs::evalPostAnalCbs
-		if {$stage == "analysis"} {
-			return
-		}
+		if {$stage == "analysis"} { return }
 
 		hbs::xsim::elaborate
 		hbs::evalPostElabCbs
-		if {$stage == "elaboration"} {
-			return
-		}
+		if {$stage == "elaboration"} { return }
 
 		hbs::xsim::simulate
 		hbs::evalPostSimCbs
