@@ -373,41 +373,50 @@ namespace eval hbs {
 		}
 	}
 
-	# SetPostAnalCb sets post analysis stage callback.
-	proc SetPostAnalCb {args} {
-		set hbs::postAnalysisCallback $args
-	}
+	# ClearPostAnalCbList removes all callbacks from the post analysis callback list.
+	proc ClearPostAnalCbList {} { set hbs::postAnalCbs [] }
 
-	# SetPostElabCb sets post elaboration stage callback.
-	proc SetPostElabCb {args} {
-		set hbs::postElaborationCallback $args
-	}
+	# AddPostAnalCb adds post analysis stage callback to the post analysis callback list.
+	proc AddPostAnalCb {args} { lappend hbs::postAnalCbs $args }
 
-	# SetPostSimCb sets post simulation stage callback.
-	proc SetPostSimCb {args} {
-		set hbs::postSimulationCallback $args
-	}
+	# ClearPostElabCbList removes all callbacks from the post elaboration callback list.
+	proc ClearPostElabCbList {} { set hbs::postElabCbs [] }
+	
+	# AddPostElabCb adds post elaboration stage callback to the post elaboration callback list.
+	proc AddPostElabCb {args} { lappend hbs::postElabCbs $args }
 
-	# SetPostPrjCb sets post project creation stage callback.
-	proc SetPostPrjCb {args} {
-		set hbs::postProjectCallback $args
-	}
+	# ClearPostSimCbList removes all callbacks from the post simulation callback list.
+	proc ClearPostSimCbList {} { set hbs::postSimCbs [] }
 
-	# SetPostSynthCb sets post synthesis stage callback.
-	proc SetPostSynthCb {args} {
-		set hbs::postSynthesisCallback $args
-	}
+	# AddPostSimCb adds post simulation stage callback to the post simulation callback list.
+	proc AddPostSimCb {args} { lappend hbs::postSimCbs args }
 
-	# SetPostImplCb sets post implementation stage callback.
-	proc SetPostImplCb {args} {
-		set hbs::postImplementationCallback $args
-	}
+	# ClearPostPrjCbList removes all callbacks from the post project callback list.
+	proc ClearPostPrjCbList {} { set hbs::postPrjCbs [] }
 
-	# SetPostImplCb sets post bitstream generation stage callback.
-	proc SetPostBitCb {args} {
-		set hbs::postBitstreamCallback $args
-	}
+	# AddPostPrjCb adds post project creation stage callback to the post project callback list.
+	proc AddPostPrjCb {args} { lappend hbs::postPrjCbs $args }
 
+	# ClearPostSynthCbList removes all callbacks from the post synthesis callback list.
+	proc ClearPostSynthCbList {} { set hbs::postSynthCbs [] }
+
+	# AddPostSynthCb adds post synthesis stage callback to the post synthesis callback list.
+	proc AddPostSynthCb {args} { lappend hbs::postSynthCbs $args }
+
+	# ClearPostImplCbList removes all callbacks from the post implementation callback list.
+	proc ClearPostImplCbList {} { set hbs::postImplCbs [] }
+
+	# AddPostImplCb adds post implementation stage callback to the post implementation callback list.
+	proc AddPostImplCb {args} { lappend hbs::postImplCbs $args }
+
+	# ClearPostBitCbList removes all callbacks from the post bitstream callback list.
+	proc ClearPostBitCbList {} { set hbs::postBitCbs [] }
+
+	# AddPostBitCb adds post bitstream generation stage callback to the post bitstream callback list.
+	proc AddPostBitCb {args} { lappend hbs::postBitCbs $args }
+
+	# Exec evaluates Tcl 'exec' command but with working directory changed to the directory
+	# in which .hbs file with given core is defined. After the 'exec' the working directory is restored.
 	proc Exec {args} {
 		set workDir [pwd]
 
@@ -442,13 +451,21 @@ namespace eval hbs {
 	set targetDir ""
 
 	# Stage callbacks
-	set postAnalysisCallback ""
-	set postElaborationCallback ""
-	set postSimulationCallback ""
-	set postProjectCallback ""
-	set postSynthesisCallback ""
-	set postImplementationCallback ""
-	set postBitstreamCallback ""
+	set postAnalCbs  []
+	set postElabCbs  []
+	set postSimCbs   []
+	set postPrjCbs   []
+	set postSynthCbs []
+	set postImplCbs  []
+	set postBitCbs   []
+
+	proc evalPostAnalCbs  {} { foreach cb $hbs::postAnalCbs  { eval $cb } }
+	proc evalPostElabCbs  {} { foreach cb $hbs::postElabCbs  { eval $cb } }
+	proc evalPostSimCbs   {} { foreach cb $hbs::postSimCbs   { eval $cb } }
+	proc evalPostPrjCbs   {} { foreach cb $hbs::postPrjCbs   { eval $cb } }
+	proc evalPostSynthCbs {} { foreach cb $hbs::postSynthCbs { eval $cb } }
+	proc evalPostImplCbs  {} { foreach cb $hbs::postImplCbs  { eval $cb } }
+	proc evalPostBitCbs   {} { foreach cb $hbs::postBitCbs   { eval $cb } }
 
 	set fileList {}
 	set cores [dict create]
@@ -864,25 +881,19 @@ namespace eval hbs::ghdl {
 		hbs::dumpCores $hbsJSON
 
 		hbs::ghdl::analyze
-		if {$hbs::postAnalysisCallback != ""} {
-			eval $hbs::postAnalysisCallback
-		}
+		hbs::evalPostAnalCbs
 		if {$stage == "analysis"} {
 			return
 		}
 
 		hbs::ghdl::elaborate
-		if {$hbs::postElaborationCallback != ""} {
-			eval $hbs::postElaborationCallback
-		}
+		hbs::evalPostElabCbs
 		if {$stage == "elaboration"} {
 			return
 		}
 
 		hbs::ghdl::simulate
-		if {$hbs::postSimulationCallback != ""} {
-			eval $hbs::postSimulationCallback
-		}
+		hbs::evalPostSimCbs
 	}
 }
 
@@ -1030,25 +1041,19 @@ namespace eval hbs::nvc {
 		hbs::dumpCores $hbsJSON
 
 		hbs::nvc::analyze
-		if {$hbs::postAnalysisCallback != ""} {
-			eval $hbs::postAnalysisCallback
-		}
+		hbs::evalPostAnalCbs
 		if {$stage == "analysis"} {
 			return
 		}
 
 		hbs::nvc::elaborate
-		if {$hbs::postElaborationCallback != ""} {
-			eval $hbs::postElaborationCallback
-		}
+		hbs::evalPostElabCbs
 		if {$stage == "elaboration"} {
 			return
 		}
 
 		hbs::nvc::simulate
-		if {$hbs::postSimulationCallback != ""} {
-			eval $hbs::postSimulationCallback
-		}
+		hbs::evalPostSimCbs
 	}
 }
 
@@ -1194,9 +1199,7 @@ namespace eval hbs::vivado-prj {
 		puts $cmd
 		eval $cmd
 
-		if {$hbs::postProjectCallback != ""} {
-			eval $hbs::postProjectCallback
-		}
+		hbs::evalPostPrjCbs
 		if {$stage == "project"} {
 			return
 		}
@@ -1213,9 +1216,7 @@ namespace eval hbs::vivado-prj {
 		if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
 			error "ERROR: synth_1 failed"
 		}
-		if {$hbs::postSynthesisCallback != ""} {
-			eval $hbs::postSynthesisCallback
-		}
+		hbs::evalPostSynthCbs
 		if {$stage == "synthesis"} {
 			return
 		}
@@ -1232,9 +1233,7 @@ namespace eval hbs::vivado-prj {
 		if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
 			error "ERROR: impl_1 failed"
 		}
-		if {$hbs::postImplementationCallback != ""} {
-			eval $hbs::postImplementationCallback
-		}
+		hbs::evalPostImplCbs
 		if {$stage == "implementation"} {
 			return
 		}
@@ -1248,9 +1247,7 @@ namespace eval hbs::vivado-prj {
 		set cmd "write_bitstream $hbs::ArgsPrefix [get_property DIRECTORY [current_run]]/[current_project].bit $hbs::ArgsSuffix"
 		puts $cmd
 		eval $cmd
-		if {$hbs::postBitstreamCallback != ""} {
-			eval $hbs::postBitstreamCallback
-		}
+		hbs::evalPostBitCbs
 	}
 }
 
@@ -1471,25 +1468,19 @@ namespace eval hbs::xsim {
 		}
 
 		hbs::xsim::analyze
-		if {$hbs::postAnalysisCallback != ""} {
-			eval $hbs::postAnalysisCallback
-		}
+		hbs::evalPostAnalCbs
 		if {$stage == "analysis"} {
 			return
 		}
 
 		hbs::xsim::elaborate
-		if {$hbs::postElaborationCallback != ""} {
-			eval $hbs::postElaborationCallback
-		}
+		hbs::evalPostElabCbs
 		if {$stage == "elaboration"} {
 			return
 		}
 
 		hbs::xsim::simulate
-		if {$hbs::postSimulationCallback != ""} {
-			eval $hbs::postSimulationCallback
-		}
+		hbs::evalPostSimCbs
 	}
 }
 
