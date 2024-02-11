@@ -373,31 +373,38 @@ namespace eval hbs {
 		}
 	}
 
-	proc SetPostAnalysisCallback {args} {
+	# SetPostAnalCb sets post analysis stage callback.
+	proc SetPostAnalCb {args} {
 		set hbs::postAnalysisCallback $args
 	}
 
-	proc SetPostElaborationCallback {args} {
+	# SetPostElabCb sets post elaboration stage callback.
+	proc SetPostElabCb {args} {
 		set hbs::postElaborationCallback $args
 	}
 
-	proc SetPostSimulationCallback {args} {
+	# SetPostSimCb sets post simulation stage callback.
+	proc SetPostSimCb {args} {
 		set hbs::postSimulationCallback $args
 	}
 
-	proc SetPostProjectCallback {args} {
+	# SetPostPrjCb sets post project creation stage callback.
+	proc SetPostPrjCb {args} {
 		set hbs::postProjectCallback $args
 	}
 
-	proc SetPostSynthesisCallback {args} {
+	# SetPostSynthCb sets post synthesis stage callback.
+	proc SetPostSynthCb {args} {
 		set hbs::postSynthesisCallback $args
 	}
 
-	proc SetPostImplementationCallback {args} {
+	# SetPostImplCb sets post implementation stage callback.
+	proc SetPostImplCb {args} {
 		set hbs::postImplementationCallback $args
 	}
 
-	proc SetPostBitstreamCallback {args} {
+	# SetPostImplCb sets post bitstream generation stage callback.
+	proc SetPostBitCb {args} {
 		set hbs::postBitstreamCallback $args
 	}
 
