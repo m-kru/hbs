@@ -18,7 +18,7 @@ this_script_dir = os.path.dirname(os.path.abspath(__file__))
 workers = multiprocessing.cpu_count()
 
 help_help = """Usage:
-    
+
   hbs <command> [arguments]
 
 The command is one of:
@@ -30,6 +30,7 @@ The command is one of:
   list-targets  List targets for given core
   run           Run given target
   test          Run testbenches matching given target path
+  list-tb       List testbench targets
   version       Print hbs version
 
 Type 'hbs help <command>' to obtain more information about particular command."""
@@ -39,7 +40,7 @@ graph_help = """Usage:
   hbs graph hbs.json top-target-path"""
 
 list_cores_help = """Usage:
-    
+
   hbs list-cores
 
 List cores found in .hbs files."""
@@ -51,7 +52,7 @@ list_targets_help = """Usage:
 List targets for given core. Core path must be absolute."""
 
 run_help = """Usage:
-        
+
   hbs run <target-path> [target-args...]
 
 Run provided target. The target path must be absolute target path containing
@@ -82,6 +83,16 @@ If target path patterns are provided, only targets whose paths contain
 at least one pattern are run."""
 
 
+list_tb_help = """Usage:
+
+  hbs list-tb [core-path-patterns...]
+
+List testbench targets.
+
+If core-path-patterns are not provided all testbench targets are listed.
+If core-path-patterns are present, then only testbench targets for cores
+whose path contains at least one pattern are listed."""
+
 def error(msg, end='\n'):
     print(msg, file=sys.stderr, end=end)
     exit(1)
@@ -104,6 +115,8 @@ def hbs_help(cmd):
         print(run_help)
     elif cmd == "test":
         print(test_help)
+    elif cmd == "list-tb":
+        print(list_tb_help)
     else:
         print(f"invalid command '{cmd}', check help")
 
@@ -152,7 +165,7 @@ def graph(cores_json_path, target_path):
     graph.render(cleanup=True)
 
 
-def target_path_has_pattern(path, patterns):
+def path_has_pattern(path, patterns):
     if len(patterns) == 0:
         return True
 
@@ -271,7 +284,7 @@ def test(patterns):
                 continue
 
             target_path = core + '::' + target
-            if target_path_has_pattern(target_path, patterns):
+            if path_has_pattern(target_path, patterns):
                 test_targets.append(target_path)
                 global test_longest_path_len
                 if len(target_path) > test_longest_path_len:
@@ -286,6 +299,45 @@ def test(patterns):
         executor.map(lambda t: run_to_file(t), test_targets)
 
     print_test_summary(start_time)
+
+
+def list_tb(patterns):
+    output = subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
+        capture_output=True,
+        encoding="utf-8",
+    )
+    if output.returncode != 0:
+        error(output.stderr, end='')
+
+    cores = json.loads(output.stdout)
+
+    test_targets = dict()
+
+    # Testbench targets discovery logic
+    for core, core_info in cores.items():
+        if path_has_pattern(core, patterns):
+            test_targets[core] = []
+        else:
+            continue
+
+        for target in core_info['targets']:
+            if not (
+                target == 'tb'
+                or target.startswith('tb_')
+                or target.startswith('tb-')
+                or target.endswith('_tb')
+                or target.endswith('-tb')
+            ):
+                continue
+
+            target_path = core + '::' + target
+            test_targets[core].append(target_path)
+
+    # Print Logic
+    for core in sorted(test_targets):
+        for tb in test_targets[core]:
+            print(tb)
 
 
 cmd = sys.argv[1]
@@ -331,6 +383,8 @@ elif cmd == "run":
     exit(status.returncode)
 elif cmd == "test":
     test(sys.argv[2:])
+elif cmd == "list-tb":
+    list_tb(sys.argv[2:])
 elif cmd == "version":
     if len(sys.argv) > 2:
         error("version command doesn't accept any arguments")
