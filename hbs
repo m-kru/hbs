@@ -41,9 +41,13 @@ graph_help = """Usage:
 
 list_cores_help = """Usage:
 
-  hbs list-cores
+  hbs list-cores [core-path-patterns...]
 
-List cores found in .hbs files."""
+List cores found in .hbs files.
+
+If core-path-patterns are not provided all found cores are listed.
+If core-path-patterns are present, then only cores whose path
+contains at least one pattern are listed."""
 
 list_targets_help = """Usage:
 
@@ -301,6 +305,22 @@ def test(patterns):
     print_test_summary(start_time)
 
 
+def list_cores(patterns):
+    output = subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
+        capture_output=True,
+        encoding="utf-8",
+    )
+    if output.returncode != 0:
+        error(output.stderr, end='')
+
+    cores = json.loads(output.stdout)
+
+    for core, core_info in sorted(cores.items()):
+        if path_has_pattern(core, patterns):
+            print(core)
+
+
 def list_tb(patterns):
     output = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
@@ -361,10 +381,7 @@ elif cmd == "dump-cores":
     status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
     exit(status.returncode)
 elif cmd == "list-cores":
-    if len(sys.argv) > 2:
-        error("list-cores command does not accept any arguments")
-    status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'list-cores'])
-    exit(status.returncode)
+    list_cores(sys.argv[2:])
 elif cmd == "list-targets":
     if len(sys.argv) < 3:
         error("list-targets command requires core path")
