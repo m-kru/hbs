@@ -27,10 +27,10 @@ The command is one of:
   graph         Output dependency graph for given target
   dump-cores    Dump info about cores in JSON format
   list-cores    List cores found in .hbs files
-  list-targets  List targets for given core
+  list-targets  List targets for cores found in .hbs files
   run           Run given target
   test          Run testbenches matching given target path
-  list-tb       List testbench targets
+  list-tb       List testbench targets for cores found in .hbs files
   version       Print hbs version
 
 Type 'hbs help <command>' to obtain more information about particular command."""
@@ -51,7 +51,7 @@ contains at least one pattern are listed."""
 
 list_targets_help = """Usage:
 
-  hbs list-targets core-path
+  hbs list-targets [target-path-patterns...]
 
 List targets for given core. Core path must be absolute."""
 
@@ -322,6 +322,32 @@ def list_cores(patterns):
             print(core)
 
 
+def list_targets(patterns):
+    output = subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
+        capture_output=True,
+        encoding="utf-8",
+    )
+    if output.returncode != 0:
+        error(output.stderr, end='')
+
+    cores = json.loads(output.stdout)
+
+    targets = dict()
+
+    for core, core_info in cores.items():
+        for target in core_info['targets']:
+            target_path = core + '::' + target
+            if path_has_pattern(target_path, patterns):
+                if core not in targets:
+                    targets[core] = []
+                targets[core].append(target_path)
+
+    for core in sorted(targets):
+        for tb in targets[core]:
+            print(tb)
+
+
 def list_tb(patterns):
     output = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
@@ -384,14 +410,7 @@ elif cmd == "dump-cores":
 elif cmd == "list-cores":
     list_cores(sys.argv[2:])
 elif cmd == "list-targets":
-    if len(sys.argv) < 3:
-        error("list-targets command requires core path")
-    elif len(sys.argv) > 3:
-        error("list-targets command accepts only one core path")
-    status = subprocess.run(
-        [os.path.join(this_script_dir, 'hbs.tcl'), 'list-targets', sys.argv[2]]
-    )
-    exit(status.returncode)
+    list_targets(sys.argv[2:])
 elif cmd == "run":
     if len(sys.argv) < 3:
         error("run command requires at least target path")
