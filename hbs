@@ -23,14 +23,14 @@ help_help = """Usage:
 
 The command is one of:
 
-  help          Print help message
-  graph         Output dependency graph for given target
   dump-cores    Dump info about cores in JSON format
-  list-cores    List cores found in .hbs files
-  list-targets  List targets for cores found in .hbs files
+  graph         Output dependency graph for given target
+  help          Print help message
+  list-cores    List cores
+  list-targets  List targets
+  list-tb       List testbench targets
   run           Run given target
-  test          Run testbenches matching given target path
-  list-tb       List testbench targets for cores found in .hbs files
+  test          Run testbench targets
   version       Print hbs version
 
 Type 'hbs help <command>' to obtain more information about particular command."""
@@ -39,40 +39,53 @@ graph_help = """Usage:
 
   hbs graph hbs.json top-target-path"""
 
-list_cores_help = """Usage:
+list_cores_help = """List cores found in .hbs files.
 
   hbs list-cores [core-path-patterns...]
 
-List cores found in .hbs files.
-
 If core-path-patterns are not provided all found cores are listed.
-If core-path-patterns are present, then only cores whose path
+If core-path-patterns are provided, then only cores whose path
 contains at least one pattern are listed."""
 
-list_targets_help = """Usage:
+list_targets_help = """List targets for cores found in .hbs files.
 
   hbs list-targets [target-path-patterns...]
 
-List targets for given core. Core path must be absolute."""
+If target-path-patterns are not provided all found targets are listed.
+If target-path-patterns are provided, then only targets whose path
+contains at least one pattern are listed.
 
-run_help = """Usage:
+For example, if you want to list all targets for a given core,
+simply provide the core path as the argument."""
+
+list_tb_help = """List testbench targets for cores found in .hbs files.
+
+  hbs list-tb [target-path-patterns...]
+
+If target-path-patterns are not provided all found testbench targets are listed.
+If target-path-patterns are provided, then only testbench targets whose path
+contains at least one pattern are listed.
+
+For example, if you want to list all testbench targets for a given core,
+simply provide the core path as the argument."""
+
+run_help = """Run provided target.
 
   hbs run <target-path> [target-args...]
 
-Run provided target. The target path must be absolute target path containing
-the core path and target name. Target arguments are forwarded to the target
-proc call.
+The target path must be absolute target path containing the core path
+and target name. Target arguments are forwarded to the target proc call.
 
 Example:
 
-  hbs run your::core::path::target-name"""
+  hbs run your::core::path::target-name synthesis"""
 
-test_help = """Usage:
+test_help = """Run testbench targets.
 
   hbs test [-workers N] [target-path-patterns...]
 
-Run test targets. Test targets are detected automatically.
-A test target is a target which name:
+Testbench targets are detected automatically.
+A testbench target is a target which name:
   - starts with "tb-" or "tb_",
   - ends with "-tb" or "_tb",
   - equals "tb".
@@ -82,20 +95,9 @@ N must be a positive integer. -workers must be provided before target path patte
 Otherwise, it will be treated as one of the target path patterns.
 By default the number of workers equals the number of available CPUs.
 
-If target path patterns are not provided, all test targets are run.
-If target path patterns are provided, only targets whose paths contain
-at least one pattern are run."""
-
-
-list_tb_help = """Usage:
-
-  hbs list-tb [core-path-patterns...]
-
-List testbench targets.
-
-If core-path-patterns are not provided all testbench targets are listed.
-If core-path-patterns are present, then only testbench targets for cores
-whose path contains at least one pattern are listed."""
+If target path patterns are not provided, all testbench targets are run.
+If target path patterns are provided, then only testbench targets whose path
+contains at least one pattern are run."""
 
 
 def error(msg, end='\n'):
