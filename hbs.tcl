@@ -8,40 +8,64 @@
 namespace eval hbs {
 	# BuildDir is the build directory path.
 	set BuildDir "build"
+
 	# Device is target device. Often also called part.
 	set Device ""
+
 	# Lib is current library for adding files.
 	set Lib ""
+
 	# Std is current standard for adding files.
 	set Std ""
+
 	# Tool is target tool name. It must be lowercase.
 	set Tool ""
+
 	# Top is name of the top entity/module. Often also called toplevel.
 	set Top ""
 
 	# Custom (set by user) arguments prefix inserted right after command or program name.
 	set ArgsPrefix ""
+
 	# Custom (set by user) arguments suffix placed at the end of command or program call
 	# or before the final arguemnt.
 	set ArgsSuffix ""
 
-	proc SetBuildDir {path} { set hbs::BuildDir $path }
+	proc SetBuildDir {path} {
+		set hbs::BuildDir $path
+	}
 
-	proc SetDevice {dev} { set hbs::Device $dev }
+	proc SetDevice {dev} {
+		set hbs::Device $dev
+	}
 
-	proc SetLib {lib} { set hbs::Lib $lib }
+	proc SetLib {lib} {
+		set hbs::Lib $lib
+	}
 
-	proc SetStd {std} { set hbs::Std $std }
+	proc SetStd {std} {
+		set hbs::Std $std
+	}
 
-	proc SetTop {top} { set hbs::Top $top }
+	proc SetTop {top} {
+		set hbs::Top $top
+	}
 
-	proc SetArgsPrefix {prefix} { set hbs::ArgsPrefix $prefix }
+	proc SetArgsPrefix {prefix} {
+		set hbs::ArgsPrefix $prefix
+	}
 
-	proc ClearArgsPrefix {} { set hbs::ArgsPrefix "" }
+	proc ClearArgsPrefix {} {
+		set hbs::ArgsPrefix ""
+	}
 
-	proc SetArgsSuffix {suffix} { set hbs::ArgsSuffix $suffix }
+	proc SetArgsSuffix {suffix} {
+		set hbs::ArgsSuffix $suffix
+	}
 
-	proc ClearArgsSuffix {} { set hbs::ArgsSuffix "" }
+	proc ClearArgsSuffix {} {
+		set hbs::ArgsSuffix ""
+	}
 
 	proc ClearArgsAffixes {} {
 		set hbs::ArgsPrefix ""
@@ -356,46 +380,74 @@ namespace eval hbs {
 	}
 
 	# ClearPostAnalCbList removes all callbacks from the post analysis callback list.
-	proc ClearPostAnalCbList {} { set hbs::postAnalCbs [] }
+	proc ClearPostAnalCbList {} {
+		set hbs::postAnalCbs []
+	}
 
 	# AddPostAnalCb adds post analysis stage callback to the post analysis callback list.
-	proc AddPostAnalCb {args} { lappend hbs::postAnalCbs $args }
+	proc AddPostAnalCb {args} {
+		lappend hbs::postAnalCbs $args
+	}
 
 	# ClearPostElabCbList removes all callbacks from the post elaboration callback list.
-	proc ClearPostElabCbList {} { set hbs::postElabCbs [] }
-	
+	proc ClearPostElabCbList {} {
+		set hbs::postElabCbs []
+	}
+
 	# AddPostElabCb adds post elaboration stage callback to the post elaboration callback list.
-	proc AddPostElabCb {args} { lappend hbs::postElabCbs $args }
+	proc AddPostElabCb {args} {
+		lappend hbs::postElabCbs $args
+	}
 
 	# ClearPostSimCbList removes all callbacks from the post simulation callback list.
-	proc ClearPostSimCbList {} { set hbs::postSimCbs [] }
+	proc ClearPostSimCbList {} {
+		set hbs::postSimCbs []
+	}
 
 	# AddPostSimCb adds post simulation stage callback to the post simulation callback list.
-	proc AddPostSimCb {args} { lappend hbs::postSimCbs args }
+	proc AddPostSimCb {args} {
+		lappend hbs::postSimCbs args
+	}
 
 	# ClearPostPrjCbList removes all callbacks from the post project callback list.
-	proc ClearPostPrjCbList {} { set hbs::postPrjCbs [] }
+	proc ClearPostPrjCbList {} {
+		set hbs::postPrjCbs []
+	}
 
 	# AddPostPrjCb adds post project creation stage callback to the post project callback list.
-	proc AddPostPrjCb {args} { lappend hbs::postPrjCbs $args }
+	proc AddPostPrjCb {args} {
+		lappend hbs::postPrjCbs $args
+	}
 
 	# ClearPostSynthCbList removes all callbacks from the post synthesis callback list.
-	proc ClearPostSynthCbList {} { set hbs::postSynthCbs [] }
+	proc ClearPostSynthCbList {} {
+		set hbs::postSynthCbs []
+	}
 
 	# AddPostSynthCb adds post synthesis stage callback to the post synthesis callback list.
-	proc AddPostSynthCb {args} { lappend hbs::postSynthCbs $args }
+	proc AddPostSynthCb {args} {
+		lappend hbs::postSynthCbs $args
+	}
 
 	# ClearPostImplCbList removes all callbacks from the post implementation callback list.
-	proc ClearPostImplCbList {} { set hbs::postImplCbs [] }
+	proc ClearPostImplCbList {} {
+		set hbs::postImplCbs []
+	}
 
 	# AddPostImplCb adds post implementation stage callback to the post implementation callback list.
-	proc AddPostImplCb {args} { lappend hbs::postImplCbs $args }
+	proc AddPostImplCb {args} {
+		lappend hbs::postImplCbs $args
+	}
 
 	# ClearPostBitCbList removes all callbacks from the post bitstream callback list.
-	proc ClearPostBitCbList {} { set hbs::postBitCbs [] }
+	proc ClearPostBitCbList {} {
+		set hbs::postBitCbs []
+	}
 
 	# AddPostBitCb adds post bitstream generation stage callback to the post bitstream callback list.
-	proc AddPostBitCb {args} { lappend hbs::postBitCbs $args }
+	proc AddPostBitCb {args} {
+		lappend hbs::postBitCbs $args
+	}
 
 	# Exec evaluates Tcl 'exec' command but with working directory changed to the directory
 	# in which .hbs file with given core is defined. After the 'exec' the working directory is restored.
@@ -410,6 +462,7 @@ namespace eval hbs {
 		cd $workDir
 	}
 
+	# CoreDir returns directory of file in which current core is defined.
 	proc CoreDir {} {
 		return [file dirname [dict get $hbs::cores ::hbs::$hbs::thisCore file]]
 	}
