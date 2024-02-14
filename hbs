@@ -35,7 +35,14 @@ The command is one of:
 
 Type 'hbs help <command>' to obtain more information about particular command."""
 
-graph_help = """Usage:
+dump_cores_help = """Dump info about cores found in .hbs files in JSON format.
+
+  hbs dump-cores
+
+The JSON is directed to stdout. If you want to save it in a file
+simply redirect stdout."""
+
+graph_help = """Output dependency graph for given target.
 
   hbs graph hbs.json top-target-path"""
 
@@ -100,6 +107,15 @@ If target path patterns are provided, then only testbench targets whose path
 contains at least one pattern are run."""
 
 
+version_help = """Print hbs version.
+
+  hbs version
+
+The version consists of two numbers MAJOR.MINOR (for example, 1.2).
+The major number changes in case of features or error fixes     breaking backward compatibility.
+The minor number chnages in case of features or error fixes non-breaking backward compatibility."""
+
+
 def error(msg, end='\n'):
     print(msg, file=sys.stderr, end=end)
     exit(1)
@@ -112,18 +128,22 @@ if len(sys.argv) < 2:
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
         print(help_help)
+    elif cmd == "dump-cores":
+        print(dump_cores_help)
     elif cmd == "graph":
         print(graph_help)
     elif cmd == "list-cores":
         print(list_cores_help)
     elif cmd == "list-targets":
         print(list_targets_help)
+    elif cmd == "list-tb":
+        print(list_tb_help)
     elif cmd == "run":
         print(run_help)
     elif cmd == "test":
         print(test_help)
-    elif cmd == "list-tb":
-        print(list_tb_help)
+    elif cmd == "version":
+        print(version_help)
     else:
         print(f"invalid command '{cmd}', check help")
 
