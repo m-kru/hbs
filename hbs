@@ -8,6 +8,7 @@ from datetime import datetime
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -300,8 +301,8 @@ def run_to_file(target_path):
     errors_count = 0
     warnings_count = 0
     for line in log:
-        errors_count += line.lower().count("error")
-        warnings_count += line.lower().count("warn")
+        errors_count += sum(1 for _ in re.finditer(r"\berror\b", line.lower()))
+        warnings_count += sum(1 for _ in re.finditer(r"\bwarning\b", line.lower()))
 
     log.close()
 
