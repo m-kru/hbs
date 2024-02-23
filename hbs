@@ -18,6 +18,9 @@ import multiprocessing
 this_script_dir = os.path.dirname(os.path.abspath(__file__))
 workers = multiprocessing.cpu_count()
 
+error_regexp = re.compile(r"\berror\b")
+warning_regexp = re.compile(r"\bwarning\b")
+
 help_help = """Usage:
 
   hbs <command> [arguments]
@@ -298,23 +301,23 @@ def run_to_file(target_path):
     log_file.close()
     log = open(log_file_path, 'r')
 
-    errors_count = 0
-    warnings_count = 0
+    error_count = 0
+    warning_count = 0
     for line in log:
-        errors_count += sum(1 for _ in re.finditer(r"\berror\b", line.lower()))
-        warnings_count += sum(1 for _ in re.finditer(r"\bwarning\b", line.lower()))
+        error_count += len(error_regexp.findall(line.lower()))
+        warning_count += len(warning_regexp.findall(line.lower()))
 
     log.close()
 
-    if errors_count > 0:
-        msg += f"  errors: {errors_count}"
-    if warnings_count > 0:
-        msg += f"  warnings: {warnings_count}"
+    if error_count > 0:
+        msg += f"  errors: {error_count}"
+    if warning_count > 0:
+        msg += f"  warnings: {warning_count}"
 
     print(msg)
 
-    result['errors_count'] = errors_count
-    result['warnings_count'] = warnings_count
+    result['error_count'] = error_count
+    result['warning_count'] = warning_count
 
     global test_results
     test_results.append(result)
@@ -342,8 +345,8 @@ def print_test_summary(start_time):
         else:
             failed += 1
 
-        errors += r['errors_count']
-        warnings += r['warnings_count']
+        errors += r['error_count']
+        warnings += r['warning_count']
 
     print()
     print(f"time:     {hours} h {minutes} min {seconds} s")
