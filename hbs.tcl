@@ -469,6 +469,8 @@ namespace eval hbs {
 }
 
 # Private API
+#
+# Only use this API directly in user hbs files if you _really_ know what you are doing.
 namespace eval hbs {
   set debug 0
 
