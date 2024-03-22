@@ -677,7 +677,7 @@ namespace eval hbs {
         puts $chnnl "\t\}"
       }
     }
-  
+
     puts $chnnl "\}"
   }
 
