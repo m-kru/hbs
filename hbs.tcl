@@ -6,6 +6,12 @@
 
 # Public API
 namespace eval hbs {
+  # Path of the core which target is currently being run.
+  set ThisCore ""
+
+  # Name of the target currently being run.
+  set ThisTarget ""
+
   # BuildDir is the build directory path.
   set BuildDir "build"
 
@@ -74,7 +80,7 @@ namespace eval hbs {
 
   proc SetTool {tool} {
     if {$hbs::Tool !=  ""} {
-      puts stderr "hbs::SeTool: core '$hbs::thisCore', target '$hbs::thisTarget', can't set tool to '$tool', tool already set to '$hbs::Tool'"
+      puts stderr "hbs::SeTool: core '$hbs::ThisCore', target '$hbs::ThisTarget', can't set tool to '$tool', tool already set to '$hbs::Tool'"
       exit 1
     }
 
@@ -95,8 +101,8 @@ namespace eval hbs {
 
             hbs::dbg "creating vivado project"
 
-            set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
-            set prjName [regsub -all :: "$hbs::thisCore\:\:$hbs::thisTarget" -]
+            set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCore/$hbs::ThisTarget" /]
+            set prjName [regsub -all :: "$hbs::ThisCore\:\:$hbs::ThisTarget" -]
             set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
             puts $cmd
             eval $cmd
@@ -105,7 +111,7 @@ namespace eval hbs {
           }
         } else {
           # Run the script with Vivado
-          set prjDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+          set prjDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCore/$hbs::ThisTarget" /]
           file mkdir $prjDir
 
           set cmd "vivado \
@@ -113,7 +119,7 @@ namespace eval hbs {
               -source [file normalize [info script]] \
               -journal $prjDir/vivado.jou \
               -log $prjDir/vivado.log \
-              -tclargs run $hbs::thisCore\:\:$hbs::thisTarget"
+              -tclargs run $hbs::ThisCore\:\:$hbs::ThisTarget"
           set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
           if {$exitStatus == 0} {
             exit 0
@@ -200,9 +206,9 @@ namespace eval hbs {
     checkTargetExists $targetPath
 
     # Add dependency to the core info dictionary
-    set deps [dict get $hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies]
+    set deps [dict get $hbs::cores "::hbs::$hbs::ThisCore" targets $hbs::ThisTarget dependencies]
     lappend deps $targetPath
-    dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget dependencies $deps
+    dict set hbs::cores "::hbs::$hbs::ThisCore" targets $hbs::ThisTarget dependencies $deps
 
     # If the given target with given arguments have already been run, don't run it again.
     if {[dict exists $hbs::runTargets $targetPath] == 1} {
@@ -224,8 +230,8 @@ namespace eval hbs {
 
     # Run dependency target
     hbs::clearContext
-    set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
-    set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
+    set hbs::ThisCore [hbs::getCoreFromTargetPath $targetPath]
+    set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
 
     hbs::$targetPath {*}$args
 
@@ -237,11 +243,11 @@ namespace eval hbs {
   # args is the list of patterns used for globbing files.
   # The file paths are relative to the `.hbs` file path where the proc is called.
   proc AddFile {args} {
-    set hbsFileDir [file dirname [dict get [dict get $hbs::cores ::hbs::$hbs::thisCore] file]]
+    set hbsFileDir [file dirname [dict get [dict get $hbs::cores ::hbs::$hbs::ThisCore] file]]
 
     if {$args == {}} {
       set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
-      puts stderr "hbs::AddFile: no files provided, core '$hbs::thisCore' target '$target'"
+      puts stderr "hbs::AddFile: no files provided, core '$hbs::ThisCore' target '$target'"
       exit 1
     }
 
@@ -260,11 +266,11 @@ namespace eval hbs {
       }
     }
 
-    set targetFiles [dict get $hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget files]
+    set targetFiles [dict get $hbs::cores "::hbs::$hbs::ThisCore" targets $hbs::ThisTarget files]
     foreach file $files {
       lappend targetFiles $file
     }
-    dict set hbs::cores "::hbs::$hbs::thisCore" targets $hbs::thisTarget files $targetFiles
+    dict set hbs::cores "::hbs::$hbs::ThisCore" targets $hbs::ThisTarget files $targetFiles
 
     switch $hbs::Tool {
       "ghdl" {
@@ -320,7 +326,7 @@ namespace eval hbs {
       }
     }
 
-    set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::thisCore/$hbs::thisTarget" /]
+    set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCore/$hbs::ThisTarget" /]
     if {[file exist $hbs::targetDir] eq 0} {
       file mkdir $hbs::targetDir
     }
@@ -454,7 +460,7 @@ namespace eval hbs {
   proc Exec {args} {
     set workDir [pwd]
 
-    set hbsFileDir [file dirname [dict get $hbs::cores ::hbs::$hbs::thisCore file]]
+    set hbsFileDir [file dirname [dict get $hbs::cores ::hbs::$hbs::ThisCore file]]
     cd $hbsFileDir
 
     exec {*}$args
@@ -464,7 +470,7 @@ namespace eval hbs {
 
   # CoreDir returns directory of file in which current core is defined.
   proc CoreDir {} {
-    return [file dirname [dict get $hbs::cores ::hbs::$hbs::thisCore file]]
+    return [file dirname [dict get $hbs::cores ::hbs::$hbs::ThisCore file]]
   }
 }
 
@@ -479,10 +485,6 @@ namespace eval hbs {
     if {$hbs::debug == 0} { return }
     puts stderr "[lindex [info level -1] 0]: $msg"
   }
-
-  # Core and target currently being run
-  set thisCore ""
-  set thisTarget ""
 
   # Target output directory
   set targetDir ""
@@ -512,7 +514,7 @@ namespace eval hbs {
   set runTargets [dict create]
 
   proc unknownToolMsg {tool} {
-    return "core '$hbs::thisCore', target '$hbs::thisTarget', unknown tool '$tool', supported tools: 'ghdl', 'nvc', 'vivado-prj' \(project mode\), 'xsim'"
+    return "core '$hbs::ThisCore', target '$hbs::ThisTarget', unknown tool '$tool', supported tools: 'ghdl', 'nvc', 'vivado-prj' \(project mode\), 'xsim'"
   }
 
   proc init {} {
@@ -551,8 +553,8 @@ namespace eval hbs {
 
     hbs::clearContext
 
-    set hbs::thisCore [hbs::getCoreFromTargetPath $targetPath]
-    set hbs::thisTarget [hbs::getTargetFromTargetPath $targetPath]
+    set hbs::ThisCore [hbs::getCoreFromTargetPath $targetPath]
+    set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
 
     dict append hbs::runTargets $targetPath
 
@@ -570,8 +572,8 @@ namespace eval hbs {
     set hbs::Lib ""
     set hbs::Std ""
     set hbs::Top ""
-    set hbs::thisCore ""
-    set hbs::thisTarget ""
+    set hbs::ThisCore ""
+    set hbs::ThisTarget ""
     set hbs::ArgsPrefix ""
     set hbs::ArgsSuffix ""
   }
@@ -581,10 +583,10 @@ namespace eval hbs {
         Lib $hbs::Lib \
         Std $hbs::Std \
         Top $hbs::Top \
-        thisCore $hbs::thisCore \
-        thisTarget $hbs::thisTarget \
-        argsPrefix $hbs::ArgsPrefix \
-        argsSuffix $hbs::ArgsSuffix]
+        ThisCore $hbs::ThisCore \
+        ThisTarget $hbs::ThisTarget \
+        ArgsPrefix $hbs::ArgsPrefix \
+        ArgsSuffix $hbs::ArgsSuffix]
     return $ctx
   }
 
@@ -592,8 +594,10 @@ namespace eval hbs {
     set hbs::Lib [dict get $ctx Lib]
     set hbs::Std [dict get $ctx Std]
     set hbs::Top [dict get $ctx Top]
-    set hbs::thisCore [dict get $ctx thisCore]
-    set hbs::thisTarget [dict get $ctx thisTarget]
+    set hbs::ThisCore [dict get $ctx ThisCore]
+    set hbs::ThisTarget [dict get $ctx ThisTarget]
+    set hbs::ArgsPrefix [dict get $ctx ArgsPrefix]
+    set hbs::ArgsSuffix [dict get $ctx ArgsSuffix]
   }
 
   # dumpCoreInfo dumps single core info into JSON
