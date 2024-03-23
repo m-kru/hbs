@@ -572,6 +572,8 @@ namespace eval hbs {
     set hbs::Top ""
     set hbs::thisCore ""
     set hbs::thisTarget ""
+    set hbs::ArgsPrefix ""
+    set hbs::ArgsSuffix ""
   }
 
   proc saveContext {} {
@@ -580,7 +582,9 @@ namespace eval hbs {
         Std $hbs::Std \
         Top $hbs::Top \
         thisCore $hbs::thisCore \
-        thisTarget $hbs::thisTarget]
+        thisTarget $hbs::thisTarget \
+        argsPrefix $hbs::ArgsPrefix \
+        argsSuffix $hbs::ArgsSuffix]
     return $ctx
   }
 
