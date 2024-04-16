@@ -69,7 +69,7 @@ Or more satiristically:
 - Automatic detection of test targets.
 - Parallel execution of test targets.
 - Dependency graph generation.
-- Only 2 mandatory dependencies `tclsh` (`>= 8.5`) and `python3`, and one optional `graphviz` (required only if user wants to generate dependency graph).
+- Only two mandatory dependencies `tclsh` (`>= 8.5`) and `python3`, and one optional `graphviz` (required only if user wants to generate dependency graph).
 - Arbitrarily deep core paths, no VLNV restriction.
 - Support for arguments passing from command line to target being run.
 - Support for arguments passing to dependency targets.
