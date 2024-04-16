@@ -101,7 +101,7 @@ There are 3 preferred installation methods.
 2. Copy `hbs` and `hbs.tcl` to one of directories in `$PATH`.
 3. Clone the repo, and add an alias to the `hbs` in `.bashrc` (or equivalent).
 
-## Dependencies
+### Dependencies
 
 Mandatory:
 - `tclsh` (`>= 8.5`),
