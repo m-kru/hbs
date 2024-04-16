@@ -332,7 +332,7 @@ namespace eval vhdl-simple::reset-synchronizer {
     hbs::SetLib "simple"
     hbs::AddFile src/reset_synchronizer.vhd
 
-    if {$hbs::Tool == "vivado"} {
+    if {$hbs::Tool == "vivado-prj"} {
       hbs:AddFile constr/reset_synchronizer.xdc
       set_property SCOPED_TO_REF Reset_Synchronizer [get_files reset_synchronizer.xdc]
     } else {
