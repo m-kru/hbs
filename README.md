@@ -69,7 +69,7 @@ Or more satiristically:
 - Automatic detection of test targets.
 - Parallel execution of test targets.
 - Dependency graph generation.
-- Only 2 dependencies `tclsh` (>= 8.5) and `graphviz` (required only if user wants to generate dependency graph).
+- Only 2 mandatory dependencies `tclsh` (`>= 8.5`) and `python3`, and one optional `graphviz` (required only if user wants to generate dependency graph).
 - Arbitrarily deep core paths, no VLNV restriction.
 - Support for arguments passing from command line to target being run.
 - Support for arguments passing to dependency targets.
@@ -100,6 +100,15 @@ There are 3 preferred installation methods.
 1. Copy `hbs` and `hbs.tcl` to your project. This is preferred if you want to modify the `hbs.tcl` to change the default behavior. It is not advised to change the default behavior, but if you need, feel free to do so.
 2. Copy `hbs` and `hbs.tcl` to one of directories in `$PATH`.
 3. Clone the repo, and add an alias to the `hbs` in `.bashrc` (or equivalent).
+
+## Dependencies
+
+Mandatory:
+- `tclsh` (`>= 8.5`),
+- `python3`.
+
+Optional:
+- `graphviz` - required only if user wants to generate dependency graph.
 
 ## Glossary
 
