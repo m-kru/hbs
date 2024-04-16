@@ -134,10 +134,10 @@ To register a core user must call `hbs::Register` within the core namespace.
 The simplest possible example is shown below:
 ```Tcl
 namespace eval my-core {
-	proc my-target {} {
-		hbs::AddFile core.vhd
-	}
-	hbs::Register
+  proc my-target {} {
+    hbs::AddFile core.vhd
+  }
+  hbs::Register
 }
 ```
 This snippet defines one core named `my-core` containing single target named `my-target`.
@@ -153,10 +153,10 @@ core 'lib::core' not found, maybe the core is not registered (hsb::Register)
 The core path can be arbitrarily deep, for example:
 ```Tcl
 namespace eval my-lib::my-core {
-	proc my-target {} {
-		hbs::AddFile core.vhd
-	}
-	hbs::Register
+  proc my-target {} {
+    hbs::AddFile core.vhd
+  }
+  hbs::Register
 }
 ```
 In this case the core path is `my-lib::my-core`, and the target path is `my-lib::my-core::my-target`.
@@ -166,18 +166,18 @@ Multiple cores can be dfined in the same namespace.
 In such a case it might be more convenient to use nested namespaces, for example:
 ```Tcl
 namespace eval my-lib {
-	namespace eval my-core1 {
-		proc my-target {} {
-			hbs::AddFile core.vhd
-		}
-		hbs::Register
-	}
-	namespace eval my-core2 {
-		proc my-target {} {
-			hbs::AddFile core.vhd
-		}
-		hbs::Register
-	}
+  namespace eval my-core1 {
+    proc my-target {} {
+      hbs::AddFile core.vhd
+    }
+    hbs::Register
+  }
+  namespace eval my-core2 {
+    proc my-target {} {
+      hbs::AddFile core.vhd
+    }
+    hbs::Register
+  }
 }
 ```
 Above snippets defines 2 cores.
@@ -193,27 +193,27 @@ However, to allow user to define custom helpful procs, procs with names starting
 The example:
 ```Tcl
 namespace eval vhdl-simple::edge-detector {
-	proc src {} {
-		hbs::SetLib "simple"
-		hbs::AddFile src/edge_detector.vhd
-	}
-	proc _tb {top} {
-		hbs::SetTool "ghdl"
-		hbs::SetTop $top
-		src
-		hbs::SetLib ""
-	}
-	proc tb {} {
-		_tb "tb_edge_detector"
-		hbs::AddFile tb/tb.vhd
-		hbs::Run
-	}
-	proc tb-comb {} {
-		_tb "tb_edge_detector_comb"
-		hbs::AddFile tb/tb_comb.vhd
-		hbs::Run
-	}
-	hbs::Register
+  proc src {} {
+    hbs::SetLib "simple"
+    hbs::AddFile src/edge_detector.vhd
+  }
+  proc _tb {top} {
+    hbs::SetTool "ghdl"
+    hbs::SetTop $top
+    src
+    hbs::SetLib ""
+  }
+  proc tb {} {
+    _tb "tb_edge_detector"
+    hbs::AddFile tb/tb.vhd
+    hbs::Run
+  }
+  proc tb-comb {} {
+    _tb "tb_edge_detector_comb"
+    hbs::AddFile tb/tb_comb.vhd
+    hbs::Run
+  }
+  hbs::Register
 }
 ```
 The `_tb` proc is a simple proc defined to share calls common for `tb` and `tb-comb` test targets.
@@ -236,9 +236,9 @@ Even if the target itself has nothing to do with the hardware design.
 For example, running the following target:
 ```Tcl
 namespace eval my-core {
-	proc my-target {} {
-		exec echo "Hello World!" >@ stdout
-	}
+  proc my-target {} {
+    exec echo "Hello World!" >@ stdout
+  }
 }
 ```
 Results with:
@@ -261,12 +261,12 @@ This is very useful for example for running flow only to the stage specified fro
 For example below core accept stage arguments.
 ```Tcl
 namespace eval core {
-	proc target {{stage "bitstream"}} {
-		puts "Running until $stage"
-		# Below line commented because this is just example.
-		#hbs::Run $stage
-	}
-	hbs::Register
+  proc target {{stage "bitstream"}} {
+    puts "Running until $stage"
+    # Below line commented because this is just example.
+    #hbs::Run $stage
+  }
+  hbs::Register
 }
 ```
 It can be run with the `stage` value specified as follows.
@@ -328,19 +328,19 @@ There is no such requirement for getting value of a public variable.
 For example, see the below snippet:
 ```Tcl
 namespace eval vhdl-simple::reset-synchronizer {
-	proc src {} {
-		hbs::SetLib "simple"
-		hbs::AddFile src/reset_synchronizer.vhd
+  proc src {} {
+    hbs::SetLib "simple"
+    hbs::AddFile src/reset_synchronizer.vhd
 
-		if {$hbs::Tool == "vivado"} {
-			hbs:AddFile constr/reset_synchronizer.xdc
-			set_property SCOPED_TO_REF Reset_Synchronizer [get_files reset_synchronizer.xdc]
-		} else {
-		    error "vhdl-simple: reset-synchronizer core misses constraint file for your tool"
-		}
-	}
+    if {$hbs::Tool == "vivado"} {
+      hbs:AddFile constr/reset_synchronizer.xdc
+      set_property SCOPED_TO_REF Reset_Synchronizer [get_files reset_synchronizer.xdc]
+    } else {
+        error "vhdl-simple: reset-synchronizer core misses constraint file for your tool"
+    }
+  }
 
-	hbs::Register
+  hbs::Register
 }
 ```
 If the tool executing the code is "vivado", then additional constraint file is added attached to particular module.
