@@ -855,7 +855,14 @@ namespace eval hbs::ghdl {
     cd $hbs::targetDir
 
     dict for {file args} $hbs::ghdl::vhdlFiles {
-      set cmd "ghdl -a [dict get $args argsPrefix] --std=[dict get $args std] $hbs::ghdl::libs --work=[dict get $args lib] [dict get $args argsSuffix] $file"
+      set lib [dict get $args lib]
+
+      if {[string first "-P$lib" $hbs::ghdl::libs] == -1} {
+          file mkdir $lib
+          append hbs::ghdl::libs " -P$lib"
+      }
+
+      set cmd "ghdl -a [dict get $args argsPrefix] --std=[dict get $args std] $hbs::ghdl::libs --work=$lib --workdir=$lib [dict get $args argsSuffix] $file"
       puts $cmd
       set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
       if {$exitStatus != 0} {
@@ -871,7 +878,7 @@ namespace eval hbs::ghdl {
     set workDir [pwd]
     cd $hbs::targetDir
 
-    set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::standard] $hbs::ghdl::libs $hbs::ArgsSuffix $hbs::Top"
+    set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::standard] --workdir=work $hbs::ghdl::libs $hbs::ArgsSuffix $hbs::Top"
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
