@@ -67,6 +67,7 @@ Or more satiristically:
 - Core targets depend on other cores targets, not solely on cores.
 - Tcl script executed directly by EDA tools, which makes custom commands execution straightforward.
 - Support for globbing when adding files.
+- Easy injection of custom command arguments.
 - Automatic detection of test targets.
 - Parallel execution of test targets.
 - Dependency graph generation.
