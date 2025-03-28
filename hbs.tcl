@@ -344,8 +344,11 @@ namespace eval hbs {
   #   simulation - stop after simulation,
   #   synthesis - stop after synthesis.
   # The order is alphabetical. Not all tools support all stages.
-  # Check documantation for "hbs::{tool}::run".
-  # "hbs::{tool}::run" documantation must provide run stages in the logical order.
+  # To check stages of a given tool, view the documentation for that tool,
+  # hbs doc {tool} or hbs doc hbs::{tool}".
+  # hbs::{tool} documentation must provide run stages in the logical order.
+  #
+  # The default stage of a given tool is always the last stage of that tool.
   proc Run {{stage ""}} {
     switch $stage {
       "" -
@@ -813,6 +816,12 @@ namespace eval hbs {
   }
 }
 
+# GHDL simulator
+#
+# GHDL supports the following stages:
+#   - analysis,
+#   - elaboration,
+#   - simulation.
 namespace eval hbs::ghdl {
   set vhdlFiles [dict create]
 
@@ -958,10 +967,6 @@ namespace eval hbs::ghdl {
     }
   }
 
-  # ghdl::run supports following stages:
-  #   - analysis,
-  #   - elaboration,
-  #   - simulation.
   proc run {stage} {
     hbs::ghdl::checkStage $stage
 
@@ -981,6 +986,12 @@ namespace eval hbs::ghdl {
   }
 }
 
+# nvc simulator
+#
+# nvc supports the following stages:
+#   - analysis,
+#   - elaboration,
+#   - simulation.
 namespace eval hbs::nvc {
   set vhdlFiles [dict create]
 
@@ -1114,10 +1125,6 @@ namespace eval hbs::nvc {
     }
   }
 
-  # nvc::run supports following stages:
-  #   - analysis,
-  #   - elaboration,
-  #   - simulation.
   proc run {stage} {
     hbs::nvc::checkStage $stage
 
@@ -1138,6 +1145,12 @@ namespace eval hbs::nvc {
 }
 
 # Vivado (Project Mode)
+#
+# vivado-prj supports the following stages:
+#   - project,
+#   - synthesis,
+#   - implementation.
+#   - bitstream.
 namespace eval hbs::vivado-prj {
   proc addFile {files} {
     foreach file $files {
@@ -1247,11 +1260,6 @@ namespace eval hbs::vivado-prj {
     }
   }
 
-  # vivado-prj::run supports the following stages:
-  #   - project,
-  #   - synthesis,
-  #   - implementation.
-  #   - bitstream.
   proc run {stage} {
     hbs::vivado-prj::checkStage $stage
 
@@ -1327,7 +1335,7 @@ namespace eval hbs::vivado-prj {
 #
 # Custom Tcl batch script for running simulation can be added by adding .tcl file:
 #   hbs::AddFile your-xsim-run.tcl
-# Only one Tcl batch file can be set.Adding consecutive Tcl file results in error.
+# Only one Tcl batch file can be set. Adding consecutive Tcl file results in error.
 # If you want to change the Tcl batch file depending on the run, then implement
 # the logic in the .hbs file.
 namespace eval hbs::xsim {

@@ -27,7 +27,7 @@ help_help = """Usage:
 
 The command is one of:
 
-  doc           Show documentation for hbs Tcl symbol
+  doc           Show documentation for hbs Tcl symbol or EDA tool
   dump-cores    Dump info about cores in JSON format
   graph         Output dependency graph for given target
   help          Print help message for program or given command
@@ -207,37 +207,29 @@ def doc(args):
     if sym_name.startswith("hbs::"):
         sym_name = sym_name[5:]
 
-    if sym_name[0].islower():
-        error(
-            f"symbol '{args[0]}' is not a public symbol as public symbols starts with uppercase letters"
-        )
-
     doc = ""
     state = "before public api"
     hbs_tcl = open(os.path.join(this_script_dir, 'hbs.tcl'))
     for line in hbs_tcl:
-        line = line.lstrip()
-
-        if state == "after public api":
-            if line[0] == '}':
-                state = False
-                continue
-
-        words = line.split()
-
-        if len(words) == 0:
-            doc = ""
-            continue
-
         if state == "before public api":
-            if len(words) < 3:
-                continue
-            if words[0] == 'namespace' and words[1] == 'eval' and words[2] == 'hbs':
+            if line.startswith("namespace eval hbs"):
                 state = "in public api"
         elif state == "in public api":
-            if line[0] == '#':
-                doc += line
-            elif words[0] == 'set':
+            if line[0] == '}':
+                state = "after public api"
+
+        line = line.lstrip()
+
+        if len(line) == 0:
+            doc = ""
+            continue
+        elif line[0] == '#':
+            doc += line
+
+        if state == "in public api":
+            words = line.split()
+
+            if words[0] == 'set':
                 if words[1] == sym_name:
                     doc += line.rstrip()
                     print(doc)
@@ -245,6 +237,13 @@ def doc(args):
             elif words[0] == 'proc':
                 if words[1] == sym_name:
                     doc += line.rstrip()[:-1]
+                    print(doc)
+                    return
+        elif state == "after public api":
+            if line.startswith("namespace eval hbs::"):
+               tool = line.split()[2].split('::')[1]
+               if tool == sym_name:
+                    doc = doc[:-1]
                     print(doc)
                     return
 
