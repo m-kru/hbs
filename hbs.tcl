@@ -190,8 +190,9 @@ namespace eval hbs {
     }
   }
 
-  # Register registers given core.
-  # This proc must be called as the last in the given core namespace.
+  # Registers given core.
+  #
+  # This procedure must be called as the last in the given core namespace.
   proc Register {} {
     set file [file normalize [info script]]
     set core [uplevel 1 [list namespace current]]
@@ -222,9 +223,14 @@ namespace eval hbs {
     dict append hbs::cores $core [dict create file $file targets $targetsDict]
   }
 
-  # AddDep adds target dependency.
-  # The first argument is target path, all remaining arguments are passed
-  # to the target path proc as arguments.
+  # Adds target dependency.
+  #
+  # The first argument is the dependency target path.
+  # All remaining arguments are passed to
+  # the target path procedure as arguments.
+  #
+  # Bear in mind, that a given dependency target procedure with a given
+  # argument values is run only once.
   proc AddDep {args} {
     set core [uplevel 1 [list namespace current]]
     set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
@@ -234,12 +240,12 @@ namespace eval hbs {
 
     checkTargetExists $targetPath
 
-    # Add dependency to the core info dictionary
+    # Add dependency to the core info dictionary.
     set deps [dict get $hbs::cores "::hbs::$hbs::ThisCore" targets $hbs::ThisTarget dependencies]
     lappend deps $targetPath
     dict set hbs::cores "::hbs::$hbs::ThisCore" targets $hbs::ThisTarget dependencies $deps
 
-    # If the given target with given arguments have already been run, don't run it again.
+    # If the given target with given arguments has already been run, don't run it again.
     if {[dict exists $hbs::runTargets $targetPath] == 1} {
       foreach prevArgs [dict get $hbs::runTargets $targetPath] {
         if {$prevArgs == $args} {
@@ -250,14 +256,14 @@ namespace eval hbs {
       dict append hbs::runTargets $targetPath {}
     }
 
-    # Add current arguments to the list of arguemnts target has already been run with.
+    # Add current arguments to the list of arguemnts the target has already been run with.
     set argsList [dict get $hbs::runTargets $targetPath]
     lappend argsList $args
     dict set hbs::runTargets $targetPath $argsList
 
     set ctx [hbs::saveContext]
 
-    # Run dependency target
+    # Run dependency target.
     hbs::clearContext
     set hbs::ThisCore [hbs::getCoreFromTargetPath $targetPath]
     set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
@@ -267,10 +273,11 @@ namespace eval hbs {
     hbs::restoreContext $ctx
   }
 
-  # AddFile add files to the tool flow.
+  # Adds files to the tool flow.
+  #
   # Multiple files with different extensions can be added in a single call.
   # args is the list of patterns used for globbing files.
-  # The file paths are relative to the `.hbs` file path where the proc is called.
+  # The file paths are relative to the `.hbs` file path where the procedure is called.
   proc AddFile {args} {
     set hbsFileDir [file dirname [dict get [dict get $hbs::cores ::hbs::$hbs::ThisCore] file]]
 
@@ -283,7 +290,7 @@ namespace eval hbs {
     set files {}
 
     foreach pattern $args {
-      # Append hbsFileDir only in the case of relative paths
+      # Append hbsFileDir only in the case of relative paths.
       if {[string match "/*" $pattern]} {
         foreach file [glob -nocomplain $pattern] {
           lappend files $file
@@ -325,8 +332,10 @@ namespace eval hbs {
     }
   }
 
-  # Run runs flow for currently set tool.
-  # The stage parameter controls when the tool stops and must be one of:
+  # Runs flow for currently set tool.
+  #
+  # The stage parameter controls when the tool stops.
+  # Valid values of the stage include:
   #   analysis - stop after file analysis,
   #   bitstream - stop after bitstream generation,
   #   elaboration - stop after design elaboration,
@@ -334,9 +343,9 @@ namespace eval hbs {
   #   project - stop after project creation,
   #   simulation - stop after simulation,
   #   synthesis - stop after synthesis.
-  # The order is alphabetical. # Not all tools support all stages.
-  # Check documantation for "hbs::{tool}::run". # "hbs::{tool}::run"
-  # documantation must provide run stages in the logical order.
+  # The order is alphabetical. Not all tools support all stages.
+  # Check documantation for "hbs::{tool}::run".
+  # "hbs::{tool}::run" documantation must provide run stages in the logical order.
   proc Run {{stage ""}} {
     switch $stage {
       "" -
@@ -509,13 +518,13 @@ namespace eval hbs {
 namespace eval hbs {
   set debug 0
 
-  # dbg formats and prints debug message if hbs::debug is not 0.
+  # Formats and prints debug message if hbs::debug is not 0.
   proc dbg {msg} {
     if {$hbs::debug == 0} { return }
     puts stderr "[lindex [info level -1] 0]: $msg"
   }
 
-  # Target output directory
+  # Target output directory.
   set targetDir ""
 
   # Stage callbacks
@@ -538,8 +547,8 @@ namespace eval hbs {
   set fileList {}
   set cores [dict create]
 
-  # runTarget is a dict containing targets that already have been run.
-  # During single flow, target can be run only once, even if it has arguments.
+  # Dictionary containing targets that already have been run.
+  # During the single flow, single target can be run only once with a given argument values.
   set runTargets [dict create]
 
   proc unknownToolMsg {tool} {
@@ -629,7 +638,7 @@ namespace eval hbs {
     set hbs::ArgsSuffix [dict get $ctx ArgsSuffix]
   }
 
-  # dumpCoreInfo dumps single core info into JSON
+  # Dumps single core info into JSON.
   proc dumpCoreInfo {info chnnl} {
     # file
     puts $chnnl "\t\t\"file\": \"[dict get $info file]\","
@@ -740,7 +749,7 @@ namespace eval hbs {
     }
   }
 
-  # getCoreFromTargetPath returns core path from the target path
+  # Returns core path from the target path.
   proc getCoreFromTargetPath {path} {
     set parts [split $path ::]
     # Remove target
@@ -752,14 +761,14 @@ namespace eval hbs {
     return [join $parts :]
   }
 
-  # getTargetFromTargetPath returns target name from the target path
+  # Returns target name from the target path.
   proc getTargetFromTargetPath {path} {
     return [lindex [split $path ::] end]
   }
 
-  # findFiles
-  # basedir - the directory to start looking in
-  # pattern - A pattern, as defined by the glob command, that the files must match
+  # Finds files in the file system.
+  # basedir - the directory to start looking in.
+  # pattern - A pattern, as defined by the glob command, that the files must match.
   proc findFiles { basedir pattern } {
     # Fix the directory name, this ensures the directory name is in the
     # native format for the platform and contains a final directory seperator
@@ -787,7 +796,7 @@ namespace eval hbs {
     return $fileList
   }
 
-  # sortFileList sorts .hbs file list in such a way, that files with shorter
+  # Sorts .hbs file list in such a way, that files with shorter
   # path depth are sourced as the first ones.
   proc sortFileList {} {
     proc cmp {l r} {
@@ -1238,7 +1247,7 @@ namespace eval hbs::vivado-prj {
     }
   }
 
-  # vivado-prj::run supports following stages:
+  # vivado-prj::run supports the following stages:
   #   - project,
   #   - synthesis,
   #   - implementation.
@@ -1318,7 +1327,7 @@ namespace eval hbs::vivado-prj {
 #
 # Custom Tcl batch script for running simulation can be added by adding .tcl file:
 #   hbs::AddFile your-xsim-run.tcl
-# Only one Tcl batch file can be set. Adding consecutive Tcl file results in error.
+# Only one Tcl batch file can be set.Adding consecutive Tcl file results in error.
 # If you want to change the Tcl batch file depending on the run, then implement
 # the logic in the .hbs file.
 namespace eval hbs::xsim {
@@ -1514,7 +1523,7 @@ namespace eval hbs::xsim {
     }
   }
 
-  # xsim::run supports following stages:
+  # xsim::run supports the following stages:
   #   - analysis,
   #   - elaboration,
   #   - simulation.
