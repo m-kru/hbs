@@ -34,13 +34,17 @@ namespace eval hbs {
   set ArgsPrefix ""
 
   # Custom (set by user) arguments suffix placed at the end of command or program call
-  # or before the final arguemnt.
+  # or before the final argument.
   set ArgsSuffix ""
 
   proc SetBuildDir {path} {
     set hbs::BuildDir $path
   }
 
+  # Sets name of the device/part.
+  #
+  # To get the name of currently set Device simply
+  # read the value of hbs::Device variable.
   proc SetDevice {dev} {
     set hbs::Device $dev
   }
@@ -53,31 +57,56 @@ namespace eval hbs {
     set hbs::Std $std
   }
 
+  # Sets name of the top entity/module.
+  #
+  # To get the name of currently set Top simply
+  # read the value of hbs::Top variable.
   proc SetTop {top} {
     set hbs::Top $top
   }
 
+  # Sets arguments prefix string.
   proc SetArgsPrefix {prefix} {
     set hbs::ArgsPrefix $prefix
   }
 
+  # Clears arguments prefix string.
   proc ClearArgsPrefix {} {
     set hbs::ArgsPrefix ""
   }
 
+  # Sets arguments suffix string.
   proc SetArgsSuffix {suffix} {
     set hbs::ArgsSuffix $suffix
   }
 
+  # Clears arguments suffix string.
   proc ClearArgsSuffix {} {
     set hbs::ArgsSuffix ""
   }
 
+  # Clears arguments affixes strings (prefix and suffix).
+  #
+  # Calling this procedure is equivalent bo calling both
+  # hbs::ClearArgsPrefix and hbs::ClearArgsSuffix.
   proc ClearArgsAffixes {} {
     set hbs::ArgsPrefix ""
     set hbs::ArgsSuffix ""
   }
 
+  # Sets the Tool.
+  #
+  # To get the name of currently set Tool simply
+  # read the value of hbs::Tool variable.
+  #
+  # All the tool names are typed in lowercase.
+  # Remember about this rule if you add support for a new tool.
+  #
+  # Currently supported tools include:
+  #   - ghdl,
+  #   - nvc,
+  #   - vivado-prj - Vivado project mode,
+  #   - xim - Vivado simulator.
   proc SetTool {tool} {
     if {$hbs::Tool !=  ""} {
       puts stderr "hbs::SeTool: core '$hbs::ThisCore', target '$hbs::ThisTarget', can't set tool to '$tool', tool already set to '$hbs::Tool'"
