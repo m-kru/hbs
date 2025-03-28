@@ -1338,6 +1338,11 @@ namespace eval hbs::vivado-prj {
 # Only one Tcl batch file can be set. Adding consecutive Tcl file results in error.
 # If you want to change the Tcl batch file depending on the run, then implement
 # the logic in the .hbs file.
+#
+# xsim supports the following stages:
+#   - analysis,
+#   - elaboration,
+#   - simulation.
 namespace eval hbs::xsim {
   set hdlFiles [dict create]
   set tclBatchFile ""
@@ -1531,10 +1536,6 @@ namespace eval hbs::xsim {
     }
   }
 
-  # xsim::run supports the following stages:
-  #   - analysis,
-  #   - elaboration,
-  #   - simulation.
   proc run {stage} {
     hbs::xsim::checkStage $stage
 
