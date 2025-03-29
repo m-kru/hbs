@@ -37,6 +37,18 @@ namespace eval hbs {
   # or before the final argument.
   set ArgsSuffix ""
 
+  # Path of the top core being run.
+  set TopCorePath ""
+
+  # Path of the top target being run.
+  set TopTargetPath ""
+
+  # Name of the top target being run.
+  set TopTarget ""
+
+  # List with command line arguments passed to the top target.
+  set TopTargetArgs ""
+
   proc SetBuildDir {path} {
     set hbs::BuildDir $path
   }
@@ -148,7 +160,7 @@ namespace eval hbs {
               -source [file normalize [info script]] \
               -journal $prjDir/vivado.jou \
               -log $prjDir/vivado.log \
-              -tclargs run $hbs::ThisCore\:\:$hbs::ThisTarget"
+              -tclargs $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
           set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
           if {$exitStatus == 0} {
             exit 0
@@ -265,7 +277,7 @@ namespace eval hbs {
 
     # Run dependency target.
     hbs::clearContext
-    set hbs::ThisCore [hbs::getCoreFromTargetPath $targetPath]
+    set hbs::ThisCore [hbs::getCorePathFromTargetPath $targetPath]
     set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
 
     hbs::$targetPath {*}$args
@@ -366,6 +378,8 @@ namespace eval hbs {
         exit 1
       }
     }
+
+    if {$hbs::cmd eq "dump-cores"} { return }
 
     set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCore/$hbs::ThisTarget" /]
     if {[file exist $hbs::targetDir] eq 0} {
@@ -521,6 +535,9 @@ namespace eval hbs {
 namespace eval hbs {
   set debug 0
 
+  # The command provided to the hbs from the command line.
+  set cmd ""
+
   # Formats and prints debug message if hbs::debug is not 0.
   proc dbg {msg} {
     if {$hbs::debug == 0} { return }
@@ -575,7 +592,7 @@ namespace eval hbs {
   }
 
   proc checkTargetExists {targetPath} {
-    set core [hbs::getCoreFromTargetPath $targetPath]
+    set core [hbs::getCorePathFromTargetPath $targetPath]
     set target [hbs::getTargetFromTargetPath $targetPath]
 
     if {[dict exists $hbs::cores ::hbs::$core] == 0} {
@@ -594,7 +611,7 @@ namespace eval hbs {
 
     hbs::clearContext
 
-    set hbs::ThisCore [hbs::getCoreFromTargetPath $targetPath]
+    set hbs::ThisCore [hbs::getCorePathFromTargetPath $targetPath]
     set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
 
     dict append hbs::runTargets $targetPath
@@ -753,7 +770,7 @@ namespace eval hbs {
   }
 
   # Returns core path from the target path.
-  proc getCoreFromTargetPath {path} {
+  proc getCorePathFromTargetPath {path} {
     set parts [split $path ::]
     # Remove target
     set parts [lreplace $parts end end]
@@ -1584,7 +1601,9 @@ if {$argv0 eq [info script]} {
 
   hbs::init
 
-  switch [lindex $argv 0] {
+  set hbs::cmd [lindex $argv 0]
+
+  switch $hbs::cmd {
     "help" {
       hbs::PrintHelp
     }
@@ -1599,9 +1618,13 @@ if {$argv0 eq [info script]} {
       hbs::listTargets $corePath
     }
     "run" {
-      set targetPath [lindex $argv 1]
-      set targetArgs [lreplace $argv 0 1]
-      hbs::runTarget $targetPath {*}$targetArgs
+      set hbs::TopTargetPath [lindex $argv 1]
+      set hbs::TopTargetArgs [lreplace $argv 0 1]
+
+      set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
+      set hbs::TopTarget [hbs::getTargetFromTargetPath $hbs::TopTargetPath]
+
+      hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
     }
     "version" {
       puts 0.0
