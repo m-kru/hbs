@@ -386,6 +386,8 @@ namespace eval hbs {
       file mkdir $hbs::targetDir
     }
 
+    hbs::dumpCores [open "$hbs::targetDir/$hbs::TopTargetPath.json" w]
+
     switch $hbs::Tool {
       "ghdl" {
         hbs::ghdl::run $stage
@@ -719,7 +721,7 @@ namespace eval hbs {
 
       incr t
       if {$t < $targetsSize} {
-        puts $chnnl "\t\t\t\}, "
+        puts $chnnl "\t\t\t\},"
       } else {
         puts $chnnl "\t\t\t\}"
       }
@@ -987,9 +989,6 @@ namespace eval hbs::ghdl {
   proc run {stage} {
     hbs::ghdl::checkStage $stage
 
-    set hbsJSON [open "$hbs::targetDir/hbs.json" w]
-    hbs::dumpCores $hbsJSON
-
     hbs::ghdl::analyze
     hbs::evalPostAnalCbs
     if {$stage == "analysis"} { return }
@@ -1145,9 +1144,6 @@ namespace eval hbs::nvc {
   proc run {stage} {
     hbs::nvc::checkStage $stage
 
-    set hbsJSON [open "$hbs::targetDir/hbs.json" w]
-    hbs::dumpCores $hbsJSON
-
     hbs::nvc::analyze
     hbs::evalPostAnalCbs
     if {$stage == "analysis"} { return }
@@ -1279,9 +1275,6 @@ namespace eval hbs::vivado-prj {
 
   proc run {stage} {
     hbs::vivado-prj::checkStage $stage
-
-    set hbsJSON [open "$hbs::targetDir/hbs.json" w]
-    hbs::dumpCores $hbsJSON
 
     #
     # Project
@@ -1555,9 +1548,6 @@ namespace eval hbs::xsim {
 
   proc run {stage} {
     hbs::xsim::checkStage $stage
-
-    set hbsJSON [open "$hbs::targetDir/hbs.json" w]
-    hbs::dumpCores $hbsJSON
 
     set exitStatus [catch {eval exec -ignorestderr "which xsim"}]
     if {$exitStatus != 0} {
