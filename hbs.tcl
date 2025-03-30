@@ -386,7 +386,10 @@ namespace eval hbs {
       file mkdir $hbs::targetDir
     }
 
-    hbs::dumpCores [open "$hbs::targetDir/$hbs::TopTargetPath.json" w]
+    # Replace "::" with "--".
+    # Glib does not support ':' in file names.
+    set fileName [string map {"::" "--"} $hbs::TopTargetPath]
+    hbs::dumpCores [open "$hbs::targetDir/$fileName.json" w]
 
     switch $hbs::Tool {
       "ghdl" {

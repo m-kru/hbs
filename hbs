@@ -61,7 +61,10 @@ simply redirect stdout."""
 
 graph_help = """Output dependency graph for given target.
 
-  hbs graph hbs.json top-target-path"""
+  hbs graph path/to/file/with/cores.json [top-target-path]
+
+If top target path is not provided, then it is assumed to be the same
+as the base of the json file path, without the '.json' suffix."""
 
 list_cores_help = """List cores found in .hbs files.
 
@@ -248,15 +251,23 @@ def doc(args):
     error(f"doc for symbol '{args[0]}' not found")
 
 
-def graph(cores_json_path, target_path):
+# The first arg is path to the cores json file.
+# The second arg is an optional top target path.
+def graph(args):
     import graphviz
+
+    cores_json_path = args[0]
+    if cores_json_path.endswith('.json') and len(args) == 1:
+        target_path = os.path.basename(cores_json_path)[0:-5].replace('--', '::')
+    elif len(args) > 1:
+        target_path = args[1]
 
     cores_json = open(cores_json_path)
     cores = json.load(cores_json)
 
     nodes = dict()
     graph = graphviz.Digraph(
-        'G', strict=True, filename=f"{target_path.replace('::', '-')}"
+        'G', strict=True, filename=f"{target_path.replace('::', '--')}"
     )
     add_target_deps(graph, nodes, cores, target_path)
     graph.render(cleanup=True)
@@ -491,11 +502,15 @@ if cmd == "help":
 elif cmd == "doc":
     doc(sys.argv[2:])
 elif cmd == "graph":
-    if len(sys.argv) != 4:
+    if len(sys.argv) < 3:
         error(
-            "graph command requires 2 arguments, path to json file with cores and top target path"
+            "graph command requires at least path to json file with cores"
         )
-    graph(sys.argv[2], sys.argv[3])
+    elif len(sys.argv) > 4:
+        error(
+            "graph command requires at most 2 arguments, path to json file with cores and optional top target path"
+        )
+    graph(sys.argv[2:])
 elif cmd == "dump-cores":
     if len(sys.argv) > 2:
         error("dump-cores command does not accept any arguments")
