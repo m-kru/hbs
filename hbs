@@ -257,8 +257,10 @@ def graph(args):
     import graphviz
 
     cores_json_path = args[0]
-    if cores_json_path.endswith('.json') and len(args) == 1:
-        target_path = os.path.basename(cores_json_path)[0:-5].replace('--', '::')
+    if len(args) == 1:
+        target_path = os.path.basename(cores_json_path).replace('--', '::')
+        if cores_json_path.endswith('.json'):
+            target_path = target_path[0:-5]
     elif len(args) > 1:
         target_path = args[1]
 
