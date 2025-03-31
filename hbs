@@ -512,9 +512,7 @@ elif cmd == "graph":
         )
     graph(sys.argv[2:])
 elif cmd == "dump-cores":
-    if len(sys.argv) > 2:
-        error("dump-cores command does not accept any arguments")
-    status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'])
+    status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores', *sys.argv[2:]])
     exit(status.returncode)
 elif cmd == "list-cores":
     list_cores(sys.argv[2:])

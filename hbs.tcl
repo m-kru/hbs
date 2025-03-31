@@ -1601,7 +1601,24 @@ if {$argv0 eq [info script]} {
       hbs::PrintHelp
     }
     "dump-cores" {
-      hbs::dumpCores
+      set chnnl stdout
+
+      # Target path was provided, so first carry out a fake run
+      # to gather inormation on dependencies.
+      if {[llength $argv] != 1} {
+        set hbs::TopTargetPath [lindex $argv 1]
+        set hbs::TopTargetArgs [lreplace $argv 0 1]
+
+        set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
+        set hbs::TopTarget [hbs::getTargetFromTargetPath $hbs::TopTargetPath]
+
+        hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
+
+        set fileName [string map {"::" "--"} $hbs::TopTargetPath]
+        set chnnl [open "$fileName.json" w]
+      }
+
+      hbs::dumpCores $chnnl
     }
     "list-cores" {
       hbs::listCores
