@@ -70,7 +70,7 @@ list_cores_help = """List cores found in .hbs files.
 
   hbs list-cores [core-path-patterns...]
 
-If core-path-patterns are not provided all found cores are listed.
+If core-path-patterns are not provided, all found cores are listed.
 If core-path-patterns are provided, then only cores whose path
 contains at least one pattern are listed."""
 
@@ -78,7 +78,7 @@ list_targets_help = """List targets for cores found in .hbs files.
 
   hbs list-targets [target-path-patterns...]
 
-If target-path-patterns are not provided all found targets are listed.
+If target-path-patterns are not provided, all found targets are listed.
 If target-path-patterns are provided, then only targets whose path
 contains at least one pattern are listed.
 
@@ -89,7 +89,7 @@ list_tb_help = """List testbench targets for cores found in .hbs files.
 
   hbs list-tb [target-path-patterns...]
 
-If target-path-patterns are not provided all found testbench targets are listed.
+If target-path-patterns are not provided, all found testbench targets are listed.
 If target-path-patterns are provided, then only testbench targets whose path
 contains at least one pattern are listed.
 
@@ -120,7 +120,7 @@ A testbench target is a target which name:
 -workers specifies the number of targets to run simultaneously (in parallel).
 N must be a positive integer. -workers must be provided before target path patterns.
 Otherwise, it will be treated as one of the target path patterns.
-By default the number of workers equals the number of available CPUs.
+By default, the number of workers equals the number of available CPUs.
 
 If target path patterns are not provided, all testbench targets are run.
 If target path patterns are provided, then only testbench targets whose path
