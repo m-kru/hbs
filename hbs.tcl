@@ -1019,6 +1019,11 @@ namespace eval hbs::nvc {
 
   set generics [dict create]
 
+  # The highest set standard revision.
+  # nvc does not allow analyzing different files with different standard revisions.
+  # This is why the highest set standard revision must be tracked.
+  set std ""
+
   proc addFile {files} {
     foreach file $files {
       set extension [file extension $file]
@@ -1042,20 +1047,19 @@ namespace eval hbs::nvc {
     return $hbs::Lib
   }
 
-  proc standard {} {
+  # Checks if set standard revision is valid.
+  proc isValidStd {} {
     switch $hbs::Std {
-      # 2019 is the default one
-      ""     { return "2019" }
-      "1993" { return "1993" }
-      "2000" { return "2000" }
-      "2002" { return "2002" }
-      "2008" { return "2008" }
-      "2019" { return "2019" }
-      default {
-        puts stderr "nvc::standard: invalid hbs::Std $hbs::Std"
-        exit 1
+      "" -
+      "1993" -
+      "2000" -
+      "2002" -
+      "2008" -
+      "2019" {
+        return 1;
       }
     }
+    return 0
   }
 
   proc genericArgs {} {
@@ -1069,10 +1073,19 @@ namespace eval hbs::nvc {
   proc addVhdlFile {file} {
     hbs::dbg "adding file $file"
 
+    if {[hbs::nvc::isValidStd] == 0} {
+      puts stderr "nvc::addVhdlFile: $file invalid hbs::Std $hbs::Std"
+      exit 1
+    }
+
+    # Check if standard is higher than the one currently set.
+    if {$hbs::Std != "" && $hbs::Std > $hbs::nvc::std} {
+        set hbs::nvc::std $hbs::Std
+    }
+
     set lib [hbs::nvc::library]
     dict append hbs::nvc::vhdlFiles $file \
         [dict create \
-        std [hbs::nvc::standard] \
         lib $lib \
         argsPrefix $hbs::ArgsPrefix \
         argsSuffix $hbs::ArgsSuffix]
@@ -1086,7 +1099,7 @@ namespace eval hbs::nvc {
 
     dict for {file args} $hbs::nvc::vhdlFiles {
       set lib [dict get $args lib]
-      set cmd "nvc [dict get $args argsPrefix] --std=[dict get $args std] $hbs::nvc::libs --work=$lib -a $file [dict get $args argsSuffix]"
+      set cmd "nvc [dict get $args argsPrefix] --std=$hbs::nvc::std $hbs::nvc::libs --work=$lib -a $file [dict get $args argsSuffix]"
       puts $cmd
       set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
       if {$exitStatus != 0} {
@@ -1102,7 +1115,7 @@ namespace eval hbs::nvc {
     set workDir [pwd]
     cd $hbs::targetDir
 
-    set cmd "nvc $hbs::ArgsPrefix --std=[hbs::nvc::standard] $hbs::nvc::libs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
+    set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
@@ -1117,7 +1130,7 @@ namespace eval hbs::nvc {
     set workDir [pwd]
     cd $hbs::targetDir
 
-    set cmd "nvc $hbs::ArgsPrefix --std=[hbs::nvc::standard] $hbs::nvc::libs -r $hbs::Top --wave $hbs::ArgsSuffix"
+    set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -r $hbs::Top --wave $hbs::ArgsSuffix"
     puts $cmd
     if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
       puts $output
@@ -1146,6 +1159,11 @@ namespace eval hbs::nvc {
 
   proc run {stage} {
     hbs::nvc::checkStage $stage
+
+    # If none of the targets enforced a standard revision, use 2019 as the default.
+    if {$hbs::nvc::std == ""} {
+      set hbs::nvc::std "2019"
+    }
 
     hbs::nvc::analyze
     hbs::evalPostAnalCbs
