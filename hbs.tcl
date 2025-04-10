@@ -1078,15 +1078,11 @@ namespace eval hbs::nvc {
       exit 1
     }
 
-    # Check if standard is higher than the one currently set.
-    if {$hbs::Std != "" && $hbs::Std > $hbs::nvc::std} {
-        set hbs::nvc::std $hbs::Std
-    }
-
     set lib [hbs::nvc::library]
     dict append hbs::nvc::vhdlFiles $file \
         [dict create \
         lib $lib \
+        std $hbs::Std \
         argsPrefix $hbs::ArgsPrefix \
         argsSuffix $hbs::ArgsSuffix]
   }
@@ -1159,6 +1155,14 @@ namespace eval hbs::nvc {
 
   proc run {stage} {
     hbs::nvc::checkStage $stage
+
+    # Determine standard revision that should be used for all files.
+    dict for {file args} $hbs::nvc::vhdlFiles {
+      set std [dict get $args std]
+      if {$std != "" && $std > $hbs::nvc::std} {
+          set hbs::nvc::std $hbs::Std
+      }
+    }
 
     # If none of the targets enforced a standard revision, use 2019 as the default.
     if {$hbs::nvc::std == ""} {
