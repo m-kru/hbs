@@ -9,6 +9,9 @@ namespace eval hbs {
   # Path of the core which target is currently being run.
   set ThisCorePath ""
 
+  # Path of the target currently being run.
+  set ThisTargetPath ""
+
   # Name of the target currently being run.
   set ThisTarget ""
 
@@ -279,6 +282,7 @@ namespace eval hbs {
     hbs::clearContext
     set hbs::ThisCorePath [hbs::getCorePathFromTargetPath $targetPath]
     set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
+    set hbs::ThisTargetPath $targetPath
 
     hbs::$targetPath {*}$args
 
@@ -618,6 +622,7 @@ namespace eval hbs {
 
     set hbs::ThisCorePath [hbs::getCorePathFromTargetPath $targetPath]
     set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
+    set hbs::ThisTargetPath $targetPath
 
     dict append hbs::runTargets $targetPath
 
@@ -648,6 +653,7 @@ namespace eval hbs {
         Top $hbs::Top \
         ThisCorePath $hbs::ThisCorePath \
         ThisTarget $hbs::ThisTarget \
+        ThisTargetPath $hbs::ThisTargetPath \
         ArgsPrefix $hbs::ArgsPrefix \
         ArgsSuffix $hbs::ArgsSuffix]
     return $ctx
@@ -659,6 +665,7 @@ namespace eval hbs {
     set hbs::Top [dict get $ctx Top]
     set hbs::ThisCorePath [dict get $ctx ThisCorePath]
     set hbs::ThisTarget [dict get $ctx ThisTarget]
+    set hbs::ThisTargetPath [dict get $ctx ThisTargetPath]
     set hbs::ArgsPrefix [dict get $ctx ArgsPrefix]
     set hbs::ArgsSuffix [dict get $ctx ArgsSuffix]
   }
