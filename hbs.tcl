@@ -135,8 +135,7 @@ namespace eval hbs {
       }
       "gowin" {
         # Check if the script is already run by GOWIN
-        # NOTE: Below check can be improved.
-        if {[info commands create_project] == "create_project"} {
+        if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
           # gw_sh already runs the script
           set hbs::Tool "gowin"
 
@@ -158,6 +157,8 @@ namespace eval hbs {
           set prjDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
           file mkdir $prjDir
 
+          set ::env(HBS_TOOL_BOOTSTRAP) 1
+
           set cmd "gw_sh \
               [file normalize [info script]] \
               $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
@@ -174,25 +175,25 @@ namespace eval hbs {
       }
       "vivado-prj" {
         # Check if the script is already run by Vivado
-        if {[catch {version} ver] == 0} {
-          if {[string match "Vivado*" $ver]} {
-            # Vivado already runs the script
-            set hbs::Tool "vivado-prj"
+        if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
+          # Vivado already runs the script
+          set hbs::Tool "vivado-prj"
 
-            hbs::dbg "creating vivado project"
+          hbs::dbg "creating vivado project"
 
-            set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
-            set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" -]
-            set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
-            puts $cmd
-            eval $cmd
+          set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
+          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" -]
+          set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
+          puts $cmd
+          eval $cmd
 
-            hbs::dbg "vivado project created successfully"
-          }
+          hbs::dbg "vivado project created successfully"
         } else {
           # Run the script with Vivado
           set prjDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
           file mkdir $prjDir
+
+          set ::env(HBS_TOOL_BOOTSTRAP) 1
 
           set cmd "vivado \
               -mode batch \
