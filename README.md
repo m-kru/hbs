@@ -79,6 +79,7 @@ Or more satiristically:
 ## Supported tools
 
 - [GHDL](https://github.com/ghdl/ghdl)
+- [GOWIN](https://www.gowinsemi.com/en/)
 - [NVC](https://github.com/nickg/nvc)
 - [Vivado](https://www.xilinx.com/products/design-tools/vivado.html) (currently only project mode is supported)
 - xsim
