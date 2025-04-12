@@ -119,6 +119,7 @@ namespace eval hbs {
   #
   # Currently supported tools include:
   #   - ghdl,
+  #   - gowin,
   #   - nvc,
   #   - vivado-prj - Vivado project mode,
   #   - xim - Vivado simulator.
@@ -132,6 +133,42 @@ namespace eval hbs {
       "ghdl" {
         set hbs::Tool $tool
         hbs::ghdl::init
+      }
+      "gowin" {
+        # Check if the script is already run by GOWIN
+        # NOTE: Below check can be improved.
+        if {[info commands create_project] == "create_project"} {
+          # gw_sh already runs the script
+          set hbs::Tool "gowin"
+
+          hbs::dbg "creating gowin project"
+
+          set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
+          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" -]
+          set cmd "create_project $hbs::ArgsPrefix \
+            -name $prjName \
+            -dir $hbs::targetDir \
+            -pn $hbs::Device \
+            -force $hbs::ArgsSuffix"
+          puts $cmd
+          eval $cmd
+
+          hbs::dbg "gowin project created successfully"
+        } else {
+          # Run the script with gw_sh
+          set prjDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
+          file mkdir $prjDir
+
+          set cmd "gw_sh \
+              [file normalize [info script]] \
+              $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
+          set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+          if {$exitStatus == 0} {
+            exit 0
+          } else {
+            panic "gw_sh exited with status $exitStatus"
+          }
+        }
       }
       "nvc" {
         set hbs::Tool $tool
@@ -328,6 +365,9 @@ namespace eval hbs {
       "ghdl" {
         hbs::ghdl::addFile $files
       }
+      "gowin" {
+        hbs::gowin::addFile $files
+      }
       "nvc" {
         hbs::nvc::addFile $files
       }
@@ -342,7 +382,7 @@ namespace eval hbs {
         exit 1
       }
       default {
-        puts stderr "hbs: uknown tool $hbs::Tool"
+        puts stderr "hbs::AddFile: uknown tool $hbs::Tool"
         exit 1
       }
     }
@@ -398,6 +438,9 @@ namespace eval hbs {
     switch $hbs::Tool {
       "ghdl" {
         hbs::ghdl::run $stage
+      }
+      "gowin" {
+        hbs::gowin::run $stage
       }
       "nvc" {
         hbs::nvc::run $stage
@@ -542,7 +585,7 @@ namespace eval hbs {
 #
 # Only use this API directly in user hbs files if you _really_ know what you are doing.
 namespace eval hbs {
-  set debug 0
+  set debug 1
 
   # The command provided to the hbs from the command line.
   set cmd ""
@@ -551,6 +594,11 @@ namespace eval hbs {
   proc dbg {msg} {
     if {$hbs::debug == 0} { return }
     puts stderr "[lindex [info level -1] 0]: $msg"
+  }
+
+  proc panic {msg} {
+    puts stderr "[lindex [info level -1] 0]: $msg"
+    exit 1
   }
 
   # Target output directory.
@@ -581,7 +629,7 @@ namespace eval hbs {
   set runTargets [dict create]
 
   proc unknownToolMsg {tool} {
-    return "core '$hbs::ThisCorePath', target '$hbs::ThisTarget', unknown tool '$tool', supported tools: 'ghdl', 'nvc', 'vivado-prj' \(project mode\), 'xsim'"
+    return "core '$hbs::ThisCorePath', target '$hbs::ThisTarget', unknown tool '$tool', supported tools: 'ghdl', 'gowin',  'nvc', 'vivado-prj' \(project mode\), 'xsim'"
   }
 
   proc init {} {
@@ -1009,6 +1057,207 @@ namespace eval hbs::ghdl {
 
     hbs::ghdl::simulate
     hbs::evalPostSimCbs
+  }
+}
+
+# GOWIN
+#
+# gowin supports the following stages:
+#   - project,
+#   - synthesis,
+#   - implementation (place and route).
+# In GOWIN IDE, bitstream file generatino is a part of the place and route stage.
+# The bitstream file has .fs, .bin or .binx extension.
+#
+# Setting tool to gowin must be wrapped by setting arguments suffix to proper device version.
+# This is because each device in GOWIN also has associated device version.
+# Example:
+#   hbs::SetArgsSuffix "-device_version NA"
+#   hbs::SetTool "gowin"
+#   hbs::ClearArgsSuffix
+namespace eval hbs::gowin {
+  # Highest set VHDL standard revision.
+  set vhdlStd ""
+
+  # Highest set (System)Verilog standard revision.
+  set verilogStd ""
+
+  proc addFile {files} {
+    foreach file $files {
+      hbs::dbg "adding file $file"
+
+      set extension [file extension $file]
+      switch $extension {
+        ".vhd" -
+        ".vhdl" {
+          hbs::gowin::addVhdlFile $file
+        }
+        ".v" -
+        ".vh" -
+        ".vlg" -
+        ".verilog" -
+        ".sv" -
+        ".svh" {
+          hbs::gowin::addVerilogFile $file
+        }
+        default {
+          set cmd "add_file $hbs::ArgsPrefix $file"
+          puts $cmd
+          eval $cmd
+        }
+      }
+    }
+  }
+
+  proc validVhdlStandard {std} {
+    switch $std {
+      "" -
+      "1993" -
+      "2008" -
+      "2019" {
+        return 1
+      }
+    }
+    return 0
+  }
+
+  proc vhdlStandard {} {
+    switch $hbs::gowin::vhdlStd {
+      "1993"  { return "vhd1993" }
+      "2008"  { return "vhd2008" }
+      "2019"  { return "vhd2019" }
+      default { return "vhd2019" }
+    }
+  }
+
+  proc addVhdlFile {file} {
+    if {[hbs::gowin::validVhdlStandard $hbs::Std] == 0} {
+      hbs::panic "invalid VHDL standard '$hbs::Std', file '$file'"
+    }
+
+    set cmd "add_file $hbs::ArgsPrefix $file $hbs::ArgsSuffix"
+    puts $cmd
+    eval $cmd
+
+    set lib $hbs::Lib
+    if {$lib == ""} {
+      set lib "work"
+    }
+
+    set cmd "set_file_prop -lib $lib $file"
+    puts $cmd
+    eval $cmd
+
+    if {$hbs::Std > $hbs::gowin::vhdlStd} {
+      set hbs::gowin::vhdlStd $hbs::Std
+    }
+  }
+
+  proc validVerilogStandard {std} {
+    switch $std {
+      "" -
+      "1995" -
+      "2001" -
+      "2017" {
+        return 1
+      }
+    }
+    return 0
+  }
+
+  proc verilogStandard {} {
+    switch $hbs::gowin::verilogStd {
+      "1995"  { return "v1995" }
+      "2001"  { return "v2001" }
+      "2017"  { return "sysv2017" }
+      default { return "sysv2017" }
+    }
+  }
+
+  proc addVerilogFile {file} {
+    if {[hbs::gowin::validVerilogStandard $hbs::Std] == 0} {
+      hbs::panic "invalid Verilog standard '$hbs::Std', file '$file'"
+    }
+
+    set cmd "add_file $hbs::ArgsPrefix $file $hbs::ArgsSuffix"
+    puts $cmd
+    eval $cmd
+
+    set lib $hbs::Lib
+    if {$lib == ""} {
+      set lib "work"
+    }
+
+    set cmd "set_file_prop -lib $lib $file"
+    puts $cmd
+    eval $cmd
+
+    if {$hbs::Std > $hbs::gowin::verilogStd} {
+      set hbs::gowin::verilogStd $hbs::Std
+    }
+  }
+
+  proc checkStage {stage} {
+    switch $stage {
+      "" -
+      "project" -
+      "synthesis" -
+      "implementation" {
+        ;
+      }
+      default {
+        panic "invalid stage '$stage', valid gowin stages are: project, synthesis, implementation"
+      }
+    }
+  }
+
+  proc run {stage} {
+    hbs::gowin::checkStage $stage
+
+    #
+    # Project
+    #
+    if {$hbs::Top == ""} {
+      puts "hbs::gowin::run: cannot set top, hbs::Top not set"
+      exit 1
+    }
+    set cmd "set_option -top_module $hbs::Top"
+    puts $cmd
+    eval $cmd
+    set cmd "set_option -vhdl_std [hbs::gowin::vhdlStandard]"
+    puts $cmd
+    eval $cmd
+    set cmd "set_option -verilog_std [hbs::gowin::verilogStandard]"
+    puts $cmd
+    eval $cmd
+    hbs::evalPostPrjCbs
+    if {$stage == "project"} { return }
+
+    #
+    # Synthesis
+    #
+    set cmd "::run $hbs::ArgsPrefix syn $hbs::ArgsSuffix"
+    puts $cmd
+    set err [catch {eval $cmd} errMsg]
+    if {$err != 0} {
+      puts $errMsg
+      exit 1
+    }
+    hbs::evalPostSynthCbs
+    if {$stage == "synthesis"} { return }
+
+    #
+    # Implementation
+    #
+    set cmd "::run $hbs::ArgsPrefix pnr $hbs::ArgsSuffix"
+    puts $cmd
+    set err [catch {eval $cmd} errMsg]
+    if {$err != 0} {
+      puts $errMsg
+      exit 1
+    }
+    hbs::evalPostImplCbs
+    if {$stage == "implementation"} { return }
   }
 }
 
