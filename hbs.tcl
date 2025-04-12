@@ -125,8 +125,7 @@ namespace eval hbs {
   #   - xim - Vivado simulator.
   proc SetTool {tool} {
     if {$hbs::Tool !=  ""} {
-      puts stderr "hbs::SeTool: core '$hbs::ThisCorePath', target '$hbs::ThisTarget', can't set tool to '$tool', tool already set to '$hbs::Tool'"
-      exit 1
+      hbs::panic "core '$hbs::ThisCorePath', target '$hbs::ThisTarget', can't set tool to '$tool', tool already set to '$hbs::Tool'"
     }
 
     switch $tool {
@@ -166,7 +165,7 @@ namespace eval hbs {
           if {$exitStatus == 0} {
             exit 0
           } else {
-            panic "gw_sh exited with status $exitStatus"
+            hbs::panic "gw_sh exited with status $exitStatus"
           }
         }
       }
@@ -205,8 +204,7 @@ namespace eval hbs {
           if {$exitStatus == 0} {
             exit 0
           } else {
-            puts stderr "hbs::SetTool: vivado exited with status $exitStatus"
-            exit 1
+            hbs::panic "vivado exited with status $exitStatus"
           }
         }
       }
@@ -214,8 +212,7 @@ namespace eval hbs {
         set hbs::Tool $tool
       }
       default {
-        puts stderr "hbs::SetTool: [unknownToolMsg $tool]"
-        exit 1
+        hbs::panic "[unknownToolMsg $tool]"
       }
     }
   }
@@ -236,8 +233,7 @@ namespace eval hbs {
         return "synthesis"
       }
       default {
-        puts stderr "hbs::ToolType: hbs::Tool not set"
-        exit 1
+        hbs::panic "hbs::Tool not set"
       }
     }
   }
@@ -250,8 +246,7 @@ namespace eval hbs {
     set core [uplevel 1 [list namespace current]]
 
     if {[dict exists $hbs::cores $core]} {
-      puts stderr "can't register core '[string replace $core 0 6 ""]' in $file, core with the same path already registered in [dict get $hbs::cores $core file]"
-      exit 1
+      hbs::panic "can't register core '[string replace $core 0 6 ""]' in $file, core with the same path already registered in [dict get $hbs::cores $core file]"
     }
 
     set targets [uplevel 1 [list info procs]]
@@ -336,8 +331,7 @@ namespace eval hbs {
 
     if {$args == {}} {
       set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
-      puts stderr "hbs::AddFile: no files provided, core '$hbs::ThisCorePath' target '$target'"
-      exit 1
+      hbs::panic "no files provided, core '$hbs::ThisCorePath' target '$target'"
     }
 
     set files {}
@@ -378,12 +372,10 @@ namespace eval hbs {
         hbs::xsim::addFile $files
       }
       "" {
-        puts stderr "hbs: can't add file $file, hbs::Tool not set"
-        exit 1
+        hbs::panic "can't add file $file, hbs::Tool not set"
       }
       default {
-        puts stderr "hbs::AddFile: uknown tool $hbs::Tool"
-        exit 1
+        hbs::panic "uknown tool $hbs::Tool"
       }
     }
   }
@@ -418,8 +410,7 @@ namespace eval hbs {
         ;
       }
       default {
-        puts stderr "hbs::Run: invalid stage '$stage'"
-        exit 1
+        hbs::panic "invalid stage '$stage'"
       }
     }
 
@@ -452,8 +443,7 @@ namespace eval hbs {
         hbs::xsim::run $stage
       }
       default {
-        puts stderr "hbs::Run: [unknownToolMsg $hbs::Tool]"
-        exit 1
+        hbs::panic "[unknownToolMsg $hbs::Tool]"
       }
     }
   }
@@ -470,8 +460,7 @@ namespace eval hbs {
   proc SetGeneric {name value} {
     switch $hbs::Tool {
       "" {
-        puts -stderr "hbs::SetGeneric: can't set generic '$name', hbs::Tool not set"
-        exit 1
+        hbs::panic "can't set generic '$name', hbs::Tool not set"
       }
       "ghdl" {
         dict append hbs::ghdl::generics $name $value
@@ -485,9 +474,8 @@ namespace eval hbs {
       "xsim" {
         dict append hbs::xsim::generics $name $value
       }
-    default {
-        puts -stderr "hbs::SetGeneric: [unknownToolMsg $hbs::Tool]"
-        exit 1
+      default {
+        hbs::panic "[unknownToolMsg $hbs::Tool]"
       }
     }
   }
@@ -585,7 +573,7 @@ namespace eval hbs {
 #
 # Only use this API directly in user hbs files if you _really_ know what you are doing.
 namespace eval hbs {
-  set debug 1
+  set debug 0
 
   # The command provided to the hbs from the command line.
   set cmd ""
@@ -653,8 +641,7 @@ namespace eval hbs {
     set target [hbs::getTargetFromTargetPath $targetPath]
 
     if {[dict exists $hbs::cores ::hbs::$core] == 0} {
-      puts stderr "core '$core' not found, maybe the core is not registered \(hsb::Register\)"
-      exit 1
+      hbs::panic "core '$core' not found, maybe the core is not registered \(hsb::Register\)"
     }
     if {[dict exists $hbs::cores ::hbs::$core targets $target] == 0} {
       puts stderr "core '$core' found, but it doesn't have target '$target', '$core' has following targets:"
@@ -817,8 +804,7 @@ namespace eval hbs {
 
   proc listTargets {corePath {chnnl stdout}} {
     if {[dict exists $hbs::cores ::hbs::$corePath] == 0} {
-      puts stderr "core '$corePath' not found, maybe the core is not registered \(hsb::Register\)"
-      exit 1
+      hbs::panic "core '$corePath' not found, maybe the core is not registered \(hsb::Register\)"
     }
 
     set core [dict get $hbs::cores ::hbs::$corePath]
@@ -924,8 +910,7 @@ namespace eval hbs::ghdl {
           hbs::ghdl::addVhdlFile $file
         }
         default {
-          puts stderr "ghdl::addFile: unhandled file extension '$extension'"
-          exit 1
+          hbs::panic "unhandled file extension '$extension'"
         }
       }
     }
@@ -946,8 +931,7 @@ namespace eval hbs::ghdl {
       "2002" { return "02" }
       "2008" { return "08" }
       default {
-        puts stderr "ghdl::standard: invalid hbs::Std $hbs::Std"
-        exit 1
+        hbs::panic "invalid VHDL standard '$hbs::Std'"
       }
     }
   }
@@ -990,8 +974,7 @@ namespace eval hbs::ghdl {
       puts $cmd
       set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
       if {$exitStatus != 0} {
-        puts stderr "ghdl::analyze: $file analysis failed with exit status $exitStatus"
-        exit 1
+        hbs::panic "$file analysis failed with exit status $exitStatus"
       }
     }
 
@@ -1006,8 +989,7 @@ namespace eval hbs::ghdl {
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
-      puts stderr "ghdl::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
-      exit 1
+      hbs::panic "$hbs::Top elaboration failed with exit status $exitStatus"
     }
 
     cd $workDir
@@ -1022,8 +1004,7 @@ namespace eval hbs::ghdl {
     if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
       puts $output
     } else {
-      puts stderr $output
-      exit 1
+      hbs::panic $output
     }
 
     cd $workDir
@@ -1038,8 +1019,7 @@ namespace eval hbs::ghdl {
         ;
       }
       default {
-        puts "ghdl::checkStage: invalid stage '$stage', valid ghdl stages are: analysis, elaboration and simulation"
-        exit 1
+        hbs::panic "invalid stage '$stage', valid ghdl stages are: analysis, elaboration and simulation"
       }
     }
   }
@@ -1206,7 +1186,7 @@ namespace eval hbs::gowin {
         ;
       }
       default {
-        panic "invalid stage '$stage', valid gowin stages are: project, synthesis, implementation"
+        hbs::panic "invalid stage '$stage', valid gowin stages are: project, synthesis, implementation"
       }
     }
   }
@@ -1218,8 +1198,7 @@ namespace eval hbs::gowin {
     # Project
     #
     if {$hbs::Top == ""} {
-      puts "hbs::gowin::run: cannot set top, hbs::Top not set"
-      exit 1
+      hbs::panic "cannot set top, hbs::Top not set"
     }
     set cmd "set_option -top_module $hbs::Top"
     puts $cmd
@@ -1240,8 +1219,7 @@ namespace eval hbs::gowin {
     puts $cmd
     set err [catch {eval $cmd} errMsg]
     if {$err != 0} {
-      puts $errMsg
-      exit 1
+      hbs::panic $errMsg
     }
     hbs::evalPostSynthCbs
     if {$stage == "synthesis"} { return }
@@ -1253,8 +1231,7 @@ namespace eval hbs::gowin {
     puts $cmd
     set err [catch {eval $cmd} errMsg]
     if {$err != 0} {
-      puts $errMsg
-      exit 1
+      hbs::panic $errMsg
     }
     hbs::evalPostImplCbs
     if {$stage == "implementation"} { return }
@@ -1289,8 +1266,7 @@ namespace eval hbs::nvc {
           hbs::nvc::addVhdlFile $file
         }
         default {
-          puts stderr "nvc::addFile: unhandled file extension '$extension'"
-          exit 1
+          hbs::panic "unhandled file extension '$extension'"
         }
       }
     }
@@ -1330,8 +1306,7 @@ namespace eval hbs::nvc {
     hbs::dbg "adding file $file"
 
     if {[hbs::nvc::isValidStd] == 0} {
-      puts stderr "nvc::addVhdlFile: $file invalid hbs::Std $hbs::Std"
-      exit 1
+      hbs::panic "$file invalid hbs::Std $hbs::Std"
     }
 
     set lib [hbs::nvc::library]
@@ -1355,8 +1330,7 @@ namespace eval hbs::nvc {
       puts $cmd
       set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
       if {$exitStatus != 0} {
-        puts stderr "nvc::analyze: $file analysis failed with exit status $exitStatus"
-        exit 1
+        hbs::panic "$file analysis failed with exit status $exitStatus"
       }
     }
 
@@ -1371,8 +1345,7 @@ namespace eval hbs::nvc {
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
-      puts stderr "nvc::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
-      exit 1
+      hbs::panic "$hbs::Top elaboration failed with exit status $exitStatus"
     }
 
     cd $workDir
@@ -1387,8 +1360,7 @@ namespace eval hbs::nvc {
     if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
       puts $output
     } else {
-      puts stderr $output
-      exit 1
+      hbs::panic $output
     }
 
     cd $workDir
@@ -1403,8 +1375,7 @@ namespace eval hbs::nvc {
         ;
       }
       default {
-        puts "nvc::checkStage: invalid stage '$stage', valid nvc stages are: analysis, elaboration and simulation"
-        exit 1
+        hbs::panic "invalid stage '$stage', valid nvc stages are: analysis, elaboration and simulation"
       }
     }
   }
@@ -1478,8 +1449,7 @@ namespace eval hbs::vivado-prj {
           hbs::vivado-prj::addXdcFile $file
         }
         default {
-          puts stderr "vivado: unhandled file extension '$extension'"
-          exit 1
+          hbs::panic "unhandled file extension '$extension'"
         }
       }
     }
@@ -1500,8 +1470,7 @@ namespace eval hbs::vivado-prj {
       "2008" { return "-vhdl2008" }
       "2019" { return "-vhdl2019" }
       default {
-        puts stderr "vivado: invalid hbs::Std $hbs::Std for VHDL file"
-        exit 1
+        hbs::panic "invalid hbs::Std $hbs::Std for VHDL file"
       }
     }
   }
@@ -1548,8 +1517,7 @@ namespace eval hbs::vivado-prj {
         ;
       }
       default {
-        puts "vivado-prj::checkStage: invalid stage '$stage', valid vivado-prj stages are: project, synthesis, implementation and bitstream"
-        exit 1
+        hbs::panic "invalid stage '$stage', valid vivado-prj stages are: project, synthesis, implementation and bitstream"
       }
     }
   }
@@ -1561,16 +1529,14 @@ namespace eval hbs::vivado-prj {
     # Project
     #
     if {$hbs::Device == ""} {
-      puts "hbs::vivado-prj::run: cannot set part, hbs::Device not set"
-      exit 1
+      hbs::panic "cannot set part, hbs::Device not set"
     }
     set cmd "set_property part $hbs::Device \[current_project\]"
     puts $cmd
     eval $cmd
 
     if {$hbs::Top == ""} {
-      puts "hbs::vivado-prj::run: cannot set top, hbs::Top not set"
-      exit 1
+      hbs::panic "cannot set top, hbs::Top not set"
     }
     set cmd "set_property top $hbs::Top \[current_fileset\]"
     puts $cmd
@@ -1654,8 +1620,7 @@ namespace eval hbs::xsim {
           hbs::xsim::setTclBatchFile $file
         }
         default {
-          puts stderr "xsim::addFile: unhandled file extension '$extension'"
-          exit 1
+          hbs::panic "unhandled file extension '$extension'"
         }
       }
     }
@@ -1663,8 +1628,7 @@ namespace eval hbs::xsim {
 
   proc setTclBatchFile {file} {
     if {$hbs::xsim::tclBatchFile != ""} {
-      puts stderr "xsim::setTclBatchFile: cannot set file to $file, file already set to $hbs::xsim::tclBatchFile"
-      exit 1
+      hbs::panic "cannot set file to $file, file already set to $hbs::xsim::tclBatchFile"
     }
     set hbs::xsim::tclBatchFile $file
   }
@@ -1686,8 +1650,7 @@ namespace eval hbs::xsim {
       "2008" { return "--2008" }
       "2019" { return "--2019" }
       default {
-        puts stderr "xsim::standard: invalid hbs::Std $hbs::Std"
-        exit 1
+        hbs::panic "invalid hbs::Std $hbs::Std"
       }
     }
   }
@@ -1724,8 +1687,7 @@ namespace eval hbs::xsim {
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
-      puts stderr "xsim::analyzeVhdl: $file analysis failed with exit status $exitStatus"
-      exit 1
+      hbs::panic "$file analysis failed with exit status $exitStatus"
     }
   }
 
@@ -1735,8 +1697,7 @@ namespace eval hbs::xsim {
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
-      puts stderr "xsim::analyzeVerilog: $file analysis failed with exit status $exitStatus"
-      exit 1
+      hbs::panic "$file analysis failed with exit status $exitStatus"
     }
   }
 
@@ -1746,8 +1707,7 @@ namespace eval hbs::xsim {
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
-      puts stderr "xsim::analyzeSystemVerilog: $file analysis failed with exit status $exitStatus"
-      exit 1
+      hbs::panic "$file analysis failed with exit status $exitStatus"
     }
   }
 
@@ -1783,8 +1743,7 @@ namespace eval hbs::xsim {
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
-      puts stderr "xsim::elaborate: $hbs::Top elaboration failed with exit status $exitStatus"
-      exit 1
+      hbs::panic "$hbs::Top elaboration failed with exit status $exitStatus"
     }
 
     cd $workDir
@@ -1805,8 +1764,7 @@ namespace eval hbs::xsim {
     if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
       puts $output
     } else {
-      puts stderr $output
-      exit 1
+      hbs::panic $output
     }
 
     cd $workDir
@@ -1821,8 +1779,7 @@ namespace eval hbs::xsim {
         ;
       }
       default {
-        puts "xsim::checkStage: invalid stage '$stage', valid xsim stages are: analysis, elaboration and simulation"
-        exit 1
+        hbs::panic "invalid stage '$stage', valid xsim stages are: analysis, elaboration and simulation"
       }
     }
   }
@@ -1832,8 +1789,7 @@ namespace eval hbs::xsim {
 
     set exitStatus [catch {eval exec -ignorestderr "which xsim"}]
     if {$exitStatus != 0} {
-      puts stderr "xsim::analyze: xsim not found, probably vivado settings script is not sourced"
-      exit 1
+      hbs::panic "xsim not found, probably vivado settings script is not sourced"
     }
 
     hbs::xsim::analyze
@@ -1866,8 +1822,7 @@ proc hbs::PrintHelp {} {
 
 if {$argv0 eq [info script]} {
   if {$argc < 1 } {
-    puts "missing command, check help"
-    exit 1
+    hbs::panic "missing command, check help"
   }
 
   hbs::init
@@ -1918,8 +1873,7 @@ if {$argv0 eq [info script]} {
       puts 0.0
     }
     default {
-      puts stderr "unknown command $cmd, check help"
-      exit 1
+      hbs::panic "unknown command $cmd, check help"
     }
   }
 }
