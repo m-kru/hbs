@@ -141,7 +141,7 @@ namespace eval hbs {
 
           hbs::dbg "creating gowin project"
 
-          set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
+          set hbs::targetDir [file join $hbs::BuildDir gowin]
           set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" -]
           set cmd "create_project $hbs::ArgsPrefix \
             -name $prjName \
