@@ -349,7 +349,7 @@ namespace eval vhdl-simple::reset-synchronizer {
       hbs:AddFile constr/reset_synchronizer.xdc
       set_property SCOPED_TO_REF Reset_Synchronizer [get_files reset_synchronizer.xdc]
     } else {
-        error "vhdl-simple: reset-synchronizer core misses constraint file for your tool"
+      error "vhdl-simple: reset-synchronizer core misses constraint file for your tool"
     }
   }
 
