@@ -52,6 +52,15 @@ namespace eval hbs {
   # List with command line arguments passed to the top target.
   set TopTargetArgs ""
 
+  # Sets build directory.
+  # The default build directory is named 'build'.
+  #
+  # Be careful when setting directory for testbench targets.
+  # The hbs Python wrapper is not aware of build directory changes within .hbs files.
+  # Changing build directory within testbench target causes the 'output.txt' file
+  # to be placed in a separate directory than the actual testbench build directory.
+  # This potentially happens when a testbench target is run as a result of
+  # 'hbs test' command execution.
   proc SetBuildDir {path} {
     set hbs::BuildDir $path
   }
