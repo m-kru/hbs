@@ -62,6 +62,11 @@ I think the following sentences accurately describe what HBS is like:
 Or more satiristically:
 > Developers hate him, he built hardware built system with single Tcl script.
 
+## Examples
+
+- [VHDL APB library](https://github.com/m-kru/vhdl-amba5/tree/master/apb)
+- [VSC8211 PHY tester](https://github.com/m-kru/vsc8211-tester)
+
 ## Core features
 
 - Consists solely of one Tcl script and one Python wrapper script. The Python script is required only for automatic tests run and dependency graph generation.
