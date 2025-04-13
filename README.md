@@ -1,16 +1,16 @@
 # HBS - Hardware Build System
 
-HBS is a build system for hardware description projects.
+HBS is a build system for hardware design projects.
 HBS was created out of frustration with all existing build systems for hardware description.
 
 Existing hardware build systems can be divided into two classes.
 
-The first class directly utilizes Tcl (the Tcl approach), examples:
+The first class directly utilizes Tcl (the direct Tcl approach), examples:
 - [vivado-build-system](https://github.com/missinglinkelectronics/vivado-build-system),
 - [vextproj](https://github.com/wzab/vextproj),
 - [OSVVM-Scripts](https://github.com/OSVVM/OSVVM-Scripts).
 
-The second class tries to abstract away the underlying Tcl commands using declarative formats (the declarative approach), examples:
+The second class tries to abstract away the underlying Tcl commands usually using declarative formats (the indirect abstract approach), examples:
 - [Blockwork](https://blockwork.intuity.io/),
 - [flgen](https://github.com/pezy-computing/flgen)
 - [FuseSoC](https://github.com/olofk/fusesoc),
@@ -24,30 +24,31 @@ The second class tries to abstract away the underlying Tcl commands using declar
 
 EDA tools are built around Tcl.
 The discussion whether it is good or bad makes no sense, it is how it is.
-Most people don't like Tcl (I don't understand why because when you understand its paradigm it is actually quite well designed).
+Most people don't like Tcl.
+I don't understand why because when you understand its paradigm it is actually quite well designed.
 
-The idea of using some wrapper declarative format seems to be the solution of all problems, at first ...
-However, executing arbitrary Tcl commands in arbitrary place is a relatively complex task in the second class of build systems.
-They are also overly complicated (my opinion).
+The idea of using some wrapper abstract approach seems to be the solution of all problems, at first ...
+However, executing arbitrary Tcl commands in arbitrary place is a relatively complex task in the indirect abstract approach.
+Moreover, tools representing this approach are overly complex (opinion).
 Just look at the number of files in theirs repositories.
 And that is not all, as all of them also have external dependencies.
-This class of tools is structured of multiple layers of abstractions.
+The indirect abstract approach is structured of multiple layers of abstractions.
 You can spend hours trying to figure out how to do some uncommon things, to only later find out that what you want to do is not yet possible.
 You end up `sed`ing automatically generated Tcl scripts or Makefiles.
 The readability of the project decreases.
 
 There is no official package or dependency manager for hardware description projects (something like `pip` for Python, `npm` for Node.js, or `cargo` for Rust).
 As a result we end up doing the so called in-tree dependency management.
-In practice people just manually or in a semi-automated way copy dependencies to the project sources (the dependencies sources are kept in the tree of project directry, hence "in-tree").
-Personally I really like the in-tree dependency management, as it forces you to be really conscious about what is included in the project.
+In practice, people just manually or in a semi-automated way copy dependencies to the project sources (the dependencies sources are kept in the tree of project directry, hence "in-tree").
+Personally, I really like the in-tree dependency management, as it forces you to be really conscious about what is included in the project.
 It also help to avoid bloat.
-Declarative formats are not optimal for in-tree dependency management (my opinion).
+Declarative formats are not optimal for in-tree dependency management (opinion).
 Different dependencies might require completely different commands to be executed to fetch them and prepare for use.
 In such a case, the procedural approach is what is desired.
 In most of the declarative approaches user declares a script that has to be called to execute those commands, instead of simply calling the commands.
 This adds an unnecessary intermediate layer, and increases complexity.
 
-The above drawbacks of the declarative approach determined HBS to directly utilize Tcl.
+The above drawbacks of the indirect abstract approach determined HBS to directly utilize Tcl.
 Calling external programs from a Tcl script is much easier than injecting arbitrary Tcl code into arbitrary place in an automatically generated script.
 
 However, the Tcl approach is not free of drawbacks.
@@ -85,15 +86,15 @@ Or more satiristically:
 - xsim
 
 Adding support for a new tool is trivial once you are familiar with the tool interface.
-If you want to add support for a tool you have to create new namespace called `hbs::<tool>`.
+If you want to add support for a tool you have to create a new namespace called `hbs::<tool>`.
 In theory the tool must provide implementation of only two procs, `addFile` for handling files with extensions supported by the tool, and `run` for running the tool flow.
 In practice, it is useful to have additional helper procs.
 Within the tool namespace any valid Tcl code is allowed.
-Try to adjust flow stages to the existing stages.
+Try to adjust flow stages to the existing stages (check `hbs doc Run` for documentation on existing stages).
 However, if you feel more stages are required feel free to propose them.
 In the case of tools utilizing Tcl internally the script has to be run by the embedded Tcl interpreter.
 This is achieved by recursively rerunning the script.
-A good example is the snippet for the `vivado` tool inside the `SetTool` proc.
+A good example is the snippet for the `vivado-prj` tool inside the `SetTool` proc.
 
 ## Installation
 
@@ -102,15 +103,15 @@ There are 3 preferred installation methods.
 
 1. Copy `hbs` and `hbs.tcl` to your project. This is preferred if you want to modify the `hbs.tcl` to change the default behavior. It is not advised to change the default behavior, but if you need, feel free to do so.
 2. Copy `hbs` and `hbs.tcl` to one of directories in `$PATH`.
-3. Clone the repo, and add an alias to the `hbs` in `.bashrc` (or equivalent).
+3. Clone the repository, and add an alias to the `hbs` in `.bashrc` (or equivalent).
 
 ### Dependencies
 
 Mandatory:
-- `tclsh` (`>= 8.5`),
-- `python3`.
+- `tclsh` (`>= 8.5`).
 
 Optional:
+- `python3` - required only for testbench target detection, automatic testbench running and dependency graph generation,
 - `graphviz` - required only if user wants to generate dependency graph.
 
 ## Glossary
