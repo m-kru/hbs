@@ -371,3 +371,21 @@ The `hbs::Set*` procs make sure users provide lowercase names.
 There is no restriction on core and target names placed in `.hbs` files.
 Everything accepted by the Tcl is valid.
 However, it is recommended to use lowercase and separate words with hyphen character `-`.
+
+## Tcl tips
+
+- If you every tried to use `tclsh` to REPL (read-eval-print-loop), you probably realized that `tclsh` by default does not support arrow keys.
+  You can't fix a typo in a line without deleting some line content.
+  There is also no command history support.
+  However, this can be improved.
+  The first solution is install `rlwrap` programm and call `rlwrap tclsh` instead of `tclsh`.
+  To make it shorter to type, you can define an alias for your shell of choice, for example, for bash `alias tclsh='rlwrap tclsh'`.
+  The second option is to install Tcl `tclreadline` package.
+  This package often comes as OS distro package.
+  For example, on Ubuntu you can install with with `apt install tcl-tclreadline`.
+  Once installed, create `.tclshrc` file in you home directory and add the following content:
+  ```
+  package require tclreadline
+  tclreadline::Loop
+  ```
+  Not only you will get support for arrow keys and command historyi, but also improved prompt.
