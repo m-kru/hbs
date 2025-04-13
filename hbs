@@ -287,7 +287,7 @@ def path_has_pattern(path, patterns):
 
 def run_to_file(target_path):
     """ run_to_file runs given target and directs output to file. """
-    log_dir = os.path.join('build', target_path.replace('::', '/'))
+    log_dir = os.path.join('build', target_path.replace('::', '--'))
     pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
     log_file_path = os.path.join(log_dir, 'output.txt')
     log_file = open(log_file_path, 'w+')

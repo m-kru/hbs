@@ -141,27 +141,27 @@ namespace eval hbs {
 
           hbs::dbg "creating gowin project"
 
-          set hbs::targetDir [file join $hbs::BuildDir gowin]
-          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" -]
+          # gw_sh automatically creates project directory.
+          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" --]
           set cmd "create_project $hbs::ArgsPrefix \
             -name $prjName \
-            -dir $hbs::targetDir \
+            -dir $hbs::BuildDir \
             -pn $hbs::Device \
             -force $hbs::ArgsSuffix"
           puts $cmd
           eval $cmd
 
+          # Set target directory for later use.
+          set hbs::targetDir [file join $hbs::BuildDir $prjName]
+
           hbs::dbg "gowin project created successfully"
         } else {
           # Run the script with gw_sh
-          set prjDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
-          file mkdir $prjDir
-
           set ::env(HBS_TOOL_BOOTSTRAP) 1
 
           set cmd "gw_sh \
-              [file normalize [info script]] \
-              $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
+            [file normalize [info script]] \
+            $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
           set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
           if {$exitStatus == 0} {
             exit 0
@@ -181,8 +181,8 @@ namespace eval hbs {
 
           hbs::dbg "creating vivado project"
 
-          set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
-          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" -]
+          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" --]
+          set hbs::targetDir [file join $hbs::BuildDir $prjName]
           set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
           puts $cmd
           eval $cmd
@@ -190,7 +190,8 @@ namespace eval hbs {
           hbs::dbg "vivado project created successfully"
         } else {
           # Run the script with Vivado
-          set prjDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
+          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" --]
+          set prjDir [file join $hbs::BuildDir $prjName]
           file mkdir $prjDir
 
           set ::env(HBS_TOOL_BOOTSTRAP) 1
@@ -417,15 +418,27 @@ namespace eval hbs {
 
     if {$hbs::cmd eq "dump-cores"} { return }
 
-    set hbs::targetDir [regsub -all :: "$hbs::BuildDir/$hbs::ThisCorePath/$hbs::ThisTarget" /]
+    if {$hbs::targetDir == ""} {
+      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" --]
+      set hbs::targetDir [file join $hbs::BuildDir $prjName]
+    }
     if {[file exist $hbs::targetDir] eq 0} {
       file mkdir $hbs::targetDir
     }
 
+    # Dump cores to JSON file.
+    #
     # Replace "::" with "--".
     # Glib does not support ':' in file names.
-    set fileName [string map {"::" "--"} $hbs::TopTargetPath]
-    hbs::dumpCores [open "$hbs::targetDir/$fileName.json" w]
+    set fileName [string map {"::" "--"} $hbs::TopTargetPath].json
+    set filePath [file join $hbs::targetDir $fileName]
+    switch $hbs::Tool {
+      # gw_sh changes working directory to project directory.
+      "gowin" {
+        set filePath $fileName
+      }
+    }
+    hbs::dumpCores [open $filePath w]
 
     switch $hbs::Tool {
       "ghdl" {
