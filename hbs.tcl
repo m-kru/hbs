@@ -504,75 +504,47 @@ namespace eval hbs {
     }
   }
 
-  # ClearPostAnalCbList removes all callbacks from the post analysis callback list.
-  proc ClearPostAnalCbList {} {
-    set hbs::postAnalCbs []
-  }
+  # Adds post analysis stage callback.
+  proc AddPostAnalCb {args} { lappend hbs::postAnalCbs $args }
 
-  # AddPostAnalCb adds post analysis stage callback to the post analysis callback list.
-  proc AddPostAnalCb {args} {
-    lappend hbs::postAnalCbs $args
-  }
+  # Removes all callbacks from the post analysis callback list.
+  proc ClearPostAnalCbList {} { set hbs::postAnalCbs [] }
 
-  # ClearPostElabCbList removes all callbacks from the post elaboration callback list.
-  proc ClearPostElabCbList {} {
-    set hbs::postElabCbs []
-  }
+  # Adds post elaboration stage callback.
+  proc AddPostElabCb {args} { lappend hbs::postElabCbs $args }
 
-  # AddPostElabCb adds post elaboration stage callback to the post elaboration callback list.
-  proc AddPostElabCb {args} {
-    lappend hbs::postElabCbs $args
-  }
+  # Removes all callbacks from the post elaboration callback list.
+  proc ClearPostElabCbList {} { set hbs::postElabCbs [] }
 
-  # ClearPostSimCbList removes all callbacks from the post simulation callback list.
-  proc ClearPostSimCbList {} {
-    set hbs::postSimCbs []
-  }
+  # Adds post simulation stage callback.
+  proc AddPostSimCb {args} { lappend hbs::postSimCbs args }
 
-  # AddPostSimCb adds post simulation stage callback to the post simulation callback list.
-  proc AddPostSimCb {args} {
-    lappend hbs::postSimCbs args
-  }
+  # Removes all callbacks from the post simulation callback list.
+  proc ClearPostSimCbList {} { set hbs::postSimCbs [] }
 
-  # ClearPostPrjCbList removes all callbacks from the post project callback list.
-  proc ClearPostPrjCbList {} {
-    set hbs::postPrjCbs []
-  }
+  # Adds post project creation stage callback.
+  proc AddPostPrjCb {args} { lappend hbs::postPrjCbs $args }
 
-  # AddPostPrjCb adds post project creation stage callback to the post project callback list.
-  proc AddPostPrjCb {args} {
-    lappend hbs::postPrjCbs $args
-  }
+  # Removes all callbacks from the post project callback list.
+  proc ClearPostPrjCbList {} { set hbs::postPrjCbs [] }
 
-  # ClearPostSynthCbList removes all callbacks from the post synthesis callback list.
-  proc ClearPostSynthCbList {} {
-    set hbs::postSynthCbs []
-  }
+  # Adds post synthesis stage callback.
+  proc AddPostSynthCb {args} { lappend hbs::postSynthCbs $args }
 
-  # AddPostSynthCb adds post synthesis stage callback to the post synthesis callback list.
-  proc AddPostSynthCb {args} {
-    lappend hbs::postSynthCbs $args
-  }
+  # Removes all callbacks from the post synthesis callback list.
+  proc ClearPostSynthCbList {} { set hbs::postSynthCbs [] }
 
-  # ClearPostImplCbList removes all callbacks from the post implementation callback list.
-  proc ClearPostImplCbList {} {
-    set hbs::postImplCbs []
-  }
+  # Adds post implementation stage callback.
+  proc AddPostImplCb {args} { lappend hbs::postImplCbs $args }
 
-  # AddPostImplCb adds post implementation stage callback to the post implementation callback list.
-  proc AddPostImplCb {args} {
-    lappend hbs::postImplCbs $args
-  }
+  # Removes all callbacks from the post implementation callback list.
+  proc ClearPostImplCbList {} { set hbs::postImplCbs [] }
 
-  # ClearPostBitCbList removes all callbacks from the post bitstream callback list.
-  proc ClearPostBitCbList {} {
-    set hbs::postBitCbs []
-  }
+  # Adds post bitstream generation stage callback.
+  proc AddPostBitCb {args} { lappend hbs::postBitCbs $args }
 
-  # AddPostBitCb adds post bitstream generation stage callback to the post bitstream callback list.
-  proc AddPostBitCb {args} {
-    lappend hbs::postBitCbs $args
-  }
+  # Removes all callbacks from the post bitstream callback list.
+  proc ClearPostBitCbList {} { set hbs::postBitCbs [] }
 
   # Exec evaluates Tcl 'exec' command but with working directory changed to the directory
   # in which .hbs file with given core is defined. After the 'exec' the working directory is restored.
