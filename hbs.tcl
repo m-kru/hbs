@@ -240,6 +240,7 @@ namespace eval hbs {
       "xsim" {
         return "simulation"
       }
+      "gowin" -
       "vivado-prj" {
         return "synthesis"
       }
