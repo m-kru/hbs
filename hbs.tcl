@@ -368,21 +368,11 @@ namespace eval hbs {
     dict set hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTarget files $targetFiles
 
     switch $hbs::Tool {
-      "ghdl" {
-        hbs::ghdl::addFile $files
-      }
-      "gowin" {
-        hbs::gowin::addFile $files
-      }
-      "nvc" {
-        hbs::nvc::addFile $files
-      }
-      "vivado-prj" {
-        hbs::vivado-prj::addFile $files
-      }
-      "xsim" {
-        hbs::xsim::addFile $files
-      }
+      "ghdl"       { hbs::ghdl::addFile $files }
+      "gowin"      { hbs::gowin::addFile $files }
+      "nvc"        { hbs::nvc::addFile $files }
+      "vivado-prj" { hbs::vivado-prj::addFile $files }
+      "xsim"       { hbs::xsim::addFile $files }
       "" {
         hbs::panic "can't add file $file, hbs::Tool not set"
       }
