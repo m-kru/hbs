@@ -441,21 +441,11 @@ namespace eval hbs {
     hbs::dumpCores [open $filePath w]
 
     switch $hbs::Tool {
-      "ghdl" {
-        hbs::ghdl::run $stage
-      }
-      "gowin" {
-        hbs::gowin::run $stage
-      }
-      "nvc" {
-        hbs::nvc::run $stage
-      }
-      "vivado-prj" {
-        hbs::vivado-prj::run $stage
-      }
-      "xsim" {
-        hbs::xsim::run $stage
-      }
+      "ghdl"       { hbs::ghdl::run $stage }
+      "gowin"      { hbs::gowin::run $stage }
+      "nvc"        { hbs::nvc::run $stage }
+      "vivado-prj" { hbs::vivado-prj::run $stage }
+      "xsim"       { hbs::xsim::run $stage }
       default {
         hbs::panic "[unknownToolMsg $hbs::Tool]"
       }
