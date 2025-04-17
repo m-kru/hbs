@@ -502,6 +502,12 @@ namespace eval hbs {
   # Removes all callbacks from the post elaboration callback list.
   proc ClearPostElabCbList {} { set hbs::postElabCbs [] }
 
+  # Adds pre implementation stage callback.
+  proc AddPreImplCb {args} { lappend hbs::preImplCbs $args }
+
+  # Removes all callbacks from the pre implementation callback list.
+  proc ClearPreImplCbList {} { set hbs::preImplCbs [] }
+
   # Adds post implementation stage callback.
   proc AddPostImplCb {args} { lappend hbs::postImplCbs $args }
 
@@ -578,6 +584,7 @@ namespace eval hbs {
   set postAnalCbs  []
   set postBitCbs   []
   set postElabCbs  []
+  set preImplCbs   []
   set postImplCbs  []
   set postPrjCbs   []
   set preSimCbs    []
@@ -587,6 +594,7 @@ namespace eval hbs {
   proc evalPostAnalCbs  {} { foreach cb $hbs::postAnalCbs  { eval $cb } }
   proc evalPostBitCbs   {} { foreach cb $hbs::postBitCbs   { eval $cb } }
   proc evalPostElabCbs  {} { foreach cb $hbs::postElabCbs  { eval $cb } }
+  proc evalPreImplCbs   {} { foreach cb $hbs::preImplCbs   { eval $cb } }
   proc evalPostImplCbs  {} { foreach cb $hbs::postImplCbs  { eval $cb } }
   proc evalPostPrjCbs   {} { foreach cb $hbs::postPrjCbs   { eval $cb } }
   proc evalPreSimCbs    {} { foreach cb $hbs::preSimCbs    { eval $cb } }
@@ -1215,6 +1223,7 @@ namespace eval hbs::gowin {
     #
     # Implementation
     #
+    hbs::evalPreImplCbs
     set cmd "::run $hbs::ArgsPrefix pnr $hbs::ArgsSuffix"
     puts $cmd
     set err [catch {eval $cmd} errMsg]
@@ -1222,7 +1231,6 @@ namespace eval hbs::gowin {
       hbs::panic $errMsg
     }
     hbs::evalPostImplCbs
-    if {$stage == "implementation"} { return }
   }
 }
 
@@ -1555,6 +1563,7 @@ namespace eval hbs::vivado-prj {
     #
     # Implementation
     #
+    hbs::evalPreImplCbs
     set cmd "launch_runs $hbs::ArgsPrefix impl_1 $hbs::ArgsSuffix"
     puts $cmd
     eval $cmd
