@@ -532,6 +532,12 @@ namespace eval hbs {
   # Removes all callbacks from the post implementation callback list.
   proc ClearPostImplCbList {} { set hbs::postImplCbs [] }
 
+  # Adds pre project creation stage callback.
+  proc AddPrePrjCb {args} { lappend hbs::prePrjCbs $args }
+
+  # Removes all callbacks from the pre project callback list.
+  proc ClearPrePrjCbList {} { set hbs::prePrjCbs [] }
+
   # Adds post project creation stage callback.
   proc AddPostPrjCb {args} { lappend hbs::postPrjCbs $args }
 
@@ -607,6 +613,7 @@ namespace eval hbs {
   set postElabCbs  []
   set preImplCbs   []
   set postImplCbs  []
+  set prePrjCbs   []
   set postPrjCbs   []
   set preSimCbs    []
   set postSimCbs   []
@@ -620,6 +627,7 @@ namespace eval hbs {
   proc evalPostElabCbs  {} { foreach cb $hbs::postElabCbs  { eval $cb } }
   proc evalPreImplCbs   {} { foreach cb $hbs::preImplCbs   { eval $cb } }
   proc evalPostImplCbs  {} { foreach cb $hbs::postImplCbs  { eval $cb } }
+  proc evalPrePrjCbs    {} { foreach cb $hbs::prePrjCbs    { eval $cb } }
   proc evalPostPrjCbs   {} { foreach cb $hbs::postPrjCbs   { eval $cb } }
   proc evalPreSimCbs    {} { foreach cb $hbs::preSimCbs    { eval $cb } }
   proc evalPostSimCbs   {} { foreach cb $hbs::postSimCbs   { eval $cb } }
@@ -1219,6 +1227,7 @@ namespace eval hbs::gowin {
     #
     # Project
     #
+    hbs::evalPrePrjCbs
     if {$hbs::Top == ""} {
       hbs::panic "cannot set top, hbs::Top not set"
     }
@@ -1556,6 +1565,7 @@ namespace eval hbs::vivado-prj {
     #
     # Project
     #
+    hbs::evalPrePrjCbs
     if {$hbs::Device == ""} {
       hbs::panic "cannot set part, hbs::Device not set"
     }
