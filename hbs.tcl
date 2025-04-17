@@ -496,6 +496,12 @@ namespace eval hbs {
   # Removes all callbacks from the post analysis callback list.
   proc ClearPostAnalCbList {} { set hbs::postAnalCbs [] }
 
+  # Adds pre bitstream generation stage callback.
+  proc AddPreBitCb {args} { lappend hbs::preBitCbs $args }
+
+  # Removes all callbacks from the pre bitstream callback list.
+  proc ClearPreBitCbList {} { set hbs::preBitCbs [] }
+
   # Adds post bitstream generation stage callback.
   proc AddPostBitCb {args} { lappend hbs::postBitCbs $args }
 
@@ -589,6 +595,7 @@ namespace eval hbs {
   # Stage callbacks
   set preAnalCbs   []
   set postAnalCbs  []
+  set preBitCbs    []
   set postBitCbs   []
   set postElabCbs  []
   set preImplCbs   []
@@ -600,6 +607,7 @@ namespace eval hbs {
 
   proc evalPreAnalCbs   {} { foreach cb $hbs::preAnalCbs   { eval $cb } }
   proc evalPostAnalCbs  {} { foreach cb $hbs::postAnalCbs  { eval $cb } }
+  proc evalPreBitCbs    {} { foreach cb $hbs::preBitCbs    { eval $cb } }
   proc evalPostBitCbs   {} { foreach cb $hbs::postBitCbs   { eval $cb } }
   proc evalPostElabCbs  {} { foreach cb $hbs::postElabCbs  { eval $cb } }
   proc evalPreImplCbs   {} { foreach cb $hbs::preImplCbs   { eval $cb } }
@@ -1589,6 +1597,7 @@ namespace eval hbs::vivado-prj {
     #
     # Bitstream
     #
+    hbs::evalPreBitCbs
     set cmd "open_run impl_1"
     puts $cmd
     eval $cmd
