@@ -496,8 +496,14 @@ namespace eval hbs {
   # Removes all callbacks from the post elaboration callback list.
   proc ClearPostElabCbList {} { set hbs::postElabCbs [] }
 
+  # Adds pre simulation stage callback.
+  proc AddPreSimCb {args} { lappend hbs::preSimCbs $args }
+
+  # Removes all callbacks from the pre simulation callback list.
+  proc ClearPreSimCbList {} { set hbs::preSimCbs [] }
+
   # Adds post simulation stage callback.
-  proc AddPostSimCb {args} { lappend hbs::postSimCbs args }
+  proc AddPostSimCb {args} { lappend hbs::postSimCbs $args }
 
   # Removes all callbacks from the post simulation callback list.
   proc ClearPostSimCbList {} { set hbs::postSimCbs [] }
@@ -571,6 +577,7 @@ namespace eval hbs {
   # Stage callbacks
   set postAnalCbs  []
   set postElabCbs  []
+  set preSimCbs    []
   set postSimCbs   []
   set postPrjCbs   []
   set postSynthCbs []
@@ -579,6 +586,7 @@ namespace eval hbs {
 
   proc evalPostAnalCbs  {} { foreach cb $hbs::postAnalCbs  { eval $cb } }
   proc evalPostElabCbs  {} { foreach cb $hbs::postElabCbs  { eval $cb } }
+  proc evalPreSimCbs    {} { foreach cb $hbs::preSimCbs    { eval $cb } }
   proc evalPostSimCbs   {} { foreach cb $hbs::postSimCbs   { eval $cb } }
   proc evalPostPrjCbs   {} { foreach cb $hbs::postPrjCbs   { eval $cb } }
   proc evalPostSynthCbs {} { foreach cb $hbs::postSynthCbs { eval $cb } }
@@ -1003,14 +1011,18 @@ namespace eval hbs::ghdl {
   proc run {stage} {
     hbs::ghdl::checkStage $stage
 
+    # Analysis
     hbs::ghdl::analyze
     hbs::evalPostAnalCbs
     if {$stage == "analysis"} { return }
 
+    # Elaboration
     hbs::ghdl::elaborate
     hbs::evalPostElabCbs
     if {$stage == "elaboration"} { return }
 
+    # Simulation
+    hbs::evalPreSimCbs
     hbs::ghdl::simulate
     hbs::evalPostSimCbs
   }
@@ -1372,14 +1384,18 @@ namespace eval hbs::nvc {
       set hbs::nvc::std "2019"
     }
 
+    # Analysis
     hbs::nvc::analyze
     hbs::evalPostAnalCbs
     if {$stage == "analysis"} { return }
 
+    # Elaboration
     hbs::nvc::elaborate
     hbs::evalPostElabCbs
     if {$stage == "elaboration"} { return }
 
+    # Simulation
+    hbs::evalPreSimCbs
     hbs::nvc::simulate
     hbs::evalPostSimCbs
   }
@@ -1768,14 +1784,18 @@ namespace eval hbs::xsim {
       hbs::panic "xsim not found, probably vivado settings script is not sourced"
     }
 
+    # Analysis
     hbs::xsim::analyze
     hbs::evalPostAnalCbs
     if {$stage == "analysis"} { return }
 
+    # Elaboration
     hbs::xsim::elaborate
     hbs::evalPostElabCbs
     if {$stage == "elaboration"} { return }
 
+    # Simulation
+    hbs::evalPreSimCbs
     hbs::xsim::simulate
     hbs::evalPostSimCbs
   }
