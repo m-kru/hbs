@@ -508,6 +508,12 @@ namespace eval hbs {
   # Removes all callbacks from the post bitstream callback list.
   proc ClearPostBitCbList {} { set hbs::postBitCbs [] }
 
+  # Adds pre elaboration stage callback.
+  proc AddPreElabCb {args} { lappend hbs::preElabCbs $args }
+
+  # Removes all callbacks from the pre elaboration callback list.
+  proc ClearPreElabCbList {} { set hbs::preElabCbs [] }
+
   # Adds post elaboration stage callback.
   proc AddPostElabCb {args} { lappend hbs::postElabCbs $args }
 
@@ -597,6 +603,7 @@ namespace eval hbs {
   set postAnalCbs  []
   set preBitCbs    []
   set postBitCbs   []
+  set preElabCbs   []
   set postElabCbs  []
   set preImplCbs   []
   set postImplCbs  []
@@ -609,6 +616,7 @@ namespace eval hbs {
   proc evalPostAnalCbs  {} { foreach cb $hbs::postAnalCbs  { eval $cb } }
   proc evalPreBitCbs    {} { foreach cb $hbs::preBitCbs    { eval $cb } }
   proc evalPostBitCbs   {} { foreach cb $hbs::postBitCbs   { eval $cb } }
+  proc evalPreElabCbs   {} { foreach cb $hbs::preElabCbs   { eval $cb } }
   proc evalPostElabCbs  {} { foreach cb $hbs::postElabCbs  { eval $cb } }
   proc evalPreImplCbs   {} { foreach cb $hbs::preImplCbs   { eval $cb } }
   proc evalPostImplCbs  {} { foreach cb $hbs::postImplCbs  { eval $cb } }
@@ -1042,6 +1050,7 @@ namespace eval hbs::ghdl {
     if {$stage == "analysis"} { return }
 
     # Elaboration
+    hbs::evalPreElabCbs
     hbs::ghdl::elaborate
     hbs::evalPostElabCbs
     if {$stage == "elaboration"} { return }
@@ -1416,6 +1425,7 @@ namespace eval hbs::nvc {
     if {$stage == "analysis"} { return }
 
     # Elaboration
+    hbs::evalPreElabCbs
     hbs::nvc::elaborate
     hbs::evalPostElabCbs
     if {$stage == "elaboration"} { return }
@@ -1819,6 +1829,7 @@ namespace eval hbs::xsim {
     if {$stage == "analysis"} { return }
 
     # Elaboration
+    hbs::evalPreElabCbs
     hbs::xsim::elaborate
     hbs::evalPostElabCbs
     if {$stage == "elaboration"} { return }
