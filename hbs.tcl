@@ -484,6 +484,12 @@ namespace eval hbs {
     }
   }
 
+  # Adds pre analysis stage callback.
+  proc AddPreAnalCb {args} { lappend hbs::preAnalCbs $args }
+
+  # Removes all callbacks from the pre analysis callback list.
+  proc ClearPreAnalCbList {} { set hbs::preAnalCbs [] }
+
   # Adds post analysis stage callback.
   proc AddPostAnalCb {args} { lappend hbs::postAnalCbs $args }
 
@@ -581,6 +587,7 @@ namespace eval hbs {
   set targetDir ""
 
   # Stage callbacks
+  set preAnalCbs   []
   set postAnalCbs  []
   set postBitCbs   []
   set postElabCbs  []
@@ -591,6 +598,7 @@ namespace eval hbs {
   set postSimCbs   []
   set postSynthCbs []
 
+  proc evalPreAnalCbs   {} { foreach cb $hbs::preAnalCbs   { eval $cb } }
   proc evalPostAnalCbs  {} { foreach cb $hbs::postAnalCbs  { eval $cb } }
   proc evalPostBitCbs   {} { foreach cb $hbs::postBitCbs   { eval $cb } }
   proc evalPostElabCbs  {} { foreach cb $hbs::postElabCbs  { eval $cb } }
@@ -1020,6 +1028,7 @@ namespace eval hbs::ghdl {
     hbs::ghdl::checkStage $stage
 
     # Analysis
+    hbs::evalPreAnalCbs
     hbs::ghdl::analyze
     hbs::evalPostAnalCbs
     if {$stage == "analysis"} { return }
@@ -1393,6 +1402,7 @@ namespace eval hbs::nvc {
     }
 
     # Analysis
+    hbs::evalPreAnalCbs
     hbs::nvc::analyze
     hbs::evalPostAnalCbs
     if {$stage == "analysis"} { return }
@@ -1794,6 +1804,7 @@ namespace eval hbs::xsim {
     }
 
     # Analysis
+    hbs::evalPreAnalCbs
     hbs::xsim::analyze
     hbs::evalPostAnalCbs
     if {$stage == "analysis"} { return }
