@@ -556,6 +556,12 @@ namespace eval hbs {
   # Removes all callbacks from the post simulation callback list.
   proc ClearPostSimCbList {} { set hbs::postSimCbs [] }
 
+  # Adds pre synthesis stage callback.
+  proc AddPreSynthCb {args} { lappend hbs::preSynthCbs $args }
+
+  # Removes all callbacks from the pre synthesis callback list.
+  proc ClearPreSynthCbList {} { set hbs::preSynthCbs [] }
+
   # Adds post synthesis stage callback.
   proc AddPostSynthCb {args} { lappend hbs::postSynthCbs $args }
 
@@ -613,10 +619,11 @@ namespace eval hbs {
   set postElabCbs  []
   set preImplCbs   []
   set postImplCbs  []
-  set prePrjCbs   []
+  set prePrjCbs    []
   set postPrjCbs   []
   set preSimCbs    []
   set postSimCbs   []
+  set preSynthCbs  []
   set postSynthCbs []
 
   proc evalPreAnalCbs   {} { foreach cb $hbs::preAnalCbs   { eval $cb } }
@@ -631,6 +638,7 @@ namespace eval hbs {
   proc evalPostPrjCbs   {} { foreach cb $hbs::postPrjCbs   { eval $cb } }
   proc evalPreSimCbs    {} { foreach cb $hbs::preSimCbs    { eval $cb } }
   proc evalPostSimCbs   {} { foreach cb $hbs::postSimCbs   { eval $cb } }
+  proc evalPreSynthCbs  {} { foreach cb $hbs::preSynthCbs  { eval $cb } }
   proc evalPostSynthCbs {} { foreach cb $hbs::postSynthCbs { eval $cb } }
 
   set fileList {}
@@ -1246,6 +1254,7 @@ namespace eval hbs::gowin {
     #
     # Synthesis
     #
+    hbs::evalPreSynthCbs
     set cmd "::run $hbs::ArgsPrefix syn $hbs::ArgsSuffix"
     puts $cmd
     set err [catch {eval $cmd} errMsg]
@@ -1586,6 +1595,7 @@ namespace eval hbs::vivado-prj {
     #
     # Synthesis
     #
+    hbs::evalPreSynthCbs
     set cmd "launch_runs $hbs::ArgsPrefix synth_1 $hbs::ArgsSuffix"
     puts $cmd
     eval $cmd
