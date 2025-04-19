@@ -15,7 +15,7 @@ The first class directly utilizes Tcl (the direct Tcl approach), examples:
 
 The second class tries to abstract away the underlying Tcl commands usually using declarative formats (the indirect abstract approach), examples:
 - [Blockwork](https://blockwork.intuity.io/),
-- [flgen](https://github.com/pezy-computing/flgen)
+- [flgen](https://github.com/pezy-computing/flgen) - filelist generator only,
 - [FuseSoC](https://github.com/olofk/fusesoc),
 - [Hog](https://gitlab.com/hog-cern/Hog),
 - [Hdlmake](https://ohwr.org/project/hdl-make),
