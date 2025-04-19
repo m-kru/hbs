@@ -9,9 +9,9 @@ More theoretical and conceptual description can be found in [HBS - Hardware Buil
 Existing hardware build systems can be divided into two classes.
 
 The first class directly utilizes Tcl (the direct Tcl approach), examples:
-- [vivado-build-system](https://github.com/missinglinkelectronics/vivado-build-system),
-- [vextproj](https://github.com/wzab/vextproj),
-- [OSVVM-Scripts](https://github.com/OSVVM/OSVVM-Scripts).
+- [vivado-build-system](https://github.com/missinglinkelectronics/vivado-build-system) - works with Vivado only,
+- [vextproj](https://github.com/wzab/vextproj) - works with Vivado only,
+- [OSVVM-Scripts](https://github.com/OSVVM/OSVVM-Scripts) - works with multiple tools, but targets only simulation.
 
 The second class tries to abstract away the underlying Tcl commands usually using declarative formats (the indirect abstract approach), examples:
 - [Blockwork](https://blockwork.intuity.io/),
