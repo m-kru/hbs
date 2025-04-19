@@ -237,7 +237,10 @@ def doc(args):
                     return
             elif words[0] == 'proc':
                 if words[1] == sym_name:
-                    doc += line.rstrip()[:-1]
+                    line = line.rstrip()
+                    if line[-1] == '{':
+                        line = line[:-1]
+                    doc += line
                     print(doc)
                     return
         elif state == "after public api":
