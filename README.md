@@ -110,8 +110,8 @@ All installation methods require that `hbs` and `hbs.tcl` are placed in the same
 There are 3 preferred installation methods.
 
 1. Copy `hbs` and `hbs.tcl` to your project. This is preferred if you want to modify the `hbs.tcl` to change the default behavior. It is not advised to change the default behavior, but if you need, feel free to do so.
-2. Copy `hbs` and `hbs.tcl` to one of directories in `$PATH`.
-3. Clone the repository, and add an alias to the `hbs` in `.bashrc` (or equivalent).
+2. Copy `hbs` and `hbs.tcl` to one of the directories in `$PATH`.
+3. Clone the repository and add an alias to the `hbs` in `.bashrc` (or equivalent).
 
 ### Dependencies
 
