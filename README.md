@@ -26,44 +26,42 @@ The second class tries to abstract away the underlying Tcl commands usually usin
 - [orbit](https://github.com/cdotrus/orbit) - package manager only.
 
 EDA tools are built around Tcl.
-The discussion whether it is good or bad makes no sense, it is how it is.
+The discussion of whether it is good or bad makes no sense
+I is how it is.
 Most people don't like Tcl.
-I don't understand why because when you understand its paradigm it is actually quite well designed.
+I don't understand why because when you understand its paradigm, you will think that it is actually quite well-designed.
 
-The idea of using some wrapper abstract approach seems to be the solution of all problems, at first ...
-However, executing arbitrary Tcl commands in arbitrary place is a relatively complex task in the indirect abstract approach.
-Moreover, tools representing this approach are overly complex (opinion).
-Just look at the number of files in theirs repositories.
-And that is not all, as all of them also have external dependencies.
+The idea of using some wrapper abstract approach seems to be the solution to all problems.
+At first ...
+However, executing arbitrary Tcl commands in arbitrary places is a relatively complex task in the indirect abstract approach.
+Moreover, the tools that represent this approach are overly complex (opinion).
+Just look at the number of files in their repositories.
+And that is not all, as they also have external dependencies.
 The indirect abstract approach is structured of multiple layers of abstractions.
-You can spend hours trying to figure out how to do some uncommon things, to only later find out that what you want to do is not yet possible.
+You can spend hours trying to figure out how to do some uncommon things, only to find out later that what you want to do is not yet possible.
 You end up `sed`ing automatically generated Tcl scripts or Makefiles.
 The readability of the project decreases.
 
 There is no official package or dependency manager for hardware description projects (something like `pip` for Python, `npm` for Node.js, or `cargo` for Rust).
-As a result we end up doing the so called in-tree dependency management.
-In practice, people just manually or in a semi-automated way copy dependencies to the project sources (the dependencies sources are kept in the tree of project directry, hence "in-tree").
+As a result, we end up doing the so-called in-tree dependency management.
+In practice, people just manually or semi-automatedly copy dependencies to the project sources (the dependencies sources are kept in the tree of project directory, hence "in-tree").
 Personally, I really like the in-tree dependency management, as it forces you to be really conscious about what is included in the project.
-It also help to avoid bloat.
+It also helps to avoid bloat.
 Declarative formats are not optimal for in-tree dependency management (opinion).
-Different dependencies might require completely different commands to be executed to fetch them and prepare for use.
-In such a case, the procedural approach is what is desired.
-In most of the declarative approaches user declares a script that has to be called to execute those commands, instead of simply calling the commands.
-This adds an unnecessary intermediate layer, and increases complexity.
+Different dependencies might require completely different commands to be executed to fetch them and prepare them for use.
+In such a case, the procedural approach is desired.
+In most of the declarative approaches, the user declares a script that has to be called to execute those commands, instead of simply calling the commands.
+This adds an unnecessary intermediate layer and increases complexity.
 
-The above drawbacks of the indirect abstract approach determined HBS to directly utilize Tcl.
-Calling external programs from a Tcl script is much easier than injecting arbitrary Tcl code into arbitrary place in an automatically generated script.
-
-However, the Tcl approach is not free of drawbacks.
-As Tcl is procedural, sometimes user needs to call extra commands, for example, `hbs::Register`.
-HBS tries to inform user that such call might be missing.
+The above drawbacks of the indirect abstract approach determined that HBS should directly utilize Tcl.
+Calling external programs from a Tcl script is much easier than injecting arbitrary Tcl code into arbitrary places in an automatically generated script.
 
 I think the following sentences accurately describe what HBS is like:
 > HBS makes simple things insignificantly harder, but makes complex things exceptionally easy.
 > It tries to be smart, but not to outsmart the user.
 
 Or more satiristically:
-> Developers hate him, he built hardware built system with single Tcl script.
+> Developers hate him, he implemented hardware build system with single Tcl script.
 
 ## Examples
 
