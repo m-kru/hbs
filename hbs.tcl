@@ -73,10 +73,28 @@ namespace eval hbs {
     set hbs::Device $dev
   }
 
+  # Sets name of the HDL library.
+  #
+  # To get the name of currently set library simply
+  # read the value of hbs::Lib variable.
+  #
+  # Library for a given file must be set before adding a file.
+  # For example:
+  #   hbs::SetLib lib
+  #   hbs::AddFile entity.vhd
   proc SetLib {lib} {
     set hbs::Lib $lib
   }
 
+  # Sets standard revision for HDL files.
+  #
+  # To get the value of currently set standard revision simply
+  # read the value of hbs::Std variable.
+  #
+  # Standard revision for a given file must be set before adding a file.
+  # For example:
+  #   hbs::SetStd 2008
+  #   hbs::AddFile entity.vhd
   proc SetStd {std} {
     set hbs::Std $std
   }
@@ -250,7 +268,11 @@ namespace eval hbs {
     }
   }
 
-  # Registers given core.
+  # Registers a given Tcl namespace as a core.
+  #
+  # Only Tcl namespaces with the hbs::Register call are treated as cores.
+  # If the user forgets to register a core, then it is impossible to run
+  # targets of this core with the 'hbs run' command.
   #
   # This procedure must be called as the last in the given core namespace.
   proc Register {} {
