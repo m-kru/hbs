@@ -122,6 +122,11 @@ Optional:
 - `python3` - required only for testbench target detection, automatic testbench running and dependency graph generation,
 - `graphviz` - required only if user wants to generate dependency graph.
 
+## HBS Tcl API
+
+To get the list of public symbols constituting the HBS Tcl API run the `hbs doc` command.
+To get documentation for a given symbol, simply run `hbs doc <symbol-name>`.
+
 ## Glossary
 
 - **hbs file** - file with `.hbs` extension containing valid Tcl code.

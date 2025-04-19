@@ -16,28 +16,44 @@ namespace eval hbs {
   set ThisTarget ""
 
   # BuildDir is the build directory path.
+  #
+  # See also 'hbs doc SetBuildDir'.
   set BuildDir "build"
 
   # Device is target device. Often also called part.
+  #
+  # See also 'hbs doc SetDevice'.
   set Device ""
 
   # Lib is current library for adding files.
+  #
+  # See also 'hbs doc SetLib'.
   set Lib ""
 
   # Std is current standard for adding files.
+  #
+  # See also 'hbs doc SetStd'.
   set Std ""
 
   # Tool is target tool name. It must be lowercase.
+  #
+  # See also 'hbs doc SetTool'.
   set Tool ""
 
   # Top is name of the top entity/module. Often also called toplevel.
+  #
+  # See also 'hbs doc SetTop'.
   set Top ""
 
   # Custom (set by user) arguments prefix inserted right after command or program name.
+  #
+  # See also 'hbs doc SetArgsPrefix'.
   set ArgsPrefix ""
 
   # Custom (set by user) arguments suffix placed at the end of command or program call
   # or before the final argument.
+  #
+  # See also 'hbs doc SetArgsSuffix'.
   set ArgsSuffix ""
 
   # Path of the top core being run.
