@@ -42,7 +42,7 @@ Type 'hbs help <command>' to obtain more information about particular command.""
 
 doc_help = """Show documentation for hbs Tcl symbol.
 
-  hbs doc <symbol-name>
+  hbs doc [symbol-name]
 
 Symbol name must be part of the main API (must be defined in the hbs namespace
 and must start with an uppercase letter). Private symbols documentation cannot
@@ -50,7 +50,9 @@ be obtained using the doc command. However, one can always open the hbs.tcl
 file and see the documentation in the source.
 
 The "hbs::" prefix in the symbol name is optional.
-For example, "hbs doc AddDep" returns the same documentation as "hbs doc hbs::AddDep"."""
+For example, "hbs doc AddDep" returns the same documentation as "hbs doc hbs::AddDep".
+
+If the symbol-name is not provided, all public symbols constituting HBS API are printed."""
 
 dump_cores_help = """Dump info about cores found in .hbs files in JSON format.
 
@@ -199,18 +201,19 @@ def add_target_deps(graph, nodes, cores, target_path):
 
 
 def doc(args):
-    if len(args) == 0:
-        error("doc command requires symbol path")
+    sym_name = None
+
+    if len(args) == 1:
+        sym_name = args[0]
+        if sym_name.startswith("hbs::"):
+            sym_name = sym_name[5:]
     if len(args) > 1:
         error("doc command accepts only one symbol path")
-
-    sym_name = args[0]
-    if sym_name.startswith("hbs::"):
-        sym_name = sym_name[5:]
 
     doc = ""
     state = "before public api"
     hbs_tcl = open(os.path.join(this_script_dir, 'hbs.tcl'))
+
     for line in hbs_tcl:
         if state == "before public api":
             if line.startswith("namespace eval hbs"):
@@ -230,19 +233,22 @@ def doc(args):
         if state == "in public api":
             words = line.split()
 
-            if words[0] == 'set':
-                if words[1] == sym_name:
-                    doc += line.rstrip()
-                    print(doc)
-                    return
-            elif words[0] == 'proc':
-                if words[1] == sym_name:
-                    line = line.rstrip()
-                    if line[-1] == '{':
-                        line = line[:-1]
-                    doc += line
-                    print(doc)
-                    return
+            if words[0] == 'set' or words[0] == 'proc':
+                sym = words[1]
+            else:
+                continue
+
+            line = line.rstrip()
+            if line[-1] == '{':
+                line = line[:-1]
+
+            if sym_name == None:
+                if not sym.startswith("hbs::") and sym[0].isupper():
+                    print(line)
+            elif sym_name == sym:
+                doc += line
+                print(doc)
+                return
         elif state == "after public api":
             if line.startswith("namespace eval hbs::"):
                tool = line.split()[2].split('::')[1]
@@ -250,8 +256,8 @@ def doc(args):
                     doc = doc[:-1]
                     print(doc)
                     return
-
-    error(f"doc for symbol '{args[0]}' not found")
+    if sym_name != None:
+        error(f"doc for symbol '{args[0]}' not found")
 
 
 # The first arg is path to the cores json file.
