@@ -3,6 +3,9 @@
 HBS is a build system for hardware design projects.
 HBS was created out of frustration with all existing build systems for hardware description.
 
+This README contains a practical description.
+More theoretical and conceptual description can be found in [HBS - Hardware Build System: A Tcl-based, minimal common abstraction approach for build system for hardware designs](https://www.arxiv.org/pdf/2504.09642).
+
 Existing hardware build systems can be divided into two classes.
 
 The first class directly utilizes Tcl (the direct Tcl approach), examples:
