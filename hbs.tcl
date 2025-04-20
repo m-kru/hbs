@@ -523,88 +523,144 @@ namespace eval hbs {
   }
 
   # Adds pre analysis stage callback.
-  proc AddPreAnalCb {args} { lappend hbs::preAnalCbs $args }
+  proc AddPreAnalCb {args} {
+    lappend hbs::preAnalCbs $args
+  }
 
   # Removes all callbacks from the pre analysis callback list.
-  proc ClearPreAnalCbList {} { set hbs::preAnalCbs [] }
+  proc ClearPreAnalCbList {} {
+    set hbs::preAnalCbs []
+  }
 
   # Adds post analysis stage callback.
-  proc AddPostAnalCb {args} { lappend hbs::postAnalCbs $args }
+  proc AddPostAnalCb {args} {
+    lappend hbs::postAnalCbs $args
+  }
 
   # Removes all callbacks from the post analysis callback list.
-  proc ClearPostAnalCbList {} { set hbs::postAnalCbs [] }
+  proc ClearPostAnalCbList {} {
+    set hbs::postAnalCbs []
+  }
 
   # Adds pre bitstream generation stage callback.
-  proc AddPreBitCb {args} { lappend hbs::preBitCbs $args }
+  proc AddPreBitCb {args} {
+    lappend hbs::preBitCbs $args
+  }
 
   # Removes all callbacks from the pre bitstream callback list.
-  proc ClearPreBitCbList {} { set hbs::preBitCbs [] }
+  proc ClearPreBitCbList {} {
+    set hbs::preBitCbs []
+  }
 
   # Adds post bitstream generation stage callback.
-  proc AddPostBitCb {args} { lappend hbs::postBitCbs $args }
+  proc AddPostBitCb {args} {
+    lappend hbs::postBitCbs $args
+  }
 
   # Removes all callbacks from the post bitstream callback list.
-  proc ClearPostBitCbList {} { set hbs::postBitCbs [] }
+  proc ClearPostBitCbList {} {
+    set hbs::postBitCbs []
+  }
 
   # Adds pre elaboration stage callback.
-  proc AddPreElabCb {args} { lappend hbs::preElabCbs $args }
+  proc AddPreElabCb {args} {
+    lappend hbs::preElabCbs $args
+  }
 
   # Removes all callbacks from the pre elaboration callback list.
-  proc ClearPreElabCbList {} { set hbs::preElabCbs [] }
+  proc ClearPreElabCbList {} {
+    set hbs::preElabCbs []
+  }
 
   # Adds post elaboration stage callback.
-  proc AddPostElabCb {args} { lappend hbs::postElabCbs $args }
+  proc AddPostElabCb {args} {
+    lappend hbs::postElabCbs $args
+  }
 
   # Removes all callbacks from the post elaboration callback list.
-  proc ClearPostElabCbList {} { set hbs::postElabCbs [] }
+  proc ClearPostElabCbList {} {
+    set hbs::postElabCbs []
+  }
 
   # Adds pre implementation stage callback.
-  proc AddPreImplCb {args} { lappend hbs::preImplCbs $args }
+  proc AddPreImplCb {args} {
+    lappend hbs::preImplCbs $args
+  }
 
   # Removes all callbacks from the pre implementation callback list.
-  proc ClearPreImplCbList {} { set hbs::preImplCbs [] }
+  proc ClearPreImplCbList {} {
+    set hbs::preImplCbs []
+  }
 
   # Adds post implementation stage callback.
-  proc AddPostImplCb {args} { lappend hbs::postImplCbs $args }
+  proc AddPostImplCb {args} {
+    lappend hbs::postImplCbs $args
+  }
 
   # Removes all callbacks from the post implementation callback list.
-  proc ClearPostImplCbList {} { set hbs::postImplCbs [] }
+  proc ClearPostImplCbList {} {
+    set hbs::postImplCbs []
+  }
 
   # Adds pre project creation stage callback.
-  proc AddPrePrjCb {args} { lappend hbs::prePrjCbs $args }
+  proc AddPrePrjCb {args} {
+    lappend hbs::prePrjCbs $args
+  }
 
   # Removes all callbacks from the pre project callback list.
-  proc ClearPrePrjCbList {} { set hbs::prePrjCbs [] }
+  proc ClearPrePrjCbList {} {
+    set hbs::prePrjCbs []
+  }
 
   # Adds post project creation stage callback.
-  proc AddPostPrjCb {args} { lappend hbs::postPrjCbs $args }
+  proc AddPostPrjCb {args} {
+    lappend hbs::postPrjCbs $args
+  }
 
   # Removes all callbacks from the post project callback list.
-  proc ClearPostPrjCbList {} { set hbs::postPrjCbs [] }
+  proc ClearPostPrjCbList {} {
+    set hbs::postPrjCbs []
+  }
 
   # Adds pre simulation stage callback.
-  proc AddPreSimCb {args} { lappend hbs::preSimCbs $args }
+  proc AddPreSimCb {args} {
+    lappend hbs::preSimCbs $args
+  }
 
   # Removes all callbacks from the pre simulation callback list.
-  proc ClearPreSimCbList {} { set hbs::preSimCbs [] }
+  proc ClearPreSimCbList {} {
+    set hbs::preSimCbs []
+  }
 
   # Adds post simulation stage callback.
-  proc AddPostSimCb {args} { lappend hbs::postSimCbs $args }
+  proc AddPostSimCb {args} {
+    lappend hbs::postSimCbs $args
+  }
 
   # Removes all callbacks from the post simulation callback list.
-  proc ClearPostSimCbList {} { set hbs::postSimCbs [] }
+  proc ClearPostSimCbList {} {
+    set hbs::postSimCbs []
+  }
 
   # Adds pre synthesis stage callback.
-  proc AddPreSynthCb {args} { lappend hbs::preSynthCbs $args }
+  proc AddPreSynthCb {args} {
+    lappend hbs::preSynthCbs $args
+  }
 
   # Removes all callbacks from the pre synthesis callback list.
-  proc ClearPreSynthCbList {} { set hbs::preSynthCbs [] }
+  proc ClearPreSynthCbList {} {
+    set hbs::preSynthCbs []
+  }
 
   # Adds post synthesis stage callback.
-  proc AddPostSynthCb {args} { lappend hbs::postSynthCbs $args }
+  proc AddPostSynthCb {args} {
+    lappend hbs::postSynthCbs $args
+  }
 
   # Removes all callbacks from the post synthesis callback list.
-  proc ClearPostSynthCbList {} { set hbs::postSynthCbs [] }
+  proc ClearPostSynthCbList {} {
+    set hbs::postSynthCbs []
+  }
 
   # Exec evaluates Tcl 'exec' command but with working directory changed to the directory
   # in which .hbs file with given core is defined. After the 'exec' the working directory is restored.
