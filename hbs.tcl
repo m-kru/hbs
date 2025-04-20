@@ -157,6 +157,14 @@ namespace eval hbs {
   # To get the name of currently set Tool simply
   # read the value of hbs::Tool variable.
   #
+  # This procedure bootstraps the script if it is run with tclsh, but the provide
+  # tool requires a specific EDA tool. For example, if you set the tool to 'gowin',
+  # the script will be bootstrapped with the gw_sh.
+  #
+  # If the set tool requires project creation via a custom Tcl command,
+  # for example, 'vivado-prj' or 'gowin' do, the Tcl command responsible for
+  # the project creation is called within this procedure.
+  #
   # All the tool names are typed in lowercase.
   # Remember about this rule if you add support for a new tool.
   #
