@@ -17,7 +17,7 @@ The second class tries to abstract away the underlying Tcl commands usually usin
 - [Blockwork](https://blockwork.intuity.io/),
 - [flgen](https://github.com/pezy-computing/flgen) - filelist generator only,
 - [FuseSoC](https://github.com/olofk/fusesoc),
-- [Hog](https://gitlab.com/hog-cern/Hog),
+- [Hog](https://gitlab.com/hog-cern/Hog) - intended to be used with git only,
 - [Hdlmake](https://ohwr.org/project/hdl-make),
 - [bender](https://github.com/pulp-platform/bender),
 - [bazel_rules_hdl](https://github.com/hdl/bazel_rules_hdl),
