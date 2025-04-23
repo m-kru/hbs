@@ -99,6 +99,10 @@ namespace eval hbs {
   #   hbs::SetLib lib
   #   hbs::AddFile entity.vhd
   proc SetLib {lib} {
+    if {[string index $lib 0] == "_"} {
+      hbs::panic "$hbs::ThisTargetPath: library name can't start with the '_' character"
+    }
+
     set hbs::Lib $lib
   }
 
