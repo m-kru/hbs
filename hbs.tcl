@@ -100,7 +100,10 @@ namespace eval hbs {
   #   hbs::AddFile entity.vhd
   proc SetLib {lib} {
     if {[string index $lib 0] == "_"} {
-      hbs::panic "$hbs::ThisTargetPath: library name can't start with the '_' character"
+      hbs::panic "$hbs::ThisTargetPath: invalid library name '$lib', library name can't start with '_' character"
+    }
+    if {[hbs::stringHasUTF $lib] == 1} {
+      hbs::panic "$hbs::ThisTargetPath: invalid library name '$lib', library name can't have UTF characters"
     }
 
     set hbs::Lib $lib
@@ -1014,6 +1017,13 @@ namespace eval hbs {
       return 0
     }
     set hbs::fileList [lsort -command cmp $hbs::fileList]
+  }
+
+  proc stringHasUTF {str} {
+    if {[regexp {[^\x00-\x7F]} $str]} {
+      return 1
+    }
+    return 0
   }
 }
 
