@@ -395,8 +395,7 @@ namespace eval hbs {
     set hbsFileDir [file dirname [dict get [dict get $hbs::cores ::hbs::$hbs::ThisCorePath] file]]
 
     if {$args == {}} {
-      set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
-      hbs::panic "no files provided, core '$hbs::ThisCorePath' target '$target'"
+      hbs::panic "$hbs::ThisTargetPath: no file provided"
     }
 
     set files {}
