@@ -401,15 +401,21 @@ namespace eval hbs {
     set files {}
 
     foreach pattern $args {
+      set filePaths {}
+
       # Append hbsFileDir only in the case of relative paths.
       if {[string match "/*" $pattern]} {
-        foreach file [glob -nocomplain $pattern] {
-          lappend files $file
-        }
+        set filePaths [glob -nocomplain $pattern]
       } else {
-        foreach file [glob -nocomplain -path "$hbsFileDir/" $pattern] {
-          lappend files $file
-        }
+        set filePaths [glob -nocomplain -path "$hbsFileDir/" $pattern]
+      }
+
+      if {[llength $filePaths] == 0} {
+        hbs::panic "$hbs::ThisTargetPath: pattern '$pattern' doesn't resolve to any file"
+      }
+
+      foreach file $filePaths {
+        lappend files $file
       }
     }
 
