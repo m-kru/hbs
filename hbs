@@ -37,6 +37,7 @@ The command is one of:
   run           Run given target
   test          Run testbench targets
   version       Print hbs version
+  where         Print where given cores are defined
 
 Type 'hbs help <command>' to obtain more information about particular command."""
 
@@ -137,6 +138,14 @@ The version consists of two numbers MAJOR.MINOR (for example, 1.2).
 The major number changes in case of features or error fixes     breaking backward compatibility.
 The minor number chnages in case of features or error fixes non-breaking backward compatibility."""
 
+where_help = """Print where given cores are defined.
+
+  hbs where [core-path-patterns...]
+
+If core-path-patterns are not provided, all found cores are printed.
+If core-path-patterns are provided, then only cores whose path
+contains at least one pattern are printed."""
+
 
 def error(msg, end='\n'):
     print(msg, file=sys.stderr, end=end)
@@ -168,6 +177,8 @@ def hbs_help(cmd):
         print(test_help)
     elif cmd == "version":
         print(version_help)
+    elif cmd == "where":
+        print(where_help)
 
 
 def add_target_deps(graph, nodes, cores, target_path):
@@ -500,6 +511,29 @@ def list_tb(patterns):
         for tb in test_targets[core]:
             print(tb)
 
+def where(patterns):
+    output = subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
+        capture_output=True,
+        encoding="utf-8",
+    )
+    if output.returncode != 0:
+        error(output.stderr, end='')
+
+    cores = json.loads(output.stdout)
+
+    files = dict()
+
+    max_core_name_len = 0
+    for core, core_info in cores.items():
+        if path_has_pattern(core, patterns):
+            files[core] = core_info['file']
+            if len(core) > max_core_name_len:
+                max_core_name_len = len(core)
+
+    for core, file in files.items():
+        print(f"{core.ljust(max_core_name_len+1)} {file}")
+
 
 cmd = sys.argv[1]
 
@@ -545,5 +579,7 @@ elif cmd == "version":
         error("version command doesn't accept any arguments")
     status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'version'])
     exit(status.returncode)
+elif cmd == "where":
+    where(sys.argv[2:])
 else:
     error(f"invalid command '{cmd}', check help")
