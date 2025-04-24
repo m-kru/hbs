@@ -392,11 +392,11 @@ namespace eval hbs {
   # args is the list of patterns used for globbing files.
   # The file paths are relative to the `.hbs` file path where the procedure is called.
   proc AddFile {args} {
-    set hbsFileDir [file dirname [dict get [dict get $hbs::cores ::hbs::$hbs::ThisCorePath] file]]
-
     if {$args == {}} {
       hbs::panic "$hbs::ThisTargetPath: no file provided"
     }
+
+    set hbsFileDir [file dirname [dict get [dict get $hbs::cores ::hbs::$hbs::ThisCorePath] file]]
 
     set files {}
 
@@ -426,7 +426,7 @@ namespace eval hbs {
       "vivado-prj" { hbs::vivado-prj::addFile $files }
       "xsim"       { hbs::xsim::addFile $files }
       "" {
-        hbs::panic "can't add file $file, hbs::Tool not set"
+        hbs::panic "$hbs::ThisTargetPath: can't add file $file, hbs::Tool not set"
       }
       default {
         hbs::panic "uknown tool $hbs::Tool"
