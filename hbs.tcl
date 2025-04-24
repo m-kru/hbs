@@ -758,7 +758,7 @@ namespace eval hbs {
   set runTargets [dict create]
 
   proc unknownToolMsg {tool} {
-    return "core '$hbs::ThisCorePath', target '$hbs::ThisTarget', unknown tool '$tool', supported tools: 'ghdl', 'gowin',  'nvc', 'vivado-prj' \(project mode\), 'xsim'"
+    return "core '$hbs::ThisCorePath', target '$hbs::ThisTarget', unknown tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'vivado-prj' \(project mode\), 'xsim'"
   }
 
   proc init {} {
