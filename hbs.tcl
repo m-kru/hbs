@@ -13,7 +13,7 @@ namespace eval hbs {
   set ThisTargetPath ""
 
   # Name of the target currently being run.
-  set ThisTarget ""
+  set ThisTargetName ""
 
   # BuildDir is the build directory path.
   #
@@ -183,7 +183,7 @@ namespace eval hbs {
   #   - xim - Vivado simulator.
   proc SetTool {tool} {
     if {$hbs::Tool !=  ""} {
-      hbs::panic "core '$hbs::ThisCorePath', target '$hbs::ThisTarget', can't set tool to '$tool', tool already set to '$hbs::Tool'"
+      hbs::panic "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', can't set tool to '$tool', tool already set to '$hbs::Tool'"
     }
 
     switch $tool {
@@ -200,7 +200,7 @@ namespace eval hbs {
           hbs::dbg "creating gowin project"
 
           # gw_sh automatically creates project directory.
-          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" --]
+          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
           set cmd "create_project $hbs::ArgsPrefix \
             -name $prjName \
             -dir $hbs::BuildDir \
@@ -239,7 +239,7 @@ namespace eval hbs {
 
           hbs::dbg "creating vivado project"
 
-          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" --]
+          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
           set hbs::targetDir [file join $hbs::BuildDir $prjName]
           set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
           puts $cmd
@@ -248,7 +248,7 @@ namespace eval hbs {
           hbs::dbg "vivado project created successfully"
         } else {
           # Run the script with Vivado
-          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" --]
+          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
           set prjDir [file join $hbs::BuildDir $prjName]
           file mkdir $prjDir
 
@@ -353,9 +353,9 @@ namespace eval hbs {
     checkTargetExists $targetPath
 
     # Add dependency to the core info dictionary.
-    set deps [dict get $hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTarget dependencies]
+    set deps [dict get $hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTargetName dependencies]
     lappend deps $targetPath
-    dict set hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTarget dependencies $deps
+    dict set hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTargetName dependencies $deps
 
     # If the given target with given arguments has already been run, don't run it again.
     if {[dict exists $hbs::runTargets $targetPath] == 1} {
@@ -378,7 +378,7 @@ namespace eval hbs {
     # Run dependency target.
     hbs::clearContext
     set hbs::ThisCorePath [hbs::getCorePathFromTargetPath $targetPath]
-    set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
+    set hbs::ThisTargetName [hbs::getTargetFromTargetPath $targetPath]
     set hbs::ThisTargetPath $targetPath
 
     hbs::$targetPath {*}$args
@@ -419,11 +419,11 @@ namespace eval hbs {
       }
     }
 
-    set targetFiles [dict get $hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTarget files]
+    set targetFiles [dict get $hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTargetName files]
     foreach file $files {
       lappend targetFiles $file
     }
-    dict set hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTarget files $targetFiles
+    dict set hbs::cores "::hbs::$hbs::ThisCorePath" targets $hbs::ThisTargetName files $targetFiles
 
     switch $hbs::Tool {
       "ghdl"       { hbs::ghdl::addFile $files }
@@ -477,7 +477,7 @@ namespace eval hbs {
     if {$hbs::cmd eq "dump-cores"} { return }
 
     if {$hbs::targetDir == ""} {
-      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTarget" --]
+      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
       set hbs::targetDir [file join $hbs::BuildDir $prjName]
     }
     if {[file exist $hbs::targetDir] eq 0} {
@@ -763,7 +763,7 @@ namespace eval hbs {
   set runTargets [dict create]
 
   proc unknownToolMsg {tool} {
-    return "core '$hbs::ThisCorePath', target '$hbs::ThisTarget', unknown tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'vivado-prj' \(project mode\), 'xsim'"
+    return "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', unknown tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'vivado-prj' \(project mode\), 'xsim'"
   }
 
   proc init {} {
@@ -802,7 +802,7 @@ namespace eval hbs {
     hbs::clearContext
 
     set hbs::ThisCorePath [hbs::getCorePathFromTargetPath $targetPath]
-    set hbs::ThisTarget [hbs::getTargetFromTargetPath $targetPath]
+    set hbs::ThisTargetName [hbs::getTargetFromTargetPath $targetPath]
     set hbs::ThisTargetPath $targetPath
 
     dict append hbs::runTargets $targetPath
@@ -822,7 +822,7 @@ namespace eval hbs {
     set hbs::Std ""
     set hbs::Top ""
     set hbs::ThisCorePath ""
-    set hbs::ThisTarget ""
+    set hbs::ThisTargetName ""
     set hbs::ArgsPrefix ""
     set hbs::ArgsSuffix ""
   }
@@ -833,7 +833,7 @@ namespace eval hbs {
         Std $hbs::Std \
         Top $hbs::Top \
         ThisCorePath $hbs::ThisCorePath \
-        ThisTarget $hbs::ThisTarget \
+        ThisTargetName $hbs::ThisTargetName \
         ThisTargetPath $hbs::ThisTargetPath \
         ArgsPrefix $hbs::ArgsPrefix \
         ArgsSuffix $hbs::ArgsSuffix]
@@ -845,7 +845,7 @@ namespace eval hbs {
     set hbs::Std [dict get $ctx Std]
     set hbs::Top [dict get $ctx Top]
     set hbs::ThisCorePath [dict get $ctx ThisCorePath]
-    set hbs::ThisTarget [dict get $ctx ThisTarget]
+    set hbs::ThisTargetName [dict get $ctx ThisTargetName]
     set hbs::ThisTargetPath [dict get $ctx ThisTargetPath]
     set hbs::ArgsPrefix [dict get $ctx ArgsPrefix]
     set hbs::ArgsSuffix [dict get $ctx ArgsSuffix]
