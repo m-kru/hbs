@@ -186,91 +186,14 @@ namespace eval hbs {
       hbs::panic "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', can't set tool to '$tool', tool already set to '$hbs::Tool'"
     }
 
+    set hbs::Tool $tool
+
     switch $tool {
-      "ghdl" {
-        set hbs::Tool $tool
-        hbs::ghdl::init
-      }
-      "gowin" {
-        # Check if the script is already run by GOWIN
-        if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
-          # gw_sh already runs the script
-          set hbs::Tool "gowin"
-
-          hbs::dbg "creating gowin project"
-
-          # gw_sh automatically creates project directory.
-          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-          set cmd "create_project $hbs::ArgsPrefix \
-            -name $prjName \
-            -dir $hbs::BuildDir \
-            -pn $hbs::Device \
-            -force $hbs::ArgsSuffix"
-          puts $cmd
-          eval $cmd
-
-          # Set target directory for later use.
-          set hbs::targetDir [file join $hbs::BuildDir $prjName]
-
-          hbs::dbg "gowin project created successfully"
-        } else {
-          # Run the script with gw_sh
-          set ::env(HBS_TOOL_BOOTSTRAP) 1
-
-          set cmd "gw_sh \
-            [file normalize [info script]] \
-            $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
-          set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-          if {$exitStatus == 0} {
-            exit 0
-          } else {
-            hbs::panic "gw_sh exited with status $exitStatus"
-          }
-        }
-      }
-      "nvc" {
-        set hbs::Tool $tool
-      }
-      "vivado-prj" {
-        # Check if the script is already run by Vivado
-        if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
-          # Vivado already runs the script
-          set hbs::Tool "vivado-prj"
-
-          hbs::dbg "creating vivado project"
-
-          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-          set hbs::targetDir [file join $hbs::BuildDir $prjName]
-          set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
-          puts $cmd
-          eval $cmd
-
-          hbs::dbg "vivado project created successfully"
-        } else {
-          # Run the script with Vivado
-          set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-          set prjDir [file join $hbs::BuildDir $prjName]
-          file mkdir $prjDir
-
-          set ::env(HBS_TOOL_BOOTSTRAP) 1
-
-          set cmd "vivado \
-              -mode batch \
-              -source [file normalize [info script]] \
-              -journal $prjDir/vivado.jou \
-              -log $prjDir/vivado.log \
-              -tclargs $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
-          set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-          if {$exitStatus == 0} {
-            exit 0
-          } else {
-            hbs::panic "vivado exited with status $exitStatus"
-          }
-        }
-      }
-      "xsim" {
-        set hbs::Tool $tool
-      }
+      "ghdl"       { hbs::ghdl::setTool }
+      "gowin"      { hbs::gowin::setTool }
+      "nvc"        { ; }
+      "vivado-prj" { hbs::vivado-prj::setTool }
+      "xsim"       { ; }
       default {
         hbs::panic "[unknownToolMsg $tool]"
       }
@@ -1046,7 +969,7 @@ namespace eval hbs::ghdl {
 
   set generics [dict create]
 
-  proc init {} {
+  proc setTool {} {
     # Check for pre-analyzed libraries
     set defaultVendorsDir "/usr/local/lib/ghdl/vendors"
     if {[file exist $defaultVendorsDir]} {
@@ -1220,6 +1143,43 @@ namespace eval hbs::gowin {
 
   # Highest set (System)Verilog standard revision.
   set verilogStd ""
+
+  proc setTool {} {
+    # Check if the script is already run by GOWIN
+    if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
+      # gw_sh already runs the script
+
+      hbs::dbg "creating gowin project"
+
+      # gw_sh automatically creates project directory.
+      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+      set cmd "create_project $hbs::ArgsPrefix \
+        -name $prjName \
+        -dir $hbs::BuildDir \
+        -pn $hbs::Device \
+        -force $hbs::ArgsSuffix"
+      puts $cmd
+      eval $cmd
+
+      # Set target directory for later use.
+      set hbs::targetDir [file join $hbs::BuildDir $prjName]
+
+      hbs::dbg "gowin project created successfully"
+    } else {
+      # Run the script with gw_sh
+      set ::env(HBS_TOOL_BOOTSTRAP) 1
+
+      set cmd "gw_sh \
+        [file normalize [info script]] \
+        $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
+      set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+      if {$exitStatus == 0} {
+        exit 0
+      } else {
+        hbs::panic "gw_sh exited with status $exitStatus"
+      }
+    }
+  }
 
   proc addFile {files} {
     foreach file $files {
@@ -1584,6 +1544,44 @@ namespace eval hbs::nvc {
 #   - implementation.
 #   - bitstream.
 namespace eval hbs::vivado-prj {
+  proc setTool {} {
+    # Check if the script is already run by Vivado
+    if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
+      # Vivado already runs the script
+      set hbs::Tool "vivado-prj"
+
+      hbs::dbg "creating vivado project"
+
+      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+      set hbs::targetDir [file join $hbs::BuildDir $prjName]
+      set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
+      puts $cmd
+      eval $cmd
+
+      hbs::dbg "vivado project created successfully"
+    } else {
+      # Run the script with Vivado
+      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+      set prjDir [file join $hbs::BuildDir $prjName]
+      file mkdir $prjDir
+
+      set ::env(HBS_TOOL_BOOTSTRAP) 1
+
+      set cmd "vivado \
+          -mode batch \
+          -source [file normalize [info script]] \
+          -journal $prjDir/vivado.jou \
+          -log $prjDir/vivado.log \
+          -tclargs $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
+      set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+      if {$exitStatus == 0} {
+        exit 0
+      } else {
+        hbs::panic "vivado exited with status $exitStatus"
+      }
+    }
+  }
+
   proc addFile {files} {
     foreach file $files {
       hbs::dbg "adding file $file"
