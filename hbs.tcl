@@ -180,7 +180,7 @@ namespace eval hbs {
   #   - gowin,
   #   - nvc,
   #   - vivado-prj - Vivado project mode,
-  #   - xim - Vivado simulator.
+  #   - xsim - Vivado simulator.
   proc SetTool {tool} {
     if {$hbs::Tool !=  ""} {
       hbs::panic "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', can't set tool to '$tool', tool already set to '$hbs::Tool'"
