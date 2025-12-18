@@ -68,6 +68,11 @@ namespace eval hbs {
   # List with command line arguments passed to the top target.
   set TopTargetArgs ""
 
+  # List containing regexes for excluding discovered .hbs files from being sourced.
+  #
+  # See also 'hbs doc AddIgnoreRegex'.
+  set IgnoreRegexes {}
+
   # Sets build directory.
   # The default build directory is named 'build'.
   #
@@ -152,7 +157,7 @@ namespace eval hbs {
 
   # Clears arguments affixes strings (prefix and suffix).
   #
-  # Calling this procedure is equivalent bo calling both
+  # Calling this procedure is equivalent to calling both
   # hbs::ClearArgsPrefix and hbs::ClearArgsSuffix.
   proc ClearArgsAffixes {} {
     set hbs::ArgsPrefix ""
@@ -618,9 +623,18 @@ namespace eval hbs {
     cd $workDir
   }
 
-  # CoreDir returns directory of file in which current core is defined.
+  # Returns directory of file in which current core is defined.
   proc CoreDir {} {
     return [file dirname [dict get $hbs::cores ::hbs::$hbs::ThisCorePath file]]
+  }
+
+  # Adds regexes to the IgnoreRegexes list.
+  # Multiple regexes can be separated with space.
+  proc AddIgnoreRegex {args} {
+    foreach reg $args {
+      hbs::dbg "adding ignore regex $reg"
+      lappend hbs::IgnoreRegexes $reg
+    }
   }
 }
 
@@ -701,6 +715,16 @@ namespace eval hbs {
     }
 
     foreach fileName $hbs::fileList {
+      set ignore 0
+      foreach reg $hbs::IgnoreRegexes {
+        if {[regexp $reg $fileName]} {
+            set ignore 1
+            break
+        }
+      }
+      if {$ignore} {
+        continue
+      }
       source $fileName
     }
   }
@@ -710,7 +734,9 @@ namespace eval hbs {
     set target [hbs::getTargetFromTargetPath $targetPath]
 
     if {[dict exists $hbs::cores ::hbs::$core] == 0} {
-      hbs::panic "core '$core' not found, maybe the core is not registered \(hsb::Register\)"
+      hbs::panic "core '$core' not found, maybe the core is not:\n \
+        1. registered 'hbs doc hbs::Register',\n \
+        2. sourced 'hbs doc hbs::IgnoreRegexes'."
     }
     if {[dict exists $hbs::cores ::hbs::$core targets $target] == 0} {
       puts stderr "core '$core' found, but it doesn't have target '$target', '$core' has following targets:"
@@ -941,8 +967,10 @@ namespace eval hbs {
         return -1
       } elseif {$li > $ri} {
         return 1
+      } elseif {[string compare $l $r] < 0} { # Sort alphabetically
+        return -1
       }
-      return 0
+      return 1
     }
     set hbs::fileList [lsort -command cmp $hbs::fileList]
   }
