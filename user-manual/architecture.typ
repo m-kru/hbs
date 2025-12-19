@@ -52,7 +52,7 @@ However, if none of the additional functions are required, the user can call the
 In such a case, the whole build system is limited to a single file.
 
 
-== Cores and cores detection
+== Cores and cores detection <cores-and-cores-detection>
 
 When the user calls `hbs` (or `hbs.tcl`), all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
 Files with the `.hbs` extension are regular Tcl files that are sourced by the `hbs.tcl` script.
@@ -124,9 +124,57 @@ Using the namespace path as the core path gives the following possibilities:
   }
   ```
 + The user can nest namespaces to imitate the structure of libraries and packages.
-  This is presented in Listing 6.
+  This is presented in following snippet.
+  ```tcl
+  namespace eval lib {
+    namespace eval pkg1 {
+      namespace eval d-flip-flop {
+        proc src {} {
+          hbs::AddFile d-flip-flop.vhd
+        }
+        hbs::Register
+      }
+      namespace eval t-flip-flop {
+        proc src {} {
+          hbs::AddFile t-flip-flop.vhd
+        }
+        hbs::Register
+      }
+    }
+    namespace eval pkg2 {
+      namespace eval jk-flip-flop {
+        proc src {} {
+          hbs::AddFile jk-flip-flop.vhd
+        }
+        hbs::Register
+      }
+    }
+  }
+  ```
   Three flip-flop cores are defined in the snippet.
-  Listing 7 presents output for listing flip-flop cores.
+  The below snippet presents output for listing flip-flop cores.
+  ```
+  [user@host tmp]$ hbs list-cores
+  lib::pkg1::d-flip-flop
+  lib::pkg1::t-flip-flop
+  lib::pkg2::jk-flip-flop
+  ```
+
+=== Excluding hbs files from being sourced
+
+Sometimes a file with the `.hbs` extension is not a valid hbs file, or maybe you want to temporarily disable valid hbs files from being sourced.
+HBS provides a built-in mechanism for excluding files with the `.hbs` extension from being sourced.
+This is achieved using the `hbs::AddIgnoreRegex` function.
+You just have to call this function in one of valid hbs files.
+The function will be executed once the file containing the call is sourced.
+
+Usually the hbs file containing calls to the `hbs::AddIgnoreRegex` proc is placed in the project root directory.
+This is becuase hbs files placed in the project root directory are sourced before hbs files placed in subdirectories.
+Order of hbs files sourcing is described in @cores-and-cores-detection.
+
+Arguments provided to the `hbs::AddIgnoreRegex` proc are treated as regular expressions.
+This allows for ignoring multiple paths using a single regex.
+However, you are free to provide multiple ignore regex, and all of them will be checked while sourcing hbs files.
 
 == Targets and targets detection
 
