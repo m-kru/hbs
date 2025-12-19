@@ -178,7 +178,37 @@ However, you are free to provide multiple ignore regex, and all of them will be 
 
 == Targets and targets detection
 
+
 == Testbench targets
+
+HBS is capable of automatically detecting testbench targets.
+Testbench targets are targets which names:
++ start with the `tb-` or `tb_` prefix,
++ end with the `-tb` or `_tb` suffix,
++ equal `tb`.
+
+For example, for the following hbs file:
+```tcl
+namespace eval my-core {
+  proc tb {} {
+    puts "Hello from tb"
+  }
+  proc my-tb {} {
+    puts "Hello from my-tb"
+  }
+  proc tb_my {} {
+    puts "Hello from tb_my"
+  }
+  hbs::Register
+}
+```
+the `hbs` program detects the following testbench targets:
+```
+[user@host tmp] hbs list-tb
+my-core::my-tb
+my-core::tb
+my-core::tb_my
+```
 
 == Running targets
 
