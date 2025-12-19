@@ -2028,9 +2028,11 @@ if {$argv0 eq [info script]} {
     hbs::panic "missing command, check help"
   }
 
-  hbs::init
-
   set hbs::cmd [lindex $argv 0]
+
+  if {$hbs::cmd ni {"help" "version"}} {
+    hbs::init
+  }
 
   switch $hbs::cmd {
     "help" {
@@ -2076,7 +2078,8 @@ if {$argv0 eq [info script]} {
       puts 0.0
     }
     default {
-      hbs::panic "unknown command $cmd, check help"
+      puts stderr "unknown command '$hbs::cmd', check help"
+      exit 1
     }
   }
 }
