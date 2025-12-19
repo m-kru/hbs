@@ -45,6 +45,9 @@
   }
 }
 
+#set enum(body-indent: 1em)
+#set list(body-indent: 1em)
+
 #include "participants.typ"
 #include "glossary.typ"
 #include "overview.typ"
