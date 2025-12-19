@@ -985,6 +985,9 @@ namespace eval hbs {
 
 # GHDL simulator
 #
+# HBS requires that GHDL is compiled with the LLVM or GCC backend.
+# It does not support GHDL with mcode backend.
+#
 # GHDL supports the following stages:
 #   - analysis,
 #   - elaboration,
