@@ -1,23 +1,23 @@
 = Command line interface commands
 
-== doc
+== `doc` - viewing HBS API documentation
 
-== dump-cores
+== `dump-cores` - dumping cores information
 
-== graph
+== `graph` - generating dependency graph
 
-== help
+== `help` - displaying help message for commands
 
-== list-cores
+== `list-cores` - listing cores found in hbs files
 
-== list-targets
+== `list-targets` - listing targets for discovered cores
 
-== list-tb
+== `list-tb` - listing testbench targets
 
-== run
+== `run` - running targets
 
-== test
+== `test` - running testbench targets
 
-== version
+== `version` - displaying HBS version
 
-== whereis
+== `whereis` - locating cores definition
