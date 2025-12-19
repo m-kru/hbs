@@ -179,6 +179,8 @@ def hbs_help(cmd):
         print(version_help)
     elif cmd == "whereis":
         print(whereis_help)
+    else:
+        error(f"can't find help for command '{cmd}'")
 
 
 def add_target_deps(graph, nodes, cores, target_path):
