@@ -36,7 +36,7 @@ The first is implemented in Tcl, and the second in Python.
 The `hbs.tcl` file implements all the core features related directly to the interaction with the EDA tools.
 The `hbs.tcl` provides the following functions:
 + Dumping information about detected cores in JSON format.
-+ Listing cores found in `.hbs` files.
++ Listing cores found in hbs files.
 + Listing targets for a given core.
 + Running target provided as a command line argument.
 
@@ -51,6 +51,24 @@ However, if none of the additional functions are required, the user can call the
 In such a case, the whole build system is limited to a single file.
 
 == Cores and cores detection
+
+When the user calls `hbs` (or `hbs.tcl`), all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
+Files with the `.hbs` extension are regular Tcl files that are sourced by the `hbs.tcl` script.
+However, before sourcing hbs files, the file list is sorted so that scripts with shorter path depth are sourced as the first ones.
+For example, let us assume the following three hbs files were found:
+- `a/b/c/foo.hbs`,
+- `d/bar.hbs`,
+- `e/f/zaz.hbs`.
+
+Then, they would be sourced in the following order:
++ `d/bar.hbs`,
++ `e/f/zaz.hbs`,
++ `a/b/c/foo.hbs`.
+
+Such an approach allows controlling when custom symbols (Tcl variables and procedures) are ready to use.
+For example, if the user has a custom procedure used in multiple hbs files, then the user can create separate `utils.hbs` file contaning utility procedures, and place it in the the project root directory.
+This guarantees that `utils.hbs` will be sourced before any hbs file in subdirectories.
+Within hbs files, the user usually defines cores and targets, although the user is free to have any valid Tcl code in hbs files.
 
 == Targets and targets detection
 
