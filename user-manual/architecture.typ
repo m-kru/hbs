@@ -29,6 +29,7 @@ At the end, it was decided that the following actions should constitute the comm
 + Code generation - a hardware build system must provide a simple way for automatic arbitrary code generation.
   This is further explained in @code-generation.
 
+
 == General structure
 
 The HBS is implemented in two files `hbs.tcl` and `hbs`.
@@ -50,6 +51,7 @@ By default, the user calls the `hbs` program.
 However, if none of the additional functions are required, the user can call the `hbs.tcl` directly.
 In such a case, the whole build system is limited to a single file.
 
+
 == Cores and cores detection
 
 When the user calls `hbs` (or `hbs.tcl`), all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
@@ -69,6 +71,62 @@ Such an approach allows controlling when custom symbols (Tcl variables and proce
 For example, if the user has a custom procedure used in multiple hbs files, then the user can create separate `utils.hbs` file contaning utility procedures, and place it in the the project root directory.
 This guarantees that `utils.hbs` will be sourced before any hbs file in subdirectories.
 Within hbs files, the user usually defines cores and targets, although the user is free to have any valid Tcl code in hbs files.
+
+
+The below snippet presents a very basic flip-flop core definition.
+The flip-flop core has a single target named `src`.
+The core consists of a single VHDL file.
+
+```tcl
+namespace eval flip-flop {
+  proc src {} {
+    hbs::AddFile flip-flop.vhd
+  }
+  hbs::Register
+}
+```
+
+To register a core, the user must explicitly call `hbs::Register` procedure at the end of the core namespace.
+Such a mechanism helps to distinguish regular Tcl namespaces from Tcl namespaces representing core definitions.
+If the user forgets to register a core, the build system gives a potential hint.
+An example error message is presented below.
+
+```
+[user@host tmp] hbs run lib::core::tb
+checkTargetExists: core 'lib::core' not found, maybe the core is not:
+  1. registered 'hbs doc hbs::Register',
+  2. sourced 'hbs doc hbs::IgnoreRegexes'.
+```
+
+Each core is identified by its unique path.
+The core path is equivalent to the namespace path in which `hbs::Register` is called.
+Using the namespace path as the core path gives the following possibilities:
++ The user can easily stick to the VLNV identifiers if required.
+  This is presented in the below snippet.
+  In this case, the flip-flop core path is `vendor::library::flip-flop::1.0`.
+  ```tcl
+  namespace eval vendor::library::flip-flop::1.0 {
+    proc src {} {
+      hbs::AddFile flip-flop.vhd
+    }
+    hbs::Register
+  }
+  ```
++ The user can define arbitrary deep core paths (limited by the Tcl shell).
+  This is presented in the below snippet.
+  In this case, the core path consists of seven parts.
+  ```tcl
+  namespace eval a::b::c::d::e::f::flip-flop {
+    proc src {} {
+      hbs::AddFile flip-flop.vhd
+    }
+    hbs::Register
+  }
+  ```
++ The user can nest namespaces to imitate the structure of libraries and packages.
+  This is presented in Listing 6.
+  Three flip-flop cores are defined in the snippet.
+  Listing 7 presents output for listing flip-flop cores.
 
 == Targets and targets detection
 

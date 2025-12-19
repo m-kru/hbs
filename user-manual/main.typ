@@ -37,8 +37,13 @@
 
 #outline(indent: 1em)
 
-
-//#set raw(syntaxes: "fbdl.sublime-syntax")
+#show raw: it => {
+  if it.block {
+    block(width: 100%, fill: rgb("#f5f5f5"), inset: 8pt, radius: 4pt, it)
+  } else {
+    it
+  }
+}
 
 #include "participants.typ"
 #include "glossary.typ"
