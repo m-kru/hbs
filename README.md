@@ -1,4 +1,4 @@
-# ![Logo](hbs.svg) HBS - Hardware Build System
+# ![Logo](user-manual/hbs.svg) HBS - Hardware Build System
 
 HBS is a build system for hardware design projects.
 HBS was created out of frustration with all existing build systems for hardware description.
