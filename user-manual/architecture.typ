@@ -222,6 +222,25 @@ my-core::tb_my
 
 == EDA tool commands custom arguments
 
+
 == HBS API extra symbols
+
+The HBS API consists not only of symbols related to the common EDA abstraction layer.
+For example, there are extra `hbs::Exec` and `hbs::CoreDir` procedures.
+The first one is a wrapper for the Tcl standard `exec` procedure.
+Before calling `exec`, the `hbs::Exec` changes the working directory to the directory where the currently evaluated core is defined.
+When `exec` returns, the `hbs::Exec` restores the working directory.
+The `hbs::CoreDir` procedure allows the user to get the path of the directory in which the currently evaluated core is defined.
+
+HBS also provides users with the following extra variables:
++ `hbs::ThisCorePath` - the path of the core which target is currently being run,
++ `hbs::ThisTargetPath` - the path of the target which is currently being run,
++ `hbs::ThisTargetName` - the name of the target which is currently being run,
++ `hbs::TopCorePath` - the path of the top core beign run,
++ `hbs::TopTargetPath` - the path of the top target being run,
++ `hbs::TopTarget` - the name of the top target being run,
++ `hbs::TopTargetArgs` - the list with command line arguments passed to the top target.
+
+To get the list of all HBS public symbols you can run `hbs doc` command in the shell.
 
 == Code generation <code-generation>
