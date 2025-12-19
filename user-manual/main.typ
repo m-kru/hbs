@@ -43,6 +43,7 @@
 #include "participants.typ"
 #include "glossary.typ"
 #include "overview.typ"
+#include "installation.typ"
 #include "architecture.typ"
 #include "commands.typ"
 #include "tcl-tips.typ"
