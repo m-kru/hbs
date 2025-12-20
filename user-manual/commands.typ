@@ -2,6 +2,26 @@
 
 == `doc` - viewing HBS API documentation
 
+The `doc` command was added to ease viewing documentation for HBS Tcl symbols.
+The command is executed by the `hbs` file, so Python is required for the command to work.
+If no argument is provided for the `doc` command, then `hbs` prints a list of all HBS Tcl public symbols.
+To get more information on the particular symbol, simply provide is as an argument for the `doc` command.
+The below snippet presents an example of `doc` command output.
+```
+[user@host ~] hbs doc SetStd
+# Sets standard revision for HDL files.
+#
+# To get the value of currently set standard revision simply
+# read the value of hbs::Std variable.
+#
+# Standard revision for a given file must be set before adding a file.
+# For example:
+#   hbs::SetStd 2008
+#   hbs::AddFile entity.vhd
+proc SetStd {std}
+```
+
+
 == `dump-cores` - dumping cores information
 
 == `graph` - generating dependency graph
