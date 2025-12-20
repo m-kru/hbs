@@ -2028,7 +2028,8 @@ proc hbs::PrintHelp {} {
 
 if {$argv0 eq [info script]} {
   if {$argc < 1 } {
-    hbs::panic "missing command, check help"
+    puts stderr "missing command, check help"
+    exit 1
   }
 
   set hbs::cmd [lindex $argv 0]
