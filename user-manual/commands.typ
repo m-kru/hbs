@@ -141,3 +141,19 @@ The blow snippet shows an example output for the `version` command.
 
 
 == `whereis` - locating cores definition
+
+The `whereis` command allows easily locating .hbs files in which given cores are defined
+You can run `hbs help whereis` to see help message for the command.
+The `whereis` command is executed by the `hbs` file, so the command requires Python to work.
+The below snippet presents an example of locating core definition.
+```
+[user@host vsc8211-tester] hbs whereis serial-bridge
+vhdl::amba5::apb::serial-bridge  /tmp/vsc8211-tester/gw/apb/apb.hbs
+```
+You can locate multiple cores in a single call by providing multiple arguments to the command.
+The below snippet presents an example:
+```
+[user@host vsc8211-tester] hbs whereis bridge mdio
+vhdl::amba5::apb::serial-bridge  /tmp/vsc8211-tester/gw/apb/apb.hbs
+vhdl::ethernet::mdio             /tmp/vsc8211-tester/gw/vhdl-ethernet/ethernet.hbs
+```
