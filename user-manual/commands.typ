@@ -100,7 +100,32 @@ You can, for example, use targets for software recompilation.
 
 Running targets is described in @arch-running-targets, @arch-target-parameters, and @arch-target-context.
 
+
 == `test` - running testbench targets
+
+The `test` command allows running all automatically discovered testbench targets.
+You can run `hbs help test` to see help message for the command.
+The `test` command is executed by the `hbs` file and requires Python to work.
+By default, testbench targets are run in parallel.
+The default number of workers equals the number of threads on your CPU.
+If you provide extra arguments to the `test` command, only testbench targets which path contain at least one of the provided strings are run.
+The below snippet presents an output for running all testbenched of the bus functional model in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
+```
+[user@host ap] hbs test bfm
+running 4 targets with 16 workers
+
+vhdl::amba5::apb::bfm::tb-readb   passed  warnings: 1
+vhdl::amba5::apb::bfm::tb-read    passed  warnings: 1
+vhdl::amba5::apb::bfm::tb-write   passed  warnings: 1
+vhdl::amba5::apb::bfm::tb-writeb  passed  warnings: 1
+
+time:     0 h 0 min 0 s
+targets:  4
+passed:   4
+failed:   0
+errors:   0
+warnings: 4
+```
 
 
 == `version` - displaying HBS version
@@ -113,4 +138,6 @@ The blow snippet shows an example output for the `version` command.
 [user@host ~ 0] hbs version
 1.0
 ```
+
+
 == `whereis` - locating cores definition
