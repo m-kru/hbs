@@ -6,7 +6,13 @@
 
 == `graph` - generating dependency graph
 
+
 == `help` - displaying help message for commands
+
+The `help` command serves as a standard help message display command.
+If no argument is provided, then the help message regards the `hbs` general use.
+If argument is provided for the `help` command, then it must be a valid command name.
+In such a case, `hbs` prints help message for the provided command.
 
 
 == `list-cores` - listing cores found in hbs files
