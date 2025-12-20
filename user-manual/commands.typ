@@ -13,6 +13,7 @@
 
 The `list-cores` command allows listing all cores discovered by the HBS.
 You can run `hbs help list-cores` to see help message for the command.
+The `list-cores` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
 The below snippet presents an output for listing all cores in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
 ```
 [user@ahost apb] hbs list-cores
@@ -25,7 +26,7 @@ vhdl::amba5::apb::pkg
 vhdl::amba5::apb::serial-bridge
 vhdl::amba5::apb::shared-bus
 ```
-The below snippet presents an output for listing various bridge cores in the same APB library:
+The below snippet presents an output for listing various bridge cores in the same APB library.
 ```
 [user@ahost apb] hbs list-cores bridge
 vhdl::amba5::apb::cdc-bridge
@@ -33,7 +34,7 @@ vhdl::amba5::apb::serial-bridge
 ```
 Please note that you can provided arbitrary strings to the `list-cores` command.
 The core is listed if its core path contains at least one string provided in arguments.
-For example, the below snippet presents an output for listing all cores containg the `bri` or `bar` string in the same APB library:
+For example, the below snippet presents an output for listing all cores containg the `bri` or `bar` string in the same APB library.
 ```
 [user@host apb] hbs list-cores bri bar
 vhdl::amba5::apb::cdc-bridge
@@ -43,7 +44,23 @@ vhdl::amba5::apb::serial-bridge
 
 == `list-targets` - listing targets for discovered cores
 
+
 == `list-tb` - listing testbench targets
+
+The `list-tb` command allows listing all testbench targets discovered by HBS.
+The command is analogous to the `list-targets` command, but it works solely on testbench targets instead of all targets.
+The `list-tb` command is executed by the `hbs` file and requires Python to work.
+The below snippet presents an output for listing testbench targets for bridges in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
+```
+[user@host apb] hbs list-tb bridge
+vhdl::amba5::apb::cdc-bridge::tb-to-faster
+vhdl::amba5::apb::cdc-bridge::tb-similar-slower
+vhdl::amba5::apb::cdc-bridge::tb-similar-faster
+vhdl::amba5::apb::cdc-bridge::tb-to-slower
+vhdl::amba5::apb::serial-bridge::tb-write
+vhdl::amba5::apb::serial-bridge::tb-read
+```
+If no arguments are provided for the `list-tb` command, then all testbench targets for all discovered cores are listed.
 
 == `run` - running targets
 
