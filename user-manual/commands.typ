@@ -76,6 +76,15 @@ Running targets is described in @arch-running-targets, @arch-target-parameters, 
 
 == `test` - running testbench targets
 
+
 == `version` - displaying HBS version
 
+The `version` command displays version of installed HBS.
+This might be helpful if the same build procedure works on one machine, but does not work on another.
+Based on the versoin and changelog, you can quickly discover differences.
+The blow snippet shows an example output for the `version` command.
+```
+[user@host ~ 0] hbs version
+1.0
+```
 == `whereis` - locating cores definition
