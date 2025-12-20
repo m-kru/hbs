@@ -24,6 +24,14 @@ proc SetStd {std}
 
 == `dump-cores` - dumping cores information
 
+The `dump-cores` command allows dumping information about found cores into JSON format.
+The generated JSON data can be used for further processing.
+For example, the graph command utilizes data from JSON dump to generate the dependency graph.
+The command is executed by the `hbs.tcl` file, so Python is not required for the command to work.
+If you do not like the default behavior of the `hbs` Python wrapper, you can write your own.
+Simply utilize dumped JSON data as a stream from `hbs.tcl` to your wrapper.
+
+
 == `graph` - generating dependency graph
 
 
@@ -33,12 +41,21 @@ The `help` command serves as a standard help message display command.
 If no argument is provided, then the help message regards the `hbs` general use.
 If argument is provided for the `help` command, then it must be a valid command name.
 In such a case, `hbs` prints help message for the provided command.
+The below snippets presents help message for the `dump-cores` command.
+```
+[user@host tmp] hbs help dump-cores
+Dump info about cores found in .hbs files in JSON format.
+
+  hbs dump-cores
+
+The JSON is directed to stdout.
+If you want to save it in a file simply redirect stdout.
+```
 
 
 == `list-cores` - listing cores found in hbs files
 
 The `list-cores` command allows listing all cores discovered by the HBS.
-You can run `hbs help list-cores` to see help message for the command.
 The `list-cores` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
 The below snippet presents an output for listing all cores in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
 ```
@@ -74,7 +91,6 @@ vhdl::amba5::apb::serial-bridge
 == `list-tb` - listing testbench targets
 
 The `list-tb` command allows listing all testbench targets discovered by HBS.
-You can run `hbs help list-tb` to see help message for the command.
 The `list-tb` command is analogous to the `list-targets` command, but it works solely on testbench targets instead of all targets.
 The command is executed by the `hbs` file and requires Python to work.
 The below snippet presents an output for listing testbench targets for bridges in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
@@ -93,7 +109,6 @@ If no arguments are provided for the `list-tb` command, then all testbench targe
 == `run` - running targets
 
 The `run` command allows running target procedures.
-You can run `hbs help run` to see help message for the command.
 Usually, targets are run to carry out the build process or simulation.
 However, the user is free to carry out any action in the target being run.
 You can, for example, use targets for software recompilation.
@@ -104,7 +119,6 @@ Running targets is described in @arch-running-targets, @arch-target-parameters, 
 == `test` - running testbench targets
 
 The `test` command allows running all automatically discovered testbench targets.
-You can run `hbs help test` to see help message for the command.
 The `test` command is executed by the `hbs` file and requires Python to work.
 By default, testbench targets are run in parallel.
 The default number of workers equals the number of threads on your CPU.
@@ -143,7 +157,6 @@ The blow snippet shows an example output for the `version` command.
 == `whereis` - locating cores definition
 
 The `whereis` command allows easily locating .hbs files in which given cores are defined
-You can run `hbs help whereis` to see help message for the command.
 The `whereis` command is executed by the `hbs` file, so the command requires Python to work.
 The below snippet presents an example of locating core definition.
 ```
