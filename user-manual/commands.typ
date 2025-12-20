@@ -48,8 +48,9 @@ vhdl::amba5::apb::serial-bridge
 == `list-tb` - listing testbench targets
 
 The `list-tb` command allows listing all testbench targets discovered by HBS.
-The command is analogous to the `list-targets` command, but it works solely on testbench targets instead of all targets.
-The `list-tb` command is executed by the `hbs` file and requires Python to work.
+You can run `hbs help list-tb` to see help message for the command.
+The `list-tb` command is analogous to the `list-targets` command, but it works solely on testbench targets instead of all targets.
+The command is executed by the `hbs` file and requires Python to work.
 The below snippet presents an output for listing testbench targets for bridges in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
 ```
 [user@host apb] hbs list-tb bridge
@@ -62,7 +63,16 @@ vhdl::amba5::apb::serial-bridge::tb-read
 ```
 If no arguments are provided for the `list-tb` command, then all testbench targets for all discovered cores are listed.
 
+
 == `run` - running targets
+
+The `run` command allows running target procedures.
+You can run `hbs help run` to see help message for the command.
+Usually, targets are run to carry out the build process or simulation.
+However, the user is free to carry out any action in the target being run.
+You can, for example, use targets for software recompilation.
+
+Running targets is described in @arch-running-targets, @arch-target-parameters, and @arch-target-context.
 
 == `test` - running testbench targets
 

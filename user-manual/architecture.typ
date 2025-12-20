@@ -210,11 +210,11 @@ my-core::tb
 my-core::tb_my
 ```
 
-== Running targets
+== Running targets <arch-running-targets>
 
-== Targets parameters
+== Targets parameters <arch-target-parameters>
 
-== Target context
+== Target context <arch-target-context>
 
 == Target dependencies
 
