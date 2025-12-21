@@ -87,6 +87,23 @@ vhdl::amba5::apb::serial-bridge
 
 == `list-targets` - listing targets for discovered cores
 
+The `list-targets` command allows listing all targets discovered by the HBS.
+The command is analogous to the `list-cores` command but works on targets instead of cores.
+The `list-targets` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
+The below snippet presents an output for listing `src` targets in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
+```
+[user@host apb] hbs list-targets src
+vhdl::amba5::apb::bfm::src
+vhdl::amba5::apb::cdc-bridge::src
+vhdl::amba5::apb::checker::src
+vhdl::amba5::apb::crossbar::src
+vhdl::amba5::apb::mock-completer::src
+vhdl::amba5::apb::pkg::src
+vhdl::amba5::apb::serial-bridge::src
+vhdl::amba5::apb::shared-bus::src
+```
+The name "src" is preferred name for a core target if the core has only one target containing all sources required for core utilization.
+However, this is not a formal requirement, so feel free to name your targets however you want.
 
 == `list-tb` - listing testbench targets
 
