@@ -493,6 +493,58 @@ You might even terminate the tool flow in a given callback and report an error i
 
 == EDA tool commands custom arguments
 
+The HBS has a minimal common abstraction layer.
+You perform all the actions not covered by the abstraction layer by directly calling EDA tool commands.
+For example, generating extra timing or clock network reports.
+However, some of the actions are hidden under the HBS API.
+For example, adding or analyzing HDL files.
+EDA tool commands used to perform actions hidden under common API usually have some parameters that are not used by default.
+Nevertheless, sometimes there is a need to specify additional parameters.
+In such a case, there are two possible solutions.
++ The first option is to bypass the HBS API and directly call the underlying EDA tool command.
+  The drawback of this approach is that the user must manually handle the current context.
+  For example, when adding an HDL file, the user must manually specify the library or standard revision.
+  Bypassing HBS API also bypasses the target context!
++ The second option is to set the underlying command arguments prefix or suffix.
+  This can be achieved with the `hbs::SetArgsPrefix` and `hbs::SetArgsSuffix` procedures.
+  The argument prefix is always appended after the command name, and the argument suffix is always appended after all command arguments.
+
+The below snippet presents Ethernet Management Data Input/Output (MDIO) core definition.
+```tcl
+namespace eval vhdl::ethernet {
+  namespace eval mdio {
+    proc src {} {
+      hbs::SetLib "ethernet"
+      hbs::AddFile mdio.vhd
+    }
+    proc tb {} {
+      hbs::SetTool "nvc"
+      hbs::AddPostElabCb hbs::SetArgsPrefix "--messages=compact"
+      src
+
+      hbs::SetLib ""
+      hbs::AddFile tb/tb-mdio.vhd
+      hbs::SetTop "tb_mdio"
+      hbs::Run
+    }
+    hbs::Register
+  }
+}
+```
+The core has one testbench target utilizing the nvc simulator.
+Nvc report messages occupy multiple lines by default.
+However, this can be changed by specifying the `--messages=compact` argument when running the simulation.
+As running the simulation is the last stage of the nvc flow, the call to `hbs::SetArgsPrefix` must be wrapped by the call to the `hbs::AddPostElabCb` procedure.
+
+The below snippet shows commands executed by the HBS to run the simulation.
+The `--messages=compact` argument was appended right after the `nvc` command.
+```
+[user@host vhdl-ethernet]$ hbs run vhdl::ethernet::mdio::tb
+nvc --std=2019 -L. --work=ethernet -a vhdl/vhdl-ethernet/mdio.vhd
+nvc --std=2019 -L. --work=work -a vhdl/vhdl-ethernet/tb/tb-mdio.vhd
+nvc --std=2019 -L. -e tb_mdio
+nvc --messages=compact --std=2019 -L. -r tb_mdio --wave
+```
 
 == HBS API extra symbols
 
