@@ -367,9 +367,59 @@ foo target: src-foo
 
 == Target dependencies
 
-== EDA tool flow and stages
 
-== EDA tool commands custom arguments <eda-tool-flow-and-stages>
+== EDA tool flow and stages <eda-tool-flow-and-stages>
+
+The primary function of any hardware build system is to provide the ability to build a design.
+What the term "build" actually means usually depends on the EDA tool.
+For some, it is only synthesis; for others, it is synthesis and implementation, and yet for others it might be simulation or just code linting.
+Each EDA tool is characterized by a distinct flow consisting of different stages.
+To mimic this behavior, HBS supports the following stages (alphabetical order):
++ analysis - HDL files analysis,
++ bitstream - device bitstream generation,
++ elaboration - design elaboration,
++ implementation - design implementation,
++ project - project creation,
++ simulation - design simulation,
++ synthesis - design synthesis.
+
+Not all stages make sense for all EDA tools.
+Which stages are present in the given tool flow depends on that tool implementation.
+Namely, on the implementation of the `hbs::<tool>::run` procedure.
+This is a tool private procedure.
+This procedure is called at the end of the `hbs::Run` procedure execution, which is a HBS public procedure.
+
+The below figure shows the structure of the tool flow for the Vivado project mode (`vivado-prj`).
+#align(center)[
+  #image("images/vivado-flow.pdf", width: 50%)
+]
+
+There are four stages: project, synthesis, implementation and bitstream.
+Each stage is wrapped by custom, user-defined callbacks.
+The number of callbacks is unlimited.
+Callbacks in any pre or post stage are executed in the order you add them.
+You can add a callback by calling a dedicated HBS API procedure.
+For example, to add a post synthesis callback you can call the `hbs::AddPostSynthCb` procedure.
+Callbacks can be added with custom argument values.
+
+The post stage callbacks and pre stage callbacks for adjacent stages were added for two reasons.
++ To clearly communicate which stage the callback refers to.
+  For example, configuring implementation settings based on the synthesis results can be done in a post-synthesis callback or pre-implementation callback.
+  However, as the callback modifies the implementation settings, it is probably better to add it using the `hbs::AddPreImplCb`, than `hbs::AddPostSynthCb`.
++ To introduce, to some extent, a manageable order of callbacks execution.
+  The pre and post callbacks of a given stage are executed in the order they are added.
+  If some nested dependencies add callbacks for the same pre or post stage, then the order of callbacks execution depends on the order of `hbs::AddDep` calls.
+  However, if the result of one of the callbacks depends on the result of the other one, then relying on a user to call the `hbs::AddDep` procedures in proper order is error prone.
+  In such a case, the callback that must be executed as the first one can be added to the post-synthesis callbacks, and the second callback can be added to the pre-implementation callbacks.
+  Such an approach is immune to the order of `hbs::AddDep` calls.
+
+You can utilize stage callbacks in any desired way.
+However, the primary purpose of stage callbacks is to adjust the design build based on the results from a particular stage.
+For example, you might want to configure additional implementation settings based on the synthesis results.
+You might even terminate the tool flow in a given callback and report an error if certain conditions are not met.
+
+
+== EDA tool commands custom arguments
 
 
 == HBS API extra symbols
