@@ -176,7 +176,49 @@ Arguments provided to the `hbs::AddIgnoreRegex` proc are treated as regular expr
 This allows for ignoring multiple paths using a single regex.
 However, you are free to provide multiple ignore regex, and all of them will be checked while sourcing hbs files.
 
+
 == Targets and targets detection
+
+HBS automatically detects targets.
+Targets are all Tcl procedures defined in the scope of core namespaces (namespaces with a call to `hbs::Register`).
+However, to allow users to define custom utility procedures within cores, procedures with names starting with the floor character (`_`) are not treated as core targets.
+The below snippet presents an example edge detector core definition.
+```tcl
+namespace eval vhdl::simple::edge-detector {
+  proc src {} {
+    hbs::SetLib "simple"
+    hbs::AddFile src/edge_detector.vhd
+  }
+  proc _tb {top} {
+    hbs::SetTool "ghdl"
+    hbs::SetTop $top
+    src
+    hbs::SetLib ""
+  }
+  proc tb-sync {} {
+    _tb "tb_edge_detector_sync"
+    hbs::AddFile tb/tb_sync.vhd
+    hbs::Run
+  }
+  proc tb-comb {} {
+    _tb "tb_edge_detector_comb"
+    hbs::AddFile tb/tb_comb.vhd
+    hbs::Run
+  }
+  hbs::Register
+}
+```
+
+The core path is `vhdl::simple::edge-detector`.
+The core has three targets: `src`, `tb-sync`, `tb-comb`, and one utility procedure `_tb`.
+The `_tb` procedure was defined to share calls common for testbench targets `tb-sync` and `tb-comb`.
+Moreover, all target procedures are also regular Tcl procedures.
+Such an approach allows for calling them in arbitrary places.
+The `_tb` procedure calls the `src` procedure because the `edge_detector.vhd` file is required for running testbench targets.
+
+All targets are represented by a unique target path.
+Target path consists of the core path and target name.
+For example, the `src` target of the edge detector has the following path `vhdl::simple::edge-detector::src`.
 
 
 == Testbench targets
