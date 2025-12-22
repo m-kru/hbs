@@ -34,6 +34,20 @@ Simply utilize dumped JSON data as a stream from `hbs.tcl` to your wrapper.
 
 == `graph` - generating dependency graph
 
+The `graph` command allows generating target dependency graphs in PDF format.
+The command is executed by the `hbs` file, so Python is required for the command to work.
+Moreover, you must have `graphviz` installed on your machine.
+
+The `graph` command requires information about cores in the JSON format.
+This implies that the user must execute the `dump-cores` or `run` command before generating a dependency graph.
+However, this is not a major issue in practice.
+Dumping cores, even for large designs, does not take more than a few seconds, as the `dump-cores` command does not run the target tool flow.
+
+The below figure presents an example dependency graph generated for VSC8211 (Ethernet PHY) chip tester design.
+#align(center)[
+  #image("images/vsc8211-graph.pdf", width: 100%)
+]
+
 
 == `help` - displaying help message for commands
 
