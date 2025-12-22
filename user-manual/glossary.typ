@@ -78,6 +78,11 @@ Some of them are formally defined because they are helpful when discussing, for 
 ]
 
 #block(breakable:false)[
+/ target context:
+  An invariant environment constituting of HBS variables that are guaranteed to not implicitly change during the target proc evaluation.
+]
+
+#block(breakable:false)[
 / target name:
   The name of the target in the target path.
   For example, if the target path is `lib::pkg::my-core::my-target`, then the target name is `my-target`.
