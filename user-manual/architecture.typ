@@ -252,7 +252,32 @@ my-core::tb
 my-core::tb_my
 ```
 
+
 == Running targets <arch-running-targets>
+
+HBS allows running any target of registered cores.
+Even if the target itself has nothing to do with the hardware design.
+For example, running target `print` from the following snippet:
+```tcl
+namespace eval core {
+  proc print {} {
+    puts "Hello!"
+  }
+  hbs::Register
+}
+```
+Results with the following output:
+```
+[user@host tmp]$ hbs run core::print
+Hello!
+```
+
+However, in most cases, you want to run a target related to the flow of the set EDA tool.
+In such a case, instead of manually calling all of the required tool commands, you can call the `hbs::Run` procedure in the core target procedure.
+The `hbs::Run` procedure has an optional argument accepting the stage after which the tool flow should stop.
+This is further described in @eda-tool-flow-and-stages.
+After `hbs::Run` returns, the user can continue processing.
+For example, the user can run scripts analyzing code coverage or preparing additional reports.
 
 
 == Target parameters <arch-target-parameters>
@@ -344,7 +369,7 @@ foo target: src-foo
 
 == EDA tool flow and stages
 
-== EDA tool commands custom arguments
+== EDA tool commands custom arguments <eda-tool-flow-and-stages>
 
 
 == HBS API extra symbols
