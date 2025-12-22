@@ -12,6 +12,11 @@ Some of them are formally defined because they are helpful when discussing, for 
 #set terms(separator: v(0cm), hanging-indent: 1em)
 
 #block(breakable:false)[
+/ API:
+  Application Programming Interface
+]
+
+#block(breakable:false)[
 / core:
   Tcl namespace in which `hbs::Register` proc is called.
 ]
@@ -38,6 +43,11 @@ Some of them are formally defined because they are helpful when discussing, for 
 / depender:
   A target depending on at least one another target.
   Within a depender body the `hbs::AddDep` proc is called at least once.
+]
+
+#block(breakable:false)[
+/ EDA:
+  Electronic Design Automation
 ]
 
 #block(breakable:false)[
