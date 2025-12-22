@@ -243,4 +243,62 @@ HBS also provides users with the following extra variables:
 
 To get the list of all HBS public symbols you can run `hbs doc` command in the shell.
 
+
 == Code generation <code-generation>
+
+Code generation in the hardware design domain is omnipresent, as it significantly speeds up the implementation process.
+For example, hardware-software co-design system on chip projects usually have some tool automatically generating register files.
+Even in pure FPGA designs, it is common to generate descriptions at the register transfer level from some higher-level programming abstraction.
+That is why it is important for any hardware build system to provide as simple mechanism for code generation as possible.
+
+Some existing hardware build systems do not allow the direct calling of an arbitrary external program in arbitrary places during the build process.
+Instead, you have to define so-called generators.
+Only then can you call the generator wihtin core definitions.
+However, such an approach has some drawbacks:
++ The generator call requires an extra layer of indirection.
+  Generators are defined in different places than they are used, which decreases the readability of the description.
++ The generator call syntax does not resemble shell command call syntax.
+  Generators are usually regular applications that can be executed in a shell.
+  Calling a generator within the build system using syntax similar to shell seems natural.
+
+In HBS, there is no formal concept of generator.
+Anything can be a generator, as generators are just regular Tcl procedures.
+This means that generators can be target procedures (tracked by dependency system) or core internal Tcl procedures (not tracked by the dependnecy system).
+
+The below snippet presents an example of calling an external code generator tracked by the dependnecy system.
+In actual usage, the call to the shell `echo` command would be replaced with a call to the proper code generator program.
+Calls to the `hbs::AddFile}` are commented out because no EDA tool was set.
+```tcl
+namespace eval core {
+  proc top {} {
+    hbs::AddDep generator::gen "foo"
+    puts "Adding file top.vhd"
+    # hbs::AddFile top.vhd
+  }
+  hbs::Register
+}
+namespace eval generator {
+  proc gen {name} {
+    exec echo "Generating $name.vhd" >@ stdout
+    puts "Adding file $name.vhd"
+    # hbs::AddFile "$name.vhd"
+  }
+  hbs::Register
+}
+```
+
+The following snippet presents how to achieve the same result without tracking the generator as a dependency.
+This task is even more straightforward, as you can call an external generator program directly in the target procedure.
+```tcl
+namespace eval core {
+  proc top {} {
+    exec echo "Generating foo.vhd" >@ stdout
+    puts "Adding file foo.vhd"
+    # hbs::AddFile "foo.vhd"
+
+    puts "Adding file top.vhd"
+    # hbs::AddFile top.vhd
+  }
+  hbs::Register
+}
+```
