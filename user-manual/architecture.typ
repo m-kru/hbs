@@ -313,7 +313,7 @@ What target parameters are used for is limited only by your imagination, and Tcl
 
 == Target context <arch-target-context>
 
-An engineer implementing a given core, you control the dependencies of the core.
+As an engineer implementing a given core, you control the dependencies of the core.
 However, you do not control who will use the core and how.
 As targets are regular Tcl procedures, there is a need for a mechanism allowing the core author to evaluate the target procedure in the invariant environment.
 Such a mechanism in HBS is called the target context.
