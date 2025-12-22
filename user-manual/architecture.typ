@@ -214,7 +214,60 @@ my-core::tb_my
 
 == Targets parameters <arch-target-parameters>
 
+
 == Target context <arch-target-context>
+
+An engineer implementing a given core, you control the dependencies of the core.
+However, you do not control who will use the core and how.
+As targets are regular Tcl procedures, there is a need for a mechanism allowing the core author to evaluate the target procedure in the invariant environment.
+Such a mechanism in HBS is called the target context.
+
+The target context assures that the following variables are not affected by dependee or dependency target execution:
++ HDL library,
++ HDL standard,
++ top module name,
++ arguments prefix,
++ arguments suffix,
++ the core path,
++ the target name,
++ the target path.
+
+Below snippet presents an example of the target context mechanism.
+```tcl
+namespace eval pkg {
+  namespace eval foo {
+    proc src-foo {} {
+      hbs::SetLib "lib-foo"
+      hbs::AddDep pkg::bar::src-bar
+      puts "foo lib: $hbs::Lib"
+      puts "foo core: $hbs::ThisCorePath"
+      puts "foo target: $hbs::ThisTarget"
+    }
+    hbs::Register
+  }
+  namespace eval bar {
+    proc src-bar {} {
+      hbs::SetLib "lib-bar"
+      puts "bar lib: $hbs::Lib"
+      puts "bar core: $hbs::ThisCorePath"
+      puts "bar target: $hbs::ThisTarget"
+    }
+    hbs::Register
+  }
+}
+```
+The below snippet presents the output from running the `pkg::foo:src-foo` target.
+As can be seen, setting library in a target of one core, does not affect library in the target of another core.
+```
+[user@host tmp] hbs run pkg::foo::src-foo
+bar lib: lib-bar
+bar core: pkg::bar
+bar target: src-bar
+foo lib: lib-foo
+foo core: pkg::foo
+foo target: src-foo
+```
+
 
 == Target dependencies
 
