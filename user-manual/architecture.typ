@@ -212,8 +212,37 @@ my-core::tb_my
 
 == Running targets <arch-running-targets>
 
-== Targets parameters <arch-target-parameters>
 
+== Target parameters <arch-target-parameters>
+
+As core targets are just Tcl procedures, they can have parameters.
+Moreover, parameters can have optional default values.
+Additionally, HBS allows to provide command line arguments to the run target.
+This is a very convenient feature in build systems.
+The blow snippet presents a very simplified example.
+```tcl
+namespace eval core {
+  proc target {{stage "bitstream"}} {
+    puts "Running until $stage"
+    # hbs::Run commented out because this is just an example.
+    #hbs::Run $stage
+  }
+  hbs::Register
+}
+```
+
+The core does not build any hardware design.
+However, the example shows how the build stage can be passed from the command line to an EDA tool.
+The blow snippet presents output from running the target with different `stage` parameter values.
+```
+[user@host tmp]$ hbs run core::target
+Running until bitstream
+[user@host tmp]$ hbs run core::target synthesis
+Running until synthesis
+```
+
+Another practical example of target parameters usage is setting the simulator for testbench target from the command line or changing the top-level module.
+What target parameters are used for is limited only by your imagination, and Tcl semantics.
 
 == Target context <arch-target-context>
 
