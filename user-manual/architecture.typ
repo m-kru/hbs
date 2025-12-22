@@ -367,6 +367,78 @@ foo target: src-foo
 
 == Target dependencies
 
+In HBS, targets might depend on other targets instead of cores depending on cores.
+Such an approach allows for fine-grained control of dependencies.
+
+To declare target dependency, you must call the `hbs::AddDep` procedure within the target procedure.
+The first argument is the dependency path.
+The remaining arguments are optional and are passed to the dependency procedure as arguments.
+
+To add multiple distinct dependencies, the user must call `hbs::AddDep` multiple times.
+The ability to pass custom arguments to dependency was evaluated as much more advantageous than the ability to add multiple dependencies with a single `hbs::AddDep` call.
+
+The `hbs::AddDep` internally calls the dependency procedure with the provided arguments.
+It also tracks dependencies so that generating a dependency graph is possible.
+Within a single flow, each target procedure can be run at most once with a particular set of arguments.
+This implies that if multiple target procedures add the same dependency with the same arguments, the dependency procedure is run only once during the first `hbs::AddDep` call.
+To enforce some target procedure rerun, the user can always directly call the target.
+However, enforcing target procedure rerun usually is an alert that a regular Tcl procedure shall be used instead of the core target procedure.
+
+The bloew snippet contains an example core definitions for presenting target dependency rules.
+```tcl
+namespace eval core-a {
+  proc target {} {
+    hbs::AddDep core-b::target
+    hbs::AddDep core-c::target
+    hbs::AddDep generator-core::gen a
+    hbs::AddDep generator-core::gen x
+    puts "core-a::target"
+  }
+  hbs::Register
+}
+namespace eval core-b {
+  proc target {} {
+    hbs::AddDep core-c::target
+    hbs::AddDep generator-core::gen b
+    hbs::AddDep generator-core::gen x
+    puts "core-b::target"
+  }
+  hbs::Register
+}
+namespace eval core-c {
+  proc target {} {
+    puts "core-c::target"
+  }
+  hbs::Register
+}
+namespace eval generator-core {
+  proc gen {arg} {
+    puts "generator-core::gen $arg"
+  }
+  hbs::Register
+}
+```
+There are four cores: `core-a`, `core-b`, `core-c`, `generator-core`.
+`core-a` depends on `core-b` and `core-c`.
+`core-b` depends on `core-c`.
+Moreover, cores `core-a` and `core-b` depend on the `generator-core`.
+However, they use different argument values for generation.
+
+The below snippet presents output from running target `core-a::target`.
+```
+[user@host tmp]$ hbs run core-a::target
+core-c::target
+generator-core::gen b
+generator-core::gen x
+core-b::target
+generator-core::gen a
+core-a::target
+```
+As can be seen, the `core-c::target` is run only once, even though both `core-a::target` and `core-b::target` depend on it.
+This is because `core-c::target` has no arguments and can be added as a dependency only once.
+On the other hand, `generator-core::gen` is run three times.
+This is because `generator-core::gen` is added as a dependency four times, and three times with a distinct argument value.
+
 
 == EDA tool flow and stages <eda-tool-flow-and-stages>
 
