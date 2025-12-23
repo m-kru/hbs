@@ -56,3 +56,4 @@
 #include "commands.typ"
 #include "design-deps.typ"
 #include "tcl-tips.typ"
+#include "examples.typ"
