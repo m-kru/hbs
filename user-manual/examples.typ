@@ -88,7 +88,6 @@ nvc  --std=2019 -L. -r example --wave
 ```
 As can be seen, the library has been changed to `lib` (`--work=lib`).
 
-
 === Changing the simulator via command line
 
 Low, let us assume we want to be able to easily change the simulator.
@@ -139,7 +138,41 @@ INFO: [Common 17-206] Exiting xsim at Tue Dec 23 11:44:03 2025...
 The log from the `xsim` is very verbose, that is why it has been trimmed.
 
 
-== Constraints scoped to module
+== Tool and tool type specific actions
+
+Let us assume we have a 2-stage flip-flop clock domain crossing synchronizer.
+The synchronizer module consists of two files:
++ `synchronizer.vhd` - synchronizer hardware description,
++ `vivado-constr.xdc` - Vivado constraints for the synchronizer.
+The constraint file must be scoped to the synchronizer module.
+However, Vivado does not allow scoping the `.xdc` file from within this file.
+The `SCOPED_TO_REF` property must be set by explicitly calling Vivado `set_property` command from the Tcl shell level.
+This is extremely simple in HBS, as hbs files are executed directly by the EDA tool's embedded Tcl shell.
+The following listing presents the synchronizer core definition in hbs file:
+```tcl
+namespace eval cdc::synchronizer {
+  proc src {} {
+    hbs::AddFile synchronizer.vhd
+    # Check if current EDA tool is Vivado.
+    if {[string match "vivado*" $hbs::Tool]} {
+      hbs::AddFile vivado-constr.xdc
+      set_property SCOPED_TO_REF Synchronizer [get_files vivado-constr.xdc]
+    } elseif {$hbs::ToolType eq "synthesis"} {
+      error "Synchronizer entity misses constraint file for $hbs::Tool"
+    }
+  }
+  hbs::Register
+}
+```
+The constraint file is added to the project and scoped to the module only if the set EDA tool is Viavdo (if branch).
+Moreover, if you want your core to be potentially used on platforms from other vendors, but you do not know how to write proper constraints for other tools, you can issue an error (elseif branch).
+If someone else tries to utilize your core with a different EDA tool, they will get a meaningful error message even before their project starts building.
+Please note that the error is issued only if the set EDA tool is used for synthesis.
+The constraint file is not required for simulation.
+
+HBS tracks the type of set EDA tool in the `hbs::ToolType` variable.
+This is very useful, as some cores might require one set of build actions for simulation, and completely different set of actions for synthesis.
+To obtain more information on tool types run `'hbs doc ToolType'` in the shell.
 
 
 == More examples
