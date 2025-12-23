@@ -54,4 +54,5 @@
 #include "installation.typ"
 #include "architecture.typ"
 #include "commands.typ"
+#include "design-deps.typ"
 #include "tcl-tips.typ"
