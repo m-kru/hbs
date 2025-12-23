@@ -6,7 +6,7 @@ The `doc` command was added to ease viewing documentation for HBS Tcl symbols.
 The command is executed by the `hbs` file, so Python is required for the command to work.
 If no argument is provided for the `doc` command, then `hbs` prints a list of all HBS Tcl public symbols.
 To get more information on the particular symbol, simply provide it as an argument for the `doc` command.
-The below snippet presents an example of `doc` command output.
+The following snippet presents an example of `doc` command output:
 ```
 [user@host ~] hbs doc SetStd
 # Sets standard revision for HDL files.
@@ -43,7 +43,7 @@ This implies that the user must execute the `dump-cores` or `run` command before
 However, this is not a major issue in practice.
 Dumping cores, even for large designs, does not take more than a few seconds, as the `dump-cores` command does not run the target tool flow.
 
-The below figure presents an example dependency graph generated for VSC8211 (Ethernet PHY) chip tester design.
+The following figure presents an example dependency graph generated for VSC8211 (Ethernet PHY) chip tester design:
 #align(center)[
   #image("images/vsc8211-graph.pdf", width: 100%)
 ]
@@ -55,7 +55,7 @@ The `help` command serves as a standard help message display command.
 If no argument is provided, then the help message regards the `hbs` general use.
 If argument is provided for the `help` command, then it must be a valid command name.
 In such a case, `hbs` prints help message for the provided command.
-The below snippets presents help message for the `dump-cores` command.
+The following snippet presents help message for the `dump-cores` command:
 ```
 [user@host tmp] hbs help dump-cores
 Dump info about cores found in .hbs files in JSON format.
@@ -71,7 +71,7 @@ If you want to save it in a file simply redirect stdout.
 
 The `list-cores` command allows listing all cores discovered by the HBS.
 The `list-cores` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
-The below snippet presents an output for listing all cores in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
+The following snippet presents an output for listing all cores in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
 [user@ahost apb] hbs list-cores
 vhdl::amba5::apb::bfm
@@ -83,7 +83,7 @@ vhdl::amba5::apb::pkg
 vhdl::amba5::apb::serial-bridge
 vhdl::amba5::apb::shared-bus
 ```
-The below snippet presents an output for listing various bridge cores in the same APB library.
+The following snippet presents an output for listing various bridge cores in the same APB library:
 ```
 [user@ahost apb] hbs list-cores bridge
 vhdl::amba5::apb::cdc-bridge
@@ -91,7 +91,7 @@ vhdl::amba5::apb::serial-bridge
 ```
 Please note that you can provided arbitrary strings to the `list-cores` command.
 The core is listed if its core path contains at least one string provided in arguments.
-For example, the below snippet presents an output for listing all cores containg the `bri` or `bar` string in the same APB library.
+For example, the following snippet presents an output for listing all cores containg the `bri` or `bar` string in the same APB library:
 ```
 [user@host apb] hbs list-cores bri bar
 vhdl::amba5::apb::cdc-bridge
@@ -104,7 +104,7 @@ vhdl::amba5::apb::serial-bridge
 The `list-targets` command allows listing all targets discovered by the HBS.
 The command is analogous to the `list-cores` command but works on targets instead of cores.
 The `list-targets` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
-The below snippet presents an output for listing `src` targets in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
+The following snippet presents an output for listing `src` targets in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
 [user@host apb] hbs list-targets src
 vhdl::amba5::apb::bfm::src
@@ -124,7 +124,7 @@ However, this is not a formal requirement, so feel free to name your targets how
 The `list-tb` command allows listing all testbench targets discovered by HBS.
 The `list-tb` command is analogous to the `list-targets` command, but it works solely on testbench targets instead of all targets.
 The command is executed by the `hbs` file and requires Python to work.
-The below snippet presents an output for listing testbench targets for bridges in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
+The following snippet presents an output for listing testbench targets for bridges in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
 [user@host apb] hbs list-tb bridge
 vhdl::amba5::apb::cdc-bridge::tb-to-faster
@@ -154,7 +154,7 @@ The `test` command is executed by the `hbs` file and requires Python to work.
 By default, testbench targets are run in parallel.
 The default number of workers equals the number of threads on your CPU.
 If you provide extra arguments to the `test` command, only testbench targets which path contain at least one of the provided strings are run.
-The below snippet presents an output for running all testbenched of the bus functional model in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
+The following snippet presents an output for running all testbenched of the bus functional model in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
 ```
 [user@host ap] hbs test bfm
 running 4 targets with 16 workers
@@ -189,13 +189,13 @@ The blow snippet shows an example output for the `version` command.
 
 The `whereis` command allows easily locating .hbs files in which given cores are defined
 The `whereis` command is executed by the `hbs` file, so the command requires Python to work.
-The below snippet presents an example of locating core definition.
+The following snippet presents an example of locating core definition:
 ```
 [user@host vsc8211-tester] hbs whereis serial-bridge
 vhdl::amba5::apb::serial-bridge  /tmp/vsc8211-tester/gw/apb/apb.hbs
 ```
 You can locate multiple cores in a single call by providing multiple arguments to the command.
-The below snippet presents an example:
+The following snippet presents an example:
 ```
 [user@host vsc8211-tester] hbs whereis bridge mdio
 vhdl::amba5::apb::serial-bridge  /tmp/vsc8211-tester/gw/apb/apb.hbs

@@ -73,10 +73,7 @@ This guarantees that `utils.hbs` will be sourced before any hbs file in subdirec
 Within hbs files, the user usually defines cores and targets, although the user is free to have any valid Tcl code in hbs files.
 
 
-The below snippet presents a very basic flip-flop core definition.
-The flip-flop core has a single target named `src`.
-The core consists of a single VHDL file.
-
+The following snippet presents a very basic flip-flop core definition:
 ```tcl
 namespace eval flip-flop {
   proc src {} {
@@ -85,11 +82,13 @@ namespace eval flip-flop {
   hbs::Register
 }
 ```
+The flip-flop core has a single target named `src`.
+The core consists of a single VHDL file.
 
 To register a core, the user must explicitly call `hbs::Register` procedure at the end of the core namespace.
 Such a mechanism helps to distinguish regular Tcl namespaces from Tcl namespaces representing core definitions.
 If the user forgets to register a core, the build system gives a potential hint.
-An example error message is presented below.
+An example error message is presented in the following snippet:
 
 ```
 [user@host tmp] hbs run lib::core::tb
@@ -102,7 +101,7 @@ Each core is identified by its unique path.
 The core path is equivalent to the namespace path in which `hbs::Register` is called.
 Using the namespace path as the core path gives the following possibilities:
 + The user can easily stick to the VLNV identifiers if required.
-  This is presented in the below snippet.
+  This is presented in the following snippet:
   In this case, the flip-flop core path is `vendor::library::flip-flop::1.0`.
   ```tcl
   namespace eval vendor::library::flip-flop::1.0 {
@@ -113,7 +112,7 @@ Using the namespace path as the core path gives the following possibilities:
   }
   ```
 + The user can define arbitrary deep core paths (limited by the Tcl shell).
-  This is presented in the below snippet.
+  This is presented in the following snippet:
   In this case, the core path consists of seven parts.
   ```tcl
   namespace eval a::b::c::d::e::f::flip-flop {
@@ -152,7 +151,7 @@ Using the namespace path as the core path gives the following possibilities:
   }
   ```
   Three flip-flop cores are defined in the snippet.
-  The below snippet presents output for listing flip-flop cores.
+  The following snippet presents output for listing flip-flop cores:
   ```
   [user@host tmp]$ hbs list-cores
   lib::pkg1::d-flip-flop
@@ -182,7 +181,7 @@ However, you are free to provide multiple ignore regex, and all of them will be 
 HBS automatically detects targets.
 Targets are all Tcl procedures defined in the scope of core namespaces (namespaces with a call to `hbs::Register`).
 However, to allow users to define custom utility procedures within cores, procedures with names starting with the floor character (`_`) are not treated as core targets.
-The below snippet presents an example edge detector core definition.
+The following snippet presents an example edge detector core definition:
 ```tcl
 namespace eval vhdl::simple::edge-detector {
   proc src {} {
@@ -244,7 +243,7 @@ namespace eval my-core {
   hbs::Register
 }
 ```
-the `hbs` program detects the following testbench targets:
+The `hbs` program detects the following testbench targets:
 ```
 [user@host tmp] hbs list-tb
 my-core::my-tb
@@ -328,7 +327,7 @@ The target context assures that the following variables are not affected by depe
 + the target name,
 + the target path.
 
-Below snippet presents an example of the target context mechanism.
+The following snippet presents an example of the target context mechanism:
 ```tcl
 namespace eval pkg {
   namespace eval foo {
@@ -352,8 +351,7 @@ namespace eval pkg {
   }
 }
 ```
-The below snippet presents the output from running the `pkg::foo:src-foo` target.
-As can be seen, setting library in a target of one core, does not affect library in the target of another core.
+The following snippet presents the output from running the `pkg::foo:src-foo` target:
 ```
 [user@host tmp] hbs run pkg::foo::src-foo
 bar lib: lib-bar
@@ -363,6 +361,7 @@ foo lib: lib-foo
 foo core: pkg::foo
 foo target: src-foo
 ```
+As can be seen, setting library in a target of one core, does not affect library in the target of another core.
 
 
 == Target dependencies
@@ -424,7 +423,7 @@ There are four cores: `core-a`, `core-b`, `core-c`, `generator-core`.
 Moreover, cores `core-a` and `core-b` depend on the `generator-core`.
 However, they use different argument values for generation.
 
-The below snippet presents output from running target `core-a::target`.
+The following snippet presents output from running target `core-a::target`:
 ```
 [user@host tmp]$ hbs run core-a::target
 core-c::target
@@ -461,7 +460,7 @@ Namely, on the implementation of the `hbs::<tool>::run` procedure.
 This is a tool private procedure.
 This procedure is called at the end of the `hbs::Run` procedure execution, which is a HBS public procedure.
 
-The below figure shows the structure of the tool flow for the Vivado project mode (`vivado-prj`).
+The following figure shows the structure of the tool flow for the Vivado project mode (`vivado-prj`):
 #align(center)[
   #image("images/vivado-flow.pdf", width: 50%)
 ]
@@ -490,7 +489,7 @@ However, the primary purpose of stage callbacks is to adjust the design build ba
 For example, you might want to configure additional implementation settings based on the synthesis results.
 You might even terminate the tool flow in a given callback and report an error if certain conditions are not met.
 
-To get to know stages supported by a given EDA tool you can call `hbs doc <tool>` command.
+To get to know stages supported by a given EDA tool you can call `'hbs doc <tool>'` command.
 The following snippet presents documentation message for the GHDL simulator.
 ```
 [user@host tmp] hbs doc ghdl
@@ -523,7 +522,7 @@ In such a case, there are two possible solutions.
   This can be achieved with the `hbs::SetArgsPrefix` and `hbs::SetArgsSuffix` procedures.
   The argument prefix is always appended after the command name, and the argument suffix is always appended after all command arguments.
 
-The below snippet presents Ethernet Management Data Input/Output (MDIO) core definition.
+The following snippet presents Ethernet Management Data Input/Output (MDIO) core definition:
 ```tcl
 namespace eval vhdl::ethernet {
   namespace eval mdio {
@@ -550,8 +549,7 @@ Nvc report messages occupy multiple lines by default.
 However, this can be changed by specifying the `--messages=compact` argument when running the simulation.
 As running the simulation is the last stage of the nvc flow, the call to `hbs::SetArgsPrefix` must be wrapped by the call to the `hbs::AddPostElabCb` procedure.
 
-The below snippet shows commands executed by the HBS to run the simulation.
-The `--messages=compact` argument was appended right after the `nvc` command.
+The following snippet shows commands executed by the HBS to run the simulation:
 ```
 [user@host vhdl-ethernet]$ hbs run vhdl::ethernet::mdio::tb
 nvc --std=2019 -L. --work=ethernet -a vhdl/vhdl-ethernet/mdio.vhd
@@ -559,6 +557,8 @@ nvc --std=2019 -L. --work=work -a vhdl/vhdl-ethernet/tb/tb-mdio.vhd
 nvc --std=2019 -L. -e tb_mdio
 nvc --messages=compact --std=2019 -L. -r tb_mdio --wave
 ```
+The `--messages=compact` argument was appended right after the `nvc` command.
+
 
 == HBS API extra symbols
 
@@ -578,7 +578,7 @@ HBS also provides users with the following extra variables:
 + `hbs::TopTarget` - the name of the top target being run,
 + `hbs::TopTargetArgs` - the list with command line arguments passed to the top target.
 
-To get the list of all HBS public symbols you can run `hbs doc` command in the shell.
+To get the list of all HBS public symbols you can run `'hbs doc'` command in the shell.
 
 
 == Code generation <code-generation>
@@ -602,9 +602,7 @@ In HBS, there is no formal concept of generator.
 Anything can be a generator, as generators are just regular Tcl procedures.
 This means that generators can be target procedures (tracked by dependency system) or core internal Tcl procedures (not tracked by the dependnecy system).
 
-The below snippet presents an example of calling an external code generator tracked by the dependnecy system.
-In actual usage, the call to the shell `echo` command would be replaced with a call to the proper code generator program.
-Calls to the `hbs::AddFile}` are commented out because no EDA tool was set.
+The bellow snippet presents an example of calling an external code generator tracked by the dependnecy system:
 ```tcl
 namespace eval core {
   proc top {} {
@@ -623,9 +621,10 @@ namespace eval generator {
   hbs::Register
 }
 ```
+In actual usage, the call to the shell `echo` command would be replaced with a call to the proper code generator program.
+Calls to the `hbs::AddFile` are commented out because no EDA tool was set.
 
 The following snippet presents how to achieve the same result without tracking the generator as a dependency.
-This task is even more straightforward, as you can call an external generator program directly in the target procedure.
 ```tcl
 namespace eval core {
   proc top {} {
@@ -639,3 +638,4 @@ namespace eval core {
   hbs::Register
 }
 ```
+This task is even more straightforward, as you can call an external generator program directly in the target procedure.

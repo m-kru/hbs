@@ -4,7 +4,7 @@ This section contains some examples of HBS usage.
 It barely presents some primary features of HBS.
 If you want to discover full capabilities of HBS, then run `hbs doc` command.
 The command lists all HBS API public symbols.
-To get more information on a given symbol, run `hbs run <symbol>` command.
+To get more information on a given symbol, run `'hbs run <symbol>'` command.
 
 
 == Single file simulation
@@ -36,7 +36,7 @@ namespace eval example {
 ```
 Nothing from the above hbs file can be removed, except comments and preceding semicolons.
 The example simply won't work.
-Now, we can run the simulation what is shown in the below snippet:
+Now, we can run the simulation what is shown in the following snippet:
 ```
 [user@host test] hbs run example::sim
 nvc  --std=2019 -L. --work=work -a /tmp/test/example.vhd
@@ -60,7 +60,7 @@ Thanks to this, you can easily check if the target proc you run succeeded.
 
 Low, let us assume we want to place our module in a custom library named `lib`.
 All we need is to add a call to the `hbs::SetLib` procedure.
-A new hbs file is presented below.
+A new hbs file is presented in the following snippet:
 ```tcl
 namespace eval example {
   proc sim {{tool "nvc"}} {
@@ -73,7 +73,7 @@ namespace eval example {
   hbs::Register
 }
 ```
-The below snippet shows output from running the target:
+The following snippet shows output from running the target:
 ```
 [user@host test] hbs run example::sim
 nvc  --std=2019 -L. --work=lib -a /tmp/test/example.vhd
@@ -94,7 +94,7 @@ As can be seen, the library has been changed to `lib` (`--work=lib`).
 Low, let us assume we want to be able to easily change the simulator.
 We would like to define the simulator when executing the target.
 The simplest way is to add a parameter to the target.
-Below snippet presents modified hbs files.
+The following snippet presents modified hbs files:
 ```tcl
 namespace eval example {
   proc sim {{tool "nvc"}} {
@@ -107,7 +107,7 @@ namespace eval example {
 }
 ```
 The parameter is named `tool` and has the default value equal `"nvc"`.
-The below snippet presents how to run simulation using different simulators.
+The following snippet presents how to run simulation using different simulators:
 ```
 [user@host test] hbs run example::sim
 nvc  --std=2019 -L. --work=work -a /tmp/test/example.vhd
@@ -144,7 +144,7 @@ The log from the `xsim` is very verbose, that is why it has been trimmed.
 
 == More examples
 
-If you have some interesting exmaple of HBS usage, feel free to prepare a pull request with extension the below list.
+If you have some interesting exmaple of HBS usage, feel free to prepare a pull request with extension the following list:
 
 - #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library],
 - #link("https://github.com/m-kru/vsc8211-tester")[VSC8211 Tester].

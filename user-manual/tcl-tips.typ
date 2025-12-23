@@ -23,7 +23,7 @@ Not only you will get support for arrow keys and command history, but also impro
 
 To pass variadic arguments to a proc, the last proc parameter must be called `args`.
 You can then easily iterate over the arguments using the `foreach` loop.
-The below example is taken directly from the hbs Tcl source code.
+The following example is taken directly from the hbs Tcl source code:
 ```tcl
 proc AddIgnoreRegex {args} {
   foreach reg $args {
