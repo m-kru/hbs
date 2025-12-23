@@ -10,4 +10,16 @@ Sometimes, they might even be encrypted.
 HBS tries to support all files that might potentially be required to generate a final result.
 HBS is not limited to managing only pure hardware description files.
 
-HBS was created out of frustration with all existing build systems for hardware designs.
+HBS can be described as a Tcl-based, minimal common abstraction approach for build system for hardware designs.
+This is because HBS implements a common abstraction layer that is:
+- minimal,
+- limited to the primary common features,
+- implemented in Tcl.
+However, do not be misled by the word minimal.
+Only the common abstraction layer is minimal.
+HBS is designed in such a way that it is straightforward to utilize EDA tools' exclusive features.
+This was achieved by implementing HBS in Tcl.
+The HBS build system code is executed directly by the Tcl shell embedded in EDA tools.
+This, in turn, grants direct access to the EDA tools' Tcl commands during the build execution.
+HBS is not a tool for preparing Tcl code that is later executed by EDA tools.
+HBS is a tool which code is executed by EDA tools.
