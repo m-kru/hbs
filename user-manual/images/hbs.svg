@@ -7,8 +7,8 @@
    viewBox="0 0 13.22917 13.22917"
    version="1.1"
    id="svg5"
-   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   sodipodi:docname="logo.svg"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   sodipodi:docname="hbs.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -25,18 +25,25 @@
      showgrid="true"
      width="13.229167mm"
      inkscape:zoom="7.2407734"
-     inkscape:cx="5.8004853"
+     inkscape:cx="5.7314319"
      inkscape:cy="17.332403"
-     inkscape:window-width="2536"
-     inkscape:window-height="1396"
-     inkscape:window-x="9"
-     inkscape:window-y="29"
+     inkscape:window-width="2367"
+     inkscape:window-height="1356"
+     inkscape:window-x="90"
+     inkscape:window-y="48"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1"
-     showguides="false">
+     showguides="false"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1">
     <inkscape:grid
        type="xygrid"
-       id="grid824" />
+       id="grid824"
+       originx="0"
+       originy="0"
+       spacingy="1"
+       spacingx="1"
+       units="mm" />
   </sodipodi:namedview>
   <defs
      id="defs2">
@@ -325,13 +332,13 @@
          y="7.6729164" /></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;line-height:1.25;font-family:monospace;-inkscape-font-specification:'monospace, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;line-height:1.25;font-family:Monospace;-inkscape-font-specification:'Monospace, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="2.4573019"
        y="8.2839909"
        id="text6236-8"><tspan
          sodipodi:role="line"
          id="tspan6234-6"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;font-family:monospace;-inkscape-font-specification:'monospace, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611027px;font-family:Monospace;-inkscape-font-specification:'Monospace, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
          x="2.4573019"
          y="8.2839909">HBS</tspan></text>
     <text
@@ -342,6 +349,6 @@
        id="text49127"><tspan
          sodipodi:role="line"
          id="tspan49125"
-         style="stroke-width:0.264583"></tspan></text>
+         style="stroke-width:0.264583" /></text>
   </g>
 </svg>

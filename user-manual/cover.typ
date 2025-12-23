@@ -4,7 +4,7 @@
 
 #set align(center)
 
-#image("hbs.svg", width: 20%)
+#image("images/hbs.pdf", width: 20%)
 
 #v(2cm)
 
@@ -30,7 +30,7 @@ _Abstract_
 #par(justify: true)[
 This document serves as the official user manual for Hardware Build System (HBS).
 HBS is a Tcl-based, minimal common abstraction approach for build system for hardware designs.
-The main goals of the system include simplicity, readability, a minimal number of dependencies, and ease of integration with the existing Electronic Design Automation (EDA) tools.
+The main goals of the system include simplicity, readability, a minimal number of dependencies, and seamless integration with existing Electronic Design Automation (EDA) tools.
 ]
 
 #v(2cm)
