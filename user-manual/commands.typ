@@ -32,7 +32,7 @@ If you do not like the default behavior of the `hbs` Python wrapper, you can wri
 Simply utilize dumped JSON data as a stream from `hbs.tcl` to your wrapper.
 
 
-== `graph` - generating dependency graph
+== `graph` - generating target dependency graph
 
 The `graph` command allows generating target dependency graphs in PDF format.
 The command is executed by the `hbs` file, so Python is required for the command to work.
