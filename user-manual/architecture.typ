@@ -490,6 +490,20 @@ However, the primary purpose of stage callbacks is to adjust the design build ba
 For example, you might want to configure additional implementation settings based on the synthesis results.
 You might even terminate the tool flow in a given callback and report an error if certain conditions are not met.
 
+To get to know stages supported by a given EDA tool you can call `hbs doc <tool>` command.
+The following snippet presents documentation message for the GHDL simulator.
+```
+[user@host tmp] hbs doc ghdl
+# GHDL simulator
+#
+# HBS requires that GHDL is compiled with the LLVM or GCC backend.
+# It does not support GHDL with mcode backend.
+#
+# GHDL supports the following stages:
+#   - analysis,
+#   - elaboration,
+#   - simulation.
+```
 
 == EDA tool commands custom arguments
 
