@@ -273,7 +273,7 @@ namespace eval hbs {
   # argument values is run only once.
   proc AddDep {args} {
     set core [uplevel 1 [list namespace current]]
-    set target [hbs::getTargetFromTargetPath [lindex [info level -1] 0]]
+    set target [hbs::getNameFromPath [lindex [info level -1] 0]]
 
     set targetPath [lindex $args 0]
     set args [lreplace $args 0 0]
@@ -306,7 +306,7 @@ namespace eval hbs {
     # Run dependency target.
     hbs::clearContext
     set hbs::ThisCorePath [hbs::getCorePathFromTargetPath $targetPath]
-    set hbs::ThisTargetName [hbs::getTargetFromTargetPath $targetPath]
+    set hbs::ThisTargetName [hbs::getNameFromPath $targetPath]
     set hbs::ThisTargetPath $targetPath
 
     hbs::$targetPath {*}$args
@@ -731,7 +731,7 @@ namespace eval hbs {
 
   proc checkTargetExists {targetPath} {
     set core [hbs::getCorePathFromTargetPath $targetPath]
-    set target [hbs::getTargetFromTargetPath $targetPath]
+    set target [hbs::getNameFromPath $targetPath]
 
     if {[dict exists $hbs::cores ::hbs::$core] == 0} {
       hbs::panic "core '$core' not found, maybe the core is not:\n \
@@ -751,7 +751,7 @@ namespace eval hbs {
     hbs::clearContext
 
     set hbs::ThisCorePath [hbs::getCorePathFromTargetPath $targetPath]
-    set hbs::ThisTargetName [hbs::getTargetFromTargetPath $targetPath]
+    set hbs::ThisTargetName [hbs::getNameFromPath $targetPath]
     set hbs::ThisTargetPath $targetPath
 
     dict append hbs::runTargets $targetPath
@@ -923,7 +923,7 @@ namespace eval hbs {
   }
 
   # Returns target name from the target path.
-  proc getTargetFromTargetPath {path} {
+  proc getNameFromPath {path} {
     return [lindex [split $path ::] end]
   }
 
@@ -2052,7 +2052,7 @@ if {$argv0 eq [info script]} {
         set hbs::TopTargetArgs [lreplace $argv 0 1]
 
         set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
-        set hbs::TopTargetName [hbs::getTargetFromTargetPath $hbs::TopTargetPath]
+        set hbs::TopTargetName [hbs::getNameFromPath $hbs::TopTargetPath]
 
         hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
 
@@ -2074,7 +2074,7 @@ if {$argv0 eq [info script]} {
       set hbs::TopTargetArgs [lreplace $argv 0 1]
 
       set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
-      set hbs::TopTargetName [hbs::getTargetFromTargetPath $hbs::TopTargetPath]
+      set hbs::TopTargetName [hbs::getNameFromPath $hbs::TopTargetPath]
 
       hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
     }
