@@ -175,9 +175,56 @@ This is very useful, as some cores might require one set of build actions for si
 To obtain more information on tool types run `'hbs doc ToolType'` in the shell.
 
 
+== Sharing actions between core targets
+
+It is very common that multiple targets of the same core share most of their actions.
+For example, core testbench targets use mostly the same files and set the same simulator options.
+To share common actions between core targets, you can define an extra procedure within the core namespace.
+As this additional procedure is not a target per se, you can start its name with the underscore character (`_`).
+Thanks to this, HBS will not treat the extra procedure as a core target procedure.
+For testbench targets, it is common to simply name the helper procedure "`_tb`".
+The following snippet presents an example.
+```tcl
+namespace eval vhdl::tinyuart {
+  proc src {} {
+    hbs::SetLib "tinyuart"
+    hbs::AddFile tinyuart.vhd
+  }
+  proc _tb {top} {
+    hbs::SetTool "nvc"
+    hbs::AddPostElabCb hbs::SetArgsPrefix "--messages=compact"
+    hbs::SetTop $top
+    src
+    hbs::SetLib "" ;# Place testbench entity in the default library.
+    hbs::AddFile [string map {_ -} $top].vhd ;# Replace '_' with '-' in file name.
+  }
+  # Transmitter testbench
+  proc tb-tx {} {
+    _tb "tb_tx"
+    hbs::Run
+  }
+  # Receiver testbench
+  proc tb-rx {} {
+    _tb "tb_rx"
+    hbs::Run
+  }
+  # Loopback testbench
+  proc tb-loopback {} {
+    _tb "tb_loopback"
+    hbs::Run
+  }
+  hbs::Register
+}
+```
+The `vhdl::tinyuart` core has three testbench targets.
+They all utilize the same simulator with the same command line options.
+Moreover, all testbenches require core source files for simulation, hence the call to the `src` procedure in the `_tb` procedure.
+Testbench targets only pass the testbench top entity name to the `_tb` procedure and call `hbs::Run`.
+
 == More examples
 
 If you have some interesting exmaple of HBS usage, feel free to prepare a pull request with extension the following list:
 
 - #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library],
 - #link("https://github.com/m-kru/vsc8211-tester")[VSC8211 Tester].
+
