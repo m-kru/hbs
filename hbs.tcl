@@ -9,6 +9,9 @@ namespace eval hbs {
   # Path of the core which target is currently being run.
   set ThisCorePath ""
 
+  # Name of the core which target is currently being run.
+  set ThisCoreName ""
+
   # Path of the target currently being run.
   set ThisTargetPath ""
 
@@ -306,6 +309,7 @@ namespace eval hbs {
     # Run dependency target.
     hbs::clearContext
     set hbs::ThisCorePath [hbs::getCorePathFromTargetPath $targetPath]
+    set hbs::ThisCoreName [hbs::getNameFromPath $hbs::ThisCorePath]
     set hbs::ThisTargetName [hbs::getNameFromPath $targetPath]
     set hbs::ThisTargetPath $targetPath
 
@@ -751,6 +755,7 @@ namespace eval hbs {
     hbs::clearContext
 
     set hbs::ThisCorePath [hbs::getCorePathFromTargetPath $targetPath]
+    set hbs::ThisCoreName [hbs::getNameFromPath $hbs::ThisCorePath]
     set hbs::ThisTargetName [hbs::getNameFromPath $targetPath]
     set hbs::ThisTargetPath $targetPath
 
@@ -771,6 +776,8 @@ namespace eval hbs {
     set hbs::Std ""
     set hbs::Top ""
     set hbs::ThisCorePath ""
+    set hbs::ThisCoreName ""
+    set hbs::ThisTargetPath ""
     set hbs::ThisTargetName ""
     set hbs::ArgsPrefix ""
     set hbs::ArgsSuffix ""
@@ -778,14 +785,15 @@ namespace eval hbs {
 
   proc saveContext {} {
     set ctx [dict create \
-        Lib $hbs::Lib \
-        Std $hbs::Std \
-        Top $hbs::Top \
-        ThisCorePath $hbs::ThisCorePath \
-        ThisTargetName $hbs::ThisTargetName \
-        ThisTargetPath $hbs::ThisTargetPath \
-        ArgsPrefix $hbs::ArgsPrefix \
-        ArgsSuffix $hbs::ArgsSuffix]
+      Lib $hbs::Lib \
+      Std $hbs::Std \
+      Top $hbs::Top \
+      ThisCorePath $hbs::ThisCorePath \
+      ThisCoreName $hbs::ThisCoreName \
+      ThisTargetPath $hbs::ThisTargetPath \
+      ThisTargetName $hbs::ThisTargetName \
+      ArgsPrefix $hbs::ArgsPrefix \
+      ArgsSuffix $hbs::ArgsSuffix]
     return $ctx
   }
 
@@ -794,8 +802,9 @@ namespace eval hbs {
     set hbs::Std [dict get $ctx Std]
     set hbs::Top [dict get $ctx Top]
     set hbs::ThisCorePath [dict get $ctx ThisCorePath]
-    set hbs::ThisTargetName [dict get $ctx ThisTargetName]
+    set hbs::ThisCoreName [dict get $ctx ThisCoreName]
     set hbs::ThisTargetPath [dict get $ctx ThisTargetPath]
+    set hbs::ThisTargetName [dict get $ctx ThisTargetName]
     set hbs::ArgsPrefix [dict get $ctx ArgsPrefix]
     set hbs::ArgsSuffix [dict get $ctx ArgsSuffix]
   }

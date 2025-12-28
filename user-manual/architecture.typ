@@ -355,8 +355,9 @@ The target context assures that the following variables are not affected by depe
 + arguments prefix,
 + arguments suffix,
 + the core path,
-+ the target name,
-+ the target path.
++ the core name,
++ the target path,
++ the target name.
 
 The following snippet presents an example of the target context mechanism:
 ```tcl
@@ -602,6 +603,7 @@ The `hbs::CoreDir` procedure allows the user to get the path of the directory in
 
 HBS also provides users with the following extra variables:
 + `hbs::ThisCorePath` - the path of the core which target is currently being run,
++ `hbs::ThisCoreName` - the name of the core which target is currently being run,
 + `hbs::ThisTargetPath` - the path of the target which is currently being run,
 + `hbs::ThisTargetName` - the name of the target which is currently being run,
 + `hbs::TopCorePath` - the path of the top core beign run,
