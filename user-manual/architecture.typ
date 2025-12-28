@@ -52,6 +52,37 @@ However, if none of the additional functions are required, the user can call the
 In such a case, the whole build system is limited to a single file.
 
 
+== Tcl naming conventions
+
+Understanding Tcl naming conventions is crucial for using or contributing to the HBS.
+All HBS code is hidden under the `hbs` namespace.
+Code related to a particular tool is further hidden in the `hbs::{tool}` namespace.
+
+Tcl does not allow defining private symbols within namespaces; all symbols are public.
+However, `hbs.tcl` differentiates between public and private symbols.
+Public symbols start with an uppercase letter, and private symbols begin with a lowercase letter.
+
+The user should only use public symbols within hbs files.
+Although using private symbols is discouraged, it is not forbidden, and if you really know what you do, feel free to use them.
+
+The `hbs` namespace consists of variables and procs.
+Even though some variables are public, the user shall not set them directly.
+They are public because they can be safely read from the hbs files.
+However, setting them might require some additional actions.
+For example, `hbs::Tool` is a public variable, but the user shall use `hbs::SetTool` function for setting the tool.
+There is no such requirement for getting the value of a public variable.
+
+All variables representing choices (enumeration) use lowercase strings.
+For example, the `hbs::Tool` can be `"ghdl"`, `"vivado-prj"`, etc.
+The `hbs::ToolType` can equal `"formal"`, `"simulation"`, or `"synthesis"`.
+The point of this is to avoid error cases when one core maintainer sets the tool to GHDL, but another core maintainer has, for example, the following condition in one of the targets:
+```tcl
+if {$hbs::Tool == "ghdl"}
+```
+The expression would evaluate to false, although the tool is GHDL.
+Most `hbs::Set*` procedures assert that users provide lowercase names.
+
+
 == Cores and cores detection <cores-and-cores-detection>
 
 When the user calls `hbs` (or `hbs.tcl`), all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
