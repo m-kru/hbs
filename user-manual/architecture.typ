@@ -94,7 +94,7 @@ An example error message is presented in the following snippet:
 [user@host tmp] hbs run lib::core::tb
 checkTargetExists: core 'lib::core' not found, maybe the core is not:
   1. registered 'hbs doc hbs::Register',
-  2. sourced 'hbs doc hbs::IgnoreRegexes'.
+  2. sourced 'hbs doc hbs::FileIgnoreRegexes'.
 ```
 
 Each core is identified by its unique path.
@@ -163,15 +163,15 @@ Using the namespace path as the core path gives the following possibilities:
 
 Sometimes a file with the `.hbs` extension is not a valid hbs file, or maybe you want to temporarily disable valid hbs files from being sourced.
 HBS provides a built-in mechanism for excluding files with the `.hbs` extension from being sourced.
-This is achieved using the `hbs::AddIgnoreRegex` function.
+This is achieved using the `hbs::AddFileIgnoreRegex` function.
 You just have to call this function in one of valid hbs files.
 The function will be executed once the file containing the call is sourced.
 
-Usually the hbs file containing calls to the `hbs::AddIgnoreRegex` proc is placed in the project root directory.
+Usually the hbs file containing calls to the `hbs::AddFileIgnoreRegex` proc is placed in the project root directory.
 This is becuase hbs files placed in the project root directory are sourced before hbs files placed in subdirectories.
 Order of hbs files sourcing is described in @cores-and-cores-detection.
 
-Arguments provided to the `hbs::AddIgnoreRegex` proc are treated as regular expressions.
+Arguments provided to the `hbs::AddFileIgnoreRegex` proc are treated as regular expressions.
 This allows for ignoring multiple paths using a single regex.
 However, you are free to provide multiple ignore regex, and all of them will be checked while sourcing hbs files.
 

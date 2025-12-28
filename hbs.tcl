@@ -70,8 +70,8 @@ namespace eval hbs {
 
   # List containing regexes for excluding discovered .hbs files from being sourced.
   #
-  # See also 'hbs doc AddIgnoreRegex'.
-  set IgnoreRegexes {}
+  # See also 'hbs doc AddFileIgnoreRegex'.
+  set FileIgnoreRegexes {}
 
   # Sets build directory.
   # The default build directory is named 'build'.
@@ -628,12 +628,12 @@ namespace eval hbs {
     return [file dirname [dict get $hbs::cores ::hbs::$hbs::ThisCorePath file]]
   }
 
-  # Adds regexes to the IgnoreRegexes list.
+  # Adds regexes to the FileIgnoreRegexes list.
   # Multiple regexes can be separated with space.
-  proc AddIgnoreRegex {args} {
+  proc AddFileIgnoreRegex {args} {
     foreach reg $args {
       hbs::dbg "adding ignore regex $reg"
-      lappend hbs::IgnoreRegexes $reg
+      lappend hbs::FileIgnoreRegexes $reg
     }
   }
 }
@@ -716,7 +716,7 @@ namespace eval hbs {
 
     foreach fileName $hbs::fileList {
       set ignore 0
-      foreach reg $hbs::IgnoreRegexes {
+      foreach reg $hbs::FileIgnoreRegexes {
         if {[regexp $reg $fileName]} {
             set ignore 1
             break
@@ -736,7 +736,7 @@ namespace eval hbs {
     if {[dict exists $hbs::cores ::hbs::$core] == 0} {
       hbs::panic "core '$core' not found, maybe the core is not:\n \
         1. registered 'hbs doc hbs::Register',\n \
-        2. sourced 'hbs doc hbs::IgnoreRegexes'."
+        2. sourced 'hbs doc hbs::FileIgnoreRegexes'."
     }
     if {[dict exists $hbs::cores ::hbs::$core targets $target] == 0} {
       puts stderr "core '$core' found, but it doesn't have target '$target', '$core' has following targets:"

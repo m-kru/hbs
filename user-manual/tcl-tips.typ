@@ -25,10 +25,10 @@ To pass variadic arguments to a proc, the last proc parameter must be called `ar
 You can then easily iterate over the arguments using the `foreach` loop.
 The following example is taken directly from the hbs Tcl source code:
 ```tcl
-proc AddIgnoreRegex {args} {
+proc AddFileIgnoreRegex {args} {
   foreach reg $args {
     hbs::dbg "adding ignore regex $reg"
-    lappend hbs::IgnoreRegexes $reg
+    lappend hbs::FileIgnoreRegexes $reg
   }
 }
 ```
