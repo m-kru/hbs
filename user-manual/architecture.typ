@@ -607,6 +607,7 @@ HBS also provides users with the following extra variables:
 + `hbs::ThisTargetPath` - the path of the target which is currently being run,
 + `hbs::ThisTargetName` - the name of the target which is currently being run,
 + `hbs::TopCorePath` - the path of the top core beign run,
++ `hbs::TopCoreName` - the name of the top core beign run,
 + `hbs::TopTargetPath` - the path of the top target being run,
 + `hbs::TopTargetName` - the name of the top target being run,
 + `hbs::TopTargetArgs` - the list with command line arguments passed to the top target.

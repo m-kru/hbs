@@ -62,6 +62,9 @@ namespace eval hbs {
   # Path of the top core being run.
   set TopCorePath ""
 
+  # Name of the top core being run.
+  set TopCoreName ""
+
   # Path of the top target being run.
   set TopTargetPath ""
 
@@ -2061,6 +2064,7 @@ if {$argv0 eq [info script]} {
         set hbs::TopTargetArgs [lreplace $argv 0 1]
 
         set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
+        set hbs::TopCoreName [hbs::getCorePathFromTargetPath $hbs::TopCorePath]
         set hbs::TopTargetName [hbs::getNameFromPath $hbs::TopTargetPath]
 
         hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
@@ -2083,6 +2087,7 @@ if {$argv0 eq [info script]} {
       set hbs::TopTargetArgs [lreplace $argv 0 1]
 
       set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
+      set hbs::TopCoreName [hbs::getCorePathFromTargetPath $hbs::TopCorePath]
       set hbs::TopTargetName [hbs::getNameFromPath $hbs::TopTargetPath]
 
       hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
