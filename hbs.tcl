@@ -63,7 +63,7 @@ namespace eval hbs {
   set TopTargetPath ""
 
   # Name of the top target being run.
-  set TopTarget ""
+  set TopTargetName ""
 
   # List with command line arguments passed to the top target.
   set TopTargetArgs ""
@@ -2052,7 +2052,7 @@ if {$argv0 eq [info script]} {
         set hbs::TopTargetArgs [lreplace $argv 0 1]
 
         set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
-        set hbs::TopTarget [hbs::getTargetFromTargetPath $hbs::TopTargetPath]
+        set hbs::TopTargetName [hbs::getTargetFromTargetPath $hbs::TopTargetPath]
 
         hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
 
@@ -2074,7 +2074,7 @@ if {$argv0 eq [info script]} {
       set hbs::TopTargetArgs [lreplace $argv 0 1]
 
       set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
-      set hbs::TopTarget [hbs::getTargetFromTargetPath $hbs::TopTargetPath]
+      set hbs::TopTargetName [hbs::getTargetFromTargetPath $hbs::TopTargetPath]
 
       hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
     }
