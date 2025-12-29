@@ -77,7 +77,7 @@ For example, the `hbs::Tool` can be `"ghdl"`, `"vivado-prj"`, etc.
 The `hbs::ToolType` can equal `"formal"`, `"simulation"`, or `"synthesis"`.
 The point of this is to avoid error cases when one core maintainer sets the tool to GHDL, but another core maintainer has, for example, the following condition in one of the targets:
 ```tcl
-if {$hbs::Tool == "ghdl"}
+if {$hbs::Tool eq "ghdl"}
 ```
 The expression would evaluate to false, although the tool is GHDL.
 Most `hbs::Set*` procedures assert that users provide lowercase names.
