@@ -14,7 +14,7 @@
 ]
 
 #text(11pt)[
-Revision #vars.rev
+Revision #vars.revision
 
 #datetime.today().display("[day padding:none] [month repr:long] [year]")
 ]

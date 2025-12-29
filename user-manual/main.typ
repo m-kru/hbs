@@ -6,19 +6,19 @@
 #show link: set text(fill: blue)
 #show ref: set text(fill: blue)
 
+#import "vars.typ"
+
 #set document(
-  title: [Hardware Build System - User Manual],
+  title: [Hardware Build System - User Manual rev. #vars.revision],
   author: "Michał Kruszewski"
 )
-
-#import "vars.typ"
 
 #include "cover.typ"
 
 #set page(
   numbering: "1",
   header: [
-    #text(9pt)[Rev. #vars.rev]
+    #text(9pt)[Rev. #vars.revision]
     #h(1fr)
     #text(9pt)[HBS User Manual]
   ]
@@ -57,3 +57,4 @@
 #include "design-deps.typ"
 #include "tcl-tips.typ"
 #include "examples.typ"
+#include "contributing.typ"

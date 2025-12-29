@@ -2093,7 +2093,7 @@ if {$argv0 eq [info script]} {
       hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
     }
     "version" {
-      puts 0.0
+      puts 1.0
     }
     default {
       puts stderr "unknown command '$hbs::cmd', check help"
