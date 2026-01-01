@@ -673,3 +673,60 @@ namespace eval core {
 }
 ```
 This task is even more straightforward, as you can call an external generator program directly in the target procedure.
+
+
+== HBS environment variables
+
+HBS utilizes some environment variables.
+Some of them are used internally, for example, `HBS_TOOL_BOOTSTRAP`, and some can be set by the user to control HBS behavior.
+
+=== HBS\_TOOL\_BOOTSTRAP - hbs.tcl bootstraps itself
+
+The `HBS_TOOL_BOOTSTRAP` environment variable is entirely managed by the `hbs.tcl` file.
+Do not set or unset this variable manually.
+The variable is required because `hbs.tcl` sometimes must bootstrap itself.
+For example, if `hbs::Tool` is set to `"vivado-prj"`, but `hbs.tcl` was run with the OS Tcl shell (`tclsh`), then `hbs.tcl` must bootstrap itself with the Tcl shell embedded in the Vivado.
+
+=== HBS\_TOOL - enforcing tool <hbs-tool>
+
+By setting the `HBS_TOOL` environment variable, you can enforce the value of the `hbs::Tool`.
+If `HBS_TOOL` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Tool` to the value of `HBS_TOOL`.
+If `HBS_TOOL` is set, any call to `hbs::SetTool` is ignored.
+
+The `HBS_TOOL` environment variable is helpful in running testbench targets with different simulators.
+If you want to run just a single testbench target with multiple simulators, then you can use a target parameter (see @arch-target-parameters) for your testbench target, or you can set the `HBS_TOOL` environment variable.
+However, if you want to run multiple testbench targets using the `'hbs test'` command, you must utilize the `HBS_TOOL` environment variable.
+This is because `'hbs test'` does not support passing arguments to testbench targets.
+
+*Be careful!*
+Some simulators, for example, `nvc` and `questa`, might share some directories or file names.
+If you run a testbench with one simulator, then running the same testbench with a different simulator in the same directory without cleaning it might result in errors.
+It is advised to clean the build directory before running the same testbench with a different simulator.
+If you run your testbenches with multiple simulators in the continuous integration pipeline, then you probably want to store all build results for all simulators.
+In such a case, you can change the build directory for other simulators using the `HBS_BUILD_DIR` environment variable.
+This is presented in the following snippet:
+```sh
+# By default testbenches are run with nvc and placed in the build directory.
+hbs test
+# Run the same testbenches with questa and place them in build-questa directory.
+export HBS_TOOL=questa
+export HBS_BUILD_DIR=build-questa
+hbs test
+```
+
+=== HBS\_STD - enforcing HDL standard revision
+
+By setting the `HBS_STD` environment variable, you can enforce the value of the `hbs::Std`.
+If `HBS_STD` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Std` to the value of `HBS_STD`.
+If `HBS_STD` is set, any call to `hbs::SetStd` is ignored.
+
+The `HBS_STD` environment variable is analogous to the `HBS_TOOL` environment variable.
+However, running multiple, or even one, testbench targets with different HDL standard revisions is probably not useful.
+The `HBS_STD` environment variable is rather handy for quickly checking if a given target can run with a different HDL standard revision.
+
+=== HBS\_BUILD\_DIR - changing build directory
+
+By setting the `HBS_BUILD_DIR` environment variable, you can enforce the value of the `hbs::BuildDir`.
+If `HBS_BUILD_DIR` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::BuildDir` to the value of `HBS_BUILD_DIR`.
+If `HBS_BUILD_DIR` is set, any call to `hbs::SetBuildDir` is ignored.
+The usefulness and functionality of `HBS_BUILD_DIR` are described in @hbs-tool
