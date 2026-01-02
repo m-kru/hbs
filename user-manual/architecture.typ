@@ -26,6 +26,8 @@ At the end, it was decided that the following actions should constitute the comm
 + Dependency specification - this is the core feature of any build system.
 + Generics/parameters setting - configuring parametric designs must be an inherent feature of any hardware build system.
 + Design top module setting - all EDA tools carrying out simulation or synthesis requires information on the top module.
++ Exit severity setting - testbenches are designed to exit with an error code when a specific severity message occurs.
+  This is independent of the simulator being used, hence it should be hidden under the build system abstraction.
 + Code generation - a hardware build system must provide a simple way for automatic arbitrary code generation.
   This is further explained in @code-generation.
 
@@ -706,7 +708,9 @@ If you run your testbenches with multiple simulators in the continuous integrati
 In such a case, you can change the build directory for other simulators using the `HBS_BUILD_DIR` environment variable.
 This is presented in the following snippet:
 ```sh
-# By default testbenches are run with nvc and placed in the build directory.
+# Run all testbenches with nvc and place them in build-nvc directory.
+export HBS_TOOL=nvc
+export HBS_BUILD_DIR=build-nvc
 hbs test
 # Run the same testbenches with questa and place them in build-questa directory.
 export HBS_TOOL=questa
