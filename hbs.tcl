@@ -126,10 +126,10 @@ namespace eval hbs {
   #   hbs::AddFile entity.vhd
   proc SetLib {lib} {
     if {[string index $lib 0] == "_"} {
-      hbs::panic "$hbs::ThisTargetPath: invalid library name '$lib', library name can't start with '_' character"
+      hbs::panic "invalid library name '$lib', library name can't start with '_' character"
     }
     if {[hbs::stringHasUTF $lib] == 1} {
-      hbs::panic "$hbs::ThisTargetPath: invalid library name '$lib', library name can't have UTF characters"
+      hbs::panic "invalid library name '$lib', library name can't have UTF characters"
     }
 
     set hbs::Lib $lib
@@ -169,6 +169,10 @@ namespace eval hbs {
     set hbs::ExitSeverity $sev
   }
 
+  proc invalidExitSeverityMsg {sev} {
+    return "invalid exit severity '$sev', valid exit severities are: 'note', 'warning', 'error', 'failure'"
+  }
+
   proc isValidExitSeverity {sev} {
     switch $sev {
       "note"    -
@@ -176,7 +180,7 @@ namespace eval hbs {
       "error"   -
       "failure" { return "" }
     }
-    return "invalid exit severity '$sev', valid exit severities are: 'note', 'warning', 'error', and 'failure'"
+    return [hbs::invalidExitSeverityMsg $sev]
   }
 
   # Sets arguments prefix string.
@@ -240,22 +244,31 @@ namespace eval hbs {
       return
     }
 
-    if {$hbs::Tool !=  ""} {
-      hbs::panic "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', can't set tool to '$tool', tool already set to '$hbs::Tool'"
+    set err [hbs::isValidTool $tool]
+    if {$err ne ""} {
+      hbs::panic "$err"
+    }
+
+    if {$hbs::Tool ne ""} {
+      hbs::panic "can't set tool to '$tool', tool already set to '$hbs::Tool'"
     }
 
     set hbs::Tool $tool
+  }
 
+  proc invalidToolMsg {tool} {
+    return "invalid tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'questa', 'vivado-prj' \(project mode\), 'xsim'"
+  }
+
+  proc isValidTool {tool} {
     switch $tool {
-      "ghdl"       { hbs::ghdl::setTool }
-      "gowin"      { hbs::gowin::setTool }
-      "nvc"        { ; }
-      "questa"     { ; }
-      "vivado-prj" { hbs::vivado-prj::setTool }
-      "xsim"       { ; }
-      default {
-        hbs::panic "[unknownToolMsg $tool]"
-      }
+      "ghdl"       -
+      "gowin"      -
+      "nvc"        -
+      "questa"     -
+      "vivado-prj" -
+      "xsim"       { return "" }
+      default      { return [hbs::invalidToolMsg $tool] }
     }
   }
 
@@ -377,7 +390,7 @@ namespace eval hbs {
   # The file paths are relative to the `.hbs` file path where the procedure is called.
   proc AddFile {args} {
     if {$args == {}} {
-      hbs::panic "$hbs::ThisTargetPath: no file provided"
+      hbs::panic "no file provided"
     }
 
     set hbsFileDir [file dirname [dict get [dict get $hbs::cores ::hbs::$hbs::ThisCorePath] file]]
@@ -395,7 +408,7 @@ namespace eval hbs {
       }
 
       if {[llength $filePaths] == 0} {
-        hbs::panic "$hbs::ThisTargetPath: pattern '$pattern' doesn't resolve to any file"
+        hbs::panic "pattern '$pattern' doesn't resolve to any file"
       }
 
       foreach file $filePaths {
@@ -417,7 +430,7 @@ namespace eval hbs {
       "vivado-prj" { hbs::vivado-prj::addFile $files }
       "xsim"       { hbs::xsim::addFile $files }
       "" {
-        hbs::panic "$hbs::ThisTargetPath: can't add file $file, hbs::Tool not set"
+        hbs::panic "can't add file $file, hbs::Tool not set"
       }
       default {
         hbs::panic "uknown tool $hbs::Tool"
@@ -490,9 +503,7 @@ namespace eval hbs {
       "questa"     { hbs::questa::run $stage }
       "vivado-prj" { hbs::vivado-prj::run $stage }
       "xsim"       { hbs::xsim::run $stage }
-      default {
-        hbs::panic "[unknownToolMsg $hbs::Tool]"
-      }
+      default      { hbs::panic [hbs::invalidToolMsg $hbs::Tool]}
     }
   }
 
@@ -526,7 +537,7 @@ namespace eval hbs {
         dict append hbs::xsim::generics $name $value
       }
       default {
-        hbs::panic "[unknownToolMsg $hbs::Tool]"
+        hbs::panic [hbs::invalidToolMsg $hbs::Tool]
       }
     }
   }
@@ -715,7 +726,11 @@ namespace eval hbs {
   }
 
   proc panic {msg} {
-    puts stderr "[lindex [info level -1] 0]: $msg"
+    set prefix ""
+    if {$hbs::ThisTargetPath ne ""} {
+      set prefix "$hbs::ThisTargetPath: "
+    }
+    puts stderr "$prefix[lindex [info level -1] 0]: $msg"
     exit 1
   }
 
@@ -760,10 +775,6 @@ namespace eval hbs {
   # During the single flow, single target can be run only once with a given argument values.
   set runTargets [dict create]
 
-  proc unknownToolMsg {tool} {
-    return "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', unknown tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'questa', 'vivado-prj' \(project mode\), 'xsim'"
-  }
-
   proc init {} {
     set hbs::fileList [findFiles . *.hbs]
     hbs::sortFileList
@@ -773,6 +784,16 @@ namespace eval hbs {
       foreach fileName $hbs::fileList {
         puts "  $fileName"
       }
+    }
+
+    if {[info exists ::env(HBS_TOOL)]} {
+      set tool $::env(HBS_TOOL)
+      set err [isValidTool $tool]
+      if {$err ne ""} {
+        hbs::panic "can't set tool from HBS_TOOL environment variable: $err"
+      }
+      set hbs::ToolEnvSet 1
+      set hbs::Tool $tool
     }
 
     foreach fileName $hbs::fileList {
@@ -787,11 +808,6 @@ namespace eval hbs {
         continue
       }
       source $fileName
-    }
-
-    if {[info exists ::env(HBS_TOOL)]} {
-      set hbs::ToolEnvSet 1
-      set hbs::Tool $::env(HBS_TOOL)
     }
   }
 
@@ -2175,7 +2191,7 @@ namespace eval hbs::questa {
       "warning" { return "1" }
       "error"   { return "2" }
       "failure" { return "3" }
-      default   { return "3" }
+      default   { hbs::panic [hbs::invalidExitSeverityMsg $hbs::ExitSeverity] }
     }
   }
 
@@ -2389,7 +2405,7 @@ if {$argv0 eq [info script]} {
       puts 1.0
     }
     default {
-      puts stderr "unknown command '$hbs::cmd', check help"
+      puts stderr "invalid command '$hbs::cmd', check help"
       exit 1
     }
   }

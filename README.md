@@ -29,5 +29,8 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - `-onerror quit` argument for xsim.
 - `hbs::ExitSeverity` variable for unifying exit condition in simulators.
 
+### Changed
+- Improved error messages.
+
 ### Fixed
 - Generics handling for xsim.
