@@ -1995,17 +1995,29 @@ namespace eval hbs::xsim {
     return $hbs::Lib
   }
 
-  proc standard {} {
-    switch $hbs::Std {
-      # 2008 is the default one, xsim does not yet support 2019.
+  proc invalidVhdlStdMsg {std} {
+    return "invalid VHDL standard '$std', standards supported by xsim are: '1993', '2008' (default), '2019'"
+  }
+
+  proc isValidVhdlStd {std} {
+    switch $std {
+      ""     -
+      "1993" -
+      "2008" -
+      "2019" { return "" }
+      default { return [hbs::xsim::invalidVhdlStdMsg $std] }
+    }
+  }
+
+  proc vhdlStd {std} {
+    switch $std {
+      # 2008 is the default one.
       ""     { return "--2008" }
       "1993" { return "" }
-      "2000" { return "" }
-      "2002" { return "" }
       "2008" { return "--2008" }
       "2019" { return "--2019" }
       default {
-        hbs::panic "invalid hbs::Std $hbs::Std"
+        hbs::panic "invalid hbs::Std $std"
       }
     }
   }
@@ -2027,7 +2039,11 @@ namespace eval hbs::xsim {
     # Only VHDL has standard
     set extension [file extension $file]
     if {$extension == ".vhd" || $extension == ".vhdl"} {
-      set std [hbs::xsim::standard]
+      set err [hbs::xsim::isValidVhdlStd $hbs::Std]
+      if {$err ne ""} {
+        hbs::panic "$file: $err"
+      }
+      set std [hbs::xsim::vhdlStd $hbs::Std]
     }
     dict append hbs::xsim::hdlFiles $file \
         [dict create \
