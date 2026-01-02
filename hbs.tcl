@@ -18,7 +18,13 @@ namespace eval hbs {
   # Name of the target currently being run.
   set ThisTargetName ""
 
+  # True (1) if BuildDir is set via the HBS_BUILD_DIR environment variable.
+  set BuildDirEnvSet 0
+
   # BuildDir is the build directory path.
+  #
+  # You can enforce value of the BuildDir variable
+  # by setting the HBS_BUILD_DIR environment variable.
   #
   # See also 'hbs doc SetBuildDir'.
   set BuildDir "build"
@@ -97,13 +103,21 @@ namespace eval hbs {
   # Sets build directory.
   # The default build directory is named 'build'.
   #
-  # Be careful when setting directory for testbench targets.
+  # Be careful when setting directory for testbench targets in .hbs files.
   # The hbs Python wrapper is not aware of build directory changes within .hbs files.
   # Changing build directory within testbench target causes the 'output.txt' file
   # to be placed in a separate directory than the actual testbench build directory.
   # This potentially happens when a testbench target is run as a result of
-  # 'hbs test' command execution.
+  # 'hbs test' command execution. This problem does not exist when BuildDir is
+  # enforced using the HBS_BUILD_DIR environment variable.
+  #
+  # A call to hbs::SetBuildDir has no effect if build directory was enforced
+  # using the HBS_BUILD_DIR environment variable.
   proc SetBuildDir {path} {
+    if {$hbs::BuildDirEnvSet == 1} {
+        return
+    }
+
     set hbs::BuildDir $path
   }
 
@@ -228,7 +242,7 @@ namespace eval hbs {
   # All the tool names are typed in lowercase.
   # Remember about this rule if you add support for a new tool.
   #
-  # A call to hbs::SetTool is ignored if tool was enforced
+  # A call to hbs::SetTool has no effect if tool was enforced
   # using the HBS_TOOL environment variable.
   #
   # Currently supported tools include:
@@ -786,6 +800,13 @@ namespace eval hbs {
       }
     }
 
+    # Handle HBS_BUILD_DIR environment variable.
+    if {[info exists ::env(HBS_BUILD_DIR)]} {
+      set hbs::BuildDirEnvSet 1
+      set hbs::BuildDir $::env(HBS_BUILD_DIR)
+    }
+
+    # Handle HBS_TOOL environment variable.
     if {[info exists ::env(HBS_TOOL)]} {
       set tool $::env(HBS_TOOL)
       set err [isValidTool $tool]
