@@ -39,7 +39,10 @@ namespace eval hbs {
   # See also 'hbs doc SetLib'.
   set Lib ""
 
-  # Std is current standard for adding files.
+  # True (1) if Std is set via the HBS_STD environment variable.
+  set StdEnvSet 0
+
+  # Std is current HDL standard revision for adding files.
   #
   # See also 'hbs doc SetStd'.
   set Std ""
@@ -158,7 +161,14 @@ namespace eval hbs {
   # For example:
   #   hbs::SetStd 2008
   #   hbs::AddFile entity.vhd
+  #
+  # A call to hbs::SetStd has no effect if standard was enforced
+  # using the HBS_STD environment variable.
   proc SetStd {std} {
+    if {$hbs::StdEnvSet == 1} {
+      return
+    }
+
     set hbs::Std $std
   }
 
@@ -806,6 +816,12 @@ namespace eval hbs {
       set hbs::BuildDir $::env(HBS_BUILD_DIR)
     }
 
+    # Handle HBS_STD environment variable.
+    if {[info exists ::env(HBS_STD)]} {
+      set hbs::StdEnvSet 1
+      set hbs::Std $::env(HBS_STD)
+    }
+
     # Handle HBS_TOOL environment variable.
     if {[info exists ::env(HBS_TOOL)]} {
       set tool $::env(HBS_TOOL)
@@ -872,7 +888,6 @@ namespace eval hbs {
 
   proc clearContext {} {
     set hbs::Lib ""
-    set hbs::Std ""
     set hbs::Top ""
     set hbs::ThisCorePath ""
     set hbs::ThisCoreName ""
@@ -880,6 +895,10 @@ namespace eval hbs {
     set hbs::ThisTargetName ""
     set hbs::ArgsPrefix ""
     set hbs::ArgsSuffix ""
+
+    if {$hbs::StdEnvSet eq 0} {
+      set hbs::Std ""
+    }
   }
 
   proc saveContext {} {
