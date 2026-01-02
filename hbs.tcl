@@ -1577,19 +1577,23 @@ namespace eval hbs::nvc {
     return $hbs::Lib
   }
 
-  # Checks if set standard revision is valid.
-  proc isValidStd {} {
-    switch $hbs::Std {
+  proc invalidStdMsg {std} {
+    return "invalid VHDL standard '$std', standards supported by nvc are: '1993', '2000', '2002', '2008', '2019' (default)"
+  }
+
+  # Checks if std standard revision is valid.
+  proc isValidStd {std} {
+    switch $std {
       "" -
       "1993" -
       "2000" -
       "2002" -
       "2008" -
       "2019" {
-        return 1;
+        return ""
       }
     }
-    return 0
+    return [hbs::nvc::invalidStdMsg $std]
   }
 
   proc genericArgs {} {
@@ -1603,8 +1607,9 @@ namespace eval hbs::nvc {
   proc addVhdlFile {file} {
     hbs::dbg "adding file $file"
 
-    if {[hbs::nvc::isValidStd] == 0} {
-      hbs::panic "$file invalid hbs::Std $hbs::Std"
+    set err [hbs::nvc::isValidStd $hbs::Std]
+    if {$err ne ""} {
+      hbs::panic "$file: $err"
     }
 
     set lib [hbs::nvc::library]
