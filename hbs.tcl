@@ -54,6 +54,15 @@ namespace eval hbs {
   # See also 'hbs doc SetTop'.
   set Top ""
 
+  # Exit severity level for simulators.
+  #
+  # ExitSeverity is not supported by xsim.
+  # This is because xsim does not allow changing the assert level
+  # at which the simulation should exit with an error.
+  #
+  # See also 'hbs doc SetExitSeverity'.
+  set ExitSeverity "error"
+
   # Custom (set by user) arguments prefix inserted right after command or program name.
   #
   # See also 'hbs doc SetArgsPrefix'.
@@ -145,6 +154,29 @@ namespace eval hbs {
   # read the value of hbs::Top variable.
   proc SetTop {top} {
     set hbs::Top $top
+  }
+
+  # Sets simulator exit severity level.
+  #
+  # If simulator does not support exit severity changing, for example xsim,
+  # then a call to this function has no effect.
+  proc SetExitSeverity {sev} {
+    set err [hbs::isValidExitSeverity $sev]
+    if {$err ne ""} {
+      hbs::panic "$err"
+    }
+
+    set hbs::ExitSeverity $sev
+  }
+
+  proc isValidExitSeverity {sev} {
+    switch $sev {
+      "note"    -
+      "warning" -
+      "error"   -
+      "failure" { return "" }
+    }
+    return "invalid exit severity '$sev', valid exit severities are: 'note', 'warning', 'error', and 'failure'"
   }
 
   # Sets arguments prefix string.
@@ -1145,7 +1177,7 @@ namespace eval hbs::ghdl {
     set workDir [pwd]
     cd $hbs::targetDir
 
-    set cmd "./$hbs::Top $hbs::ArgsPrefix --wave=$hbs::Top.ghw [hbs::ghdl::genericArgs] $hbs::ArgsSuffix"
+    set cmd "./$hbs::Top $hbs::ArgsPrefix --wave=$hbs::Top.ghw [hbs::ghdl::genericArgs] --assert-level=$hbs::ExitSeverity $hbs::ArgsSuffix"
     puts $cmd
     if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
       puts $output
@@ -1546,7 +1578,7 @@ namespace eval hbs::nvc {
     set workDir [pwd]
     cd $hbs::targetDir
 
-    set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -r $hbs::Top --wave $hbs::ArgsSuffix"
+    set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -r $hbs::Top --wave --exit-severity=$hbs::ExitSeverity $hbs::ArgsSuffix"
     puts $cmd
     if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
       puts $output
@@ -1835,6 +1867,10 @@ namespace eval hbs::vivado-prj {
 # If you want to change the Tcl batch file depending on the run, then implement
 # the logic in the .hbs file.
 #
+# xsim does not support `hbs::ExitSeverity` variable.
+# This is because xsim does not allow changing the assert level
+# at which the simulation should exit with an error.
+#
 # xsim supports the following stages:
 #   - analysis,
 #   - elaboration,
@@ -1897,7 +1933,7 @@ namespace eval hbs::xsim {
   proc genericArgs {} {
     set args ""
     dict for {name value} $hbs::xsim::generics {
-      set args "$args -d $name=$value"
+      set args "$args -generic_top $name=$value"
     }
     return $args
   }
@@ -1998,7 +2034,7 @@ namespace eval hbs::xsim {
       set batchFile "run.tcl"
     }
 
-    set cmd "xsim $hbs::ArgsPrefix -stats -tclbatch $batchFile $hbs::Top $hbs::ArgsSuffix"
+    set cmd "xsim $hbs::ArgsPrefix -stats -onerror quit -tclbatch $batchFile $hbs::Top $hbs::ArgsSuffix"
     puts $cmd
     if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
       puts $output
@@ -2132,6 +2168,17 @@ namespace eval hbs::questa {
     }
   }
 
+  # Converts hbs::ExitSeverity into values understood by questa.
+  proc exitSeverity {} {
+    switch $hbs::ExitSeverity {
+      "note"    { return "0" }
+      "warning" { return "1" }
+      "error"   { return "2" }
+      "failure" { return "3" }
+      default   { return "3" }
+    }
+  }
+
   proc genericArgs {} {
     set args ""
     dict for {name value} $hbs::questa::generics {
@@ -2220,7 +2267,7 @@ namespace eval hbs::questa {
 
     set doFile $hbs::questa::doFile
     if {$doFile == ""} {
-      exec -ignorestderr echo "vcd add -r /*; onbreak {quit -code 1}; onerror {quit -code 1}; set BreakOnAssertion 2; run -all; quit" > run.do
+      exec -ignorestderr echo "vcd add -r /*; onbreak {quit -code 1}; onerror {quit -code 1}; set BreakOnAssertion [hbs::questa::exitSeverity]; run -all; quit" > run.do
       set doFile "run.do"
     }
 

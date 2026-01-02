@@ -23,7 +23,11 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 ### Added
 
 - Questa simulator support.
-- HBS_BUILD_DIR environment variable for enforcing build directory.
-- HBS_TOOL environment variable for enforcing tool.
-- HBS_STD environment variable for enforcing HDL standard revision.
-- hbs::ExitSeverity variable for unifying exit condition in simulators.
+- `HBS_BUILD_DIR` environment variable for enforcing build directory.
+- `HBS_TOOL` environment variable for enforcing tool.
+- `HBS_STD` environment variable for enforcing HDL standard revision.
+- `-onerror quit` argument for xsim.
+- `hbs::ExitSeverity` variable for unifying exit condition in simulators.
+
+### Fixed
+- Generics handling for xsim.
