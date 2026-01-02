@@ -1155,7 +1155,23 @@ namespace eval hbs::ghdl {
     return $hbs::Lib
   }
 
-  proc standard {} {
+  proc invalidStdMsg {std} {
+    return "invalid VHDL standard '$std', standards supported by ghdl are: '1987', '1993', '2000', '2002', '2008' (default)"
+  }
+
+  proc isValidStd {std} {
+    switch $std {
+      ""     -
+      "1987" -
+      "1993" -
+      "2000" -
+      "2002" -
+      "2008" { return "" }
+      default { return [hbs::ghdl::invalidStdMsg $std] }
+    }
+  }
+
+  proc std {} {
     switch $hbs::Std {
       # 2008 is the default one
       ""     { return "08" }
@@ -1164,9 +1180,7 @@ namespace eval hbs::ghdl {
       "2000" { return "00" }
       "2002" { return "02" }
       "2008" { return "08" }
-      default {
-        hbs::panic "invalid VHDL standard '$hbs::Std'"
-      }
+      default { hbs::panic [hbs::ghdl::invalidStdMsg $hbs::Std] }
     }
   }
 
@@ -1181,10 +1195,15 @@ namespace eval hbs::ghdl {
   proc addVhdlFile {file} {
     hbs::dbg  "adding file $file"
 
+    set err [hbs::ghdl::isValidStd $hbs::Std]
+    if {$err ne ""} {
+      hbs::panic "$file: $err"
+    }
+
     set lib [hbs::ghdl::library]
     dict append hbs::ghdl::vhdlFiles $file \
         [dict create \
-        std [hbs::ghdl::standard] \
+        std [hbs::ghdl::std] \
         lib $lib \
         argsPrefix $hbs::ArgsPrefix \
         argsSuffix $hbs::ArgsSuffix]
@@ -1219,7 +1238,7 @@ namespace eval hbs::ghdl {
     set workDir [pwd]
     cd $hbs::targetDir
 
-    set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::standard] --workdir=work $hbs::ghdl::libs $hbs::ArgsSuffix $hbs::Top"
+    set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::std] --workdir=work $hbs::ghdl::libs $hbs::ArgsSuffix $hbs::Top"
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
