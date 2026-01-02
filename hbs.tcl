@@ -38,7 +38,13 @@ namespace eval hbs {
   # See also 'hbs doc SetStd'.
   set Std ""
 
+  # True (1) if Tool is set via the HBS_TOOL environment variable.
+  set ToolEnvSet 0
+
   # Tool is target tool name. It must be lowercase.
+  #
+  # You can enforce value of the Tool variable
+  # by setting the HBS_TOOL environment variable.
   #
   # See also 'hbs doc SetTool'.
   set Tool ""
@@ -186,13 +192,22 @@ namespace eval hbs {
   # All the tool names are typed in lowercase.
   # Remember about this rule if you add support for a new tool.
   #
+  # A call to hbs::SetTool is ignored if tool was enforced
+  # using the HBS_TOOL environment variable.
+  #
   # Currently supported tools include:
   #   - ghdl,
   #   - gowin,
+  #   - modelsim - set tool to questa,
   #   - nvc,
+  #   - questa,
   #   - vivado-prj - Vivado project mode,
   #   - xsim - Vivado simulator.
   proc SetTool {tool} {
+    if {$hbs::ToolEnvSet == 1} {
+      return
+    }
+
     if {$hbs::Tool !=  ""} {
       hbs::panic "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', can't set tool to '$tool', tool already set to '$hbs::Tool'"
     }
@@ -203,6 +218,7 @@ namespace eval hbs {
       "ghdl"       { hbs::ghdl::setTool }
       "gowin"      { hbs::gowin::setTool }
       "nvc"        { ; }
+      "questa"     { ; }
       "vivado-prj" { hbs::vivado-prj::setTool }
       "xsim"       { ; }
       default {
@@ -220,6 +236,7 @@ namespace eval hbs {
     switch $hbs::Tool {
       "ghdl" -
       "nvc" -
+      "questa" -
       "xsim" {
         return "simulation"
       }
@@ -364,6 +381,7 @@ namespace eval hbs {
       "ghdl"       { hbs::ghdl::addFile $files }
       "gowin"      { hbs::gowin::addFile $files }
       "nvc"        { hbs::nvc::addFile $files }
+      "questa"     { hbs::questa::addFile $files }
       "vivado-prj" { hbs::vivado-prj::addFile $files }
       "xsim"       { hbs::xsim::addFile $files }
       "" {
@@ -437,6 +455,7 @@ namespace eval hbs {
       "ghdl"       { hbs::ghdl::run $stage }
       "gowin"      { hbs::gowin::run $stage }
       "nvc"        { hbs::nvc::run $stage }
+      "questa"     { hbs::questa::run $stage }
       "vivado-prj" { hbs::vivado-prj::run $stage }
       "xsim"       { hbs::xsim::run $stage }
       default {
@@ -464,6 +483,9 @@ namespace eval hbs {
       }
       "nvc" {
         dict append hbs::nvc::generics $name $value
+      }
+      "questa" {
+        dict append hbs::questa::generics $name $value
       }
       "vivado-prj" {
         set_property generic $name=$value [current_fileset]
@@ -707,7 +729,7 @@ namespace eval hbs {
   set runTargets [dict create]
 
   proc unknownToolMsg {tool} {
-    return "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', unknown tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'vivado-prj' \(project mode\), 'xsim'"
+    return "core '$hbs::ThisCorePath', target '$hbs::ThisTargetName', unknown tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'questa', 'vivado-prj' \(project mode\), 'xsim'"
   }
 
   proc init {} {
@@ -733,6 +755,11 @@ namespace eval hbs {
         continue
       }
       source $fileName
+    }
+
+    if {[info exists ::env(HBS_TOOL)]} {
+      set hbs::ToolEnvSet 1
+      set hbs::Tool $::env(HBS_TOOL)
     }
   }
 
@@ -1854,7 +1881,7 @@ namespace eval hbs::xsim {
 
   proc standard {} {
     switch $hbs::Std {
-      # 2019 is the default one
+      # 2008 is the default one, xsim does not yet support 2019.
       ""     { return "--2008" }
       "1993" { return "" }
       "2000" { return "" }
@@ -2019,6 +2046,225 @@ namespace eval hbs::xsim {
     # Simulation
     hbs::evalPreSimCbs
     hbs::xsim::simulate
+    hbs::evalPostSimCbs
+  }
+}
+
+# Siemens questa simulator.
+#
+# Custom do file for running simulation can be added by adding file with .do extension:
+#   hbs::AddFile my-run.do
+# Only one .do can be added. Adding consecutive .do file results in error.
+# If you want to change the .do file depending on the run, then implement
+# the logic in the .hbs file.
+#
+# questa supports the following stages:
+#   - analysis,
+#   - simulation.
+# There is no elaboration stage as vsim performs elaboration as its first step.
+namespace eval hbs::questa {
+  set hdlFiles [dict create]
+  set doFile ""
+
+  set generics [dict create]
+
+  proc addFile {files} {
+    foreach file $files {
+      set extension [file extension $file]
+      switch $extension {
+        ".v" -
+        ".sv" -
+        ".vhd" -
+        ".vhdl" {
+          hbs::questa::addHdlFile $file
+        }
+        ".tcl" {
+          hbs::questa::setDoFile $file
+        }
+        default {
+          hbs::panic "unhandled file extension '$extension'"
+        }
+      }
+    }
+  }
+
+  proc setDoFile {file} {
+    if {$hbs::questa::doFile != ""} {
+      hbs::panic "cannot set file to $file, file already set to $hbs::questa::doFile"
+    }
+    set hbs::::doFile $file
+  }
+
+  proc library {} {
+    if {$hbs::Lib eq ""} {
+      return "work"
+    }
+    return $hbs::Lib
+  }
+
+  proc vhdlStd {} {
+    switch $hbs::Std {
+      # 2019 is the default one
+      ""     { return "-2019" }
+      "1987" { return "-87" }
+      "1993" { return "-93" }
+      "2000" { return "" }
+      "2002" { return "-2002" }
+      "2008" { return "-2008" }
+      "2019" { return "-2019" }
+      default {
+        hbs::panic "invalid hbs::Std $hbs::Std for VHDL file"
+      }
+    }
+  }
+
+  proc svStd {} {
+    switch $hbs::Std {
+      ""     { return "" }
+      "2005" { return "-sv05compat" }
+      "2009" { return "-sv09compat" }
+      "2012" { return "-sv12compat" }
+      "2017" { return "-sv17compat" }
+      "2023" { return "-sv23compat" }
+      default {
+        hbs::panic "invalid hbs::Std $hbs::Std for SystemVerilog file"
+      }
+    }
+  }
+
+  proc genericArgs {} {
+    set args ""
+    dict for {name value} $hbs::questa::generics {
+      set args "$args -G$name=$value"
+    }
+    return $args
+  }
+
+  proc addHdlFile {file} {
+    hbs::dbg "adding file $file"
+
+    set lib [hbs::questa::library]
+
+    set std ""
+    set extension [file extension $file]
+    if {$extension == ".vhd" || $extension == ".vhdl"} {
+      set std [hbs::questa::vhdlStd]
+    } elseif {$extension == ".sv"} {
+      set std [hbs::questa::svStd]
+    }
+
+    dict append hbs::questa::hdlFiles $file \
+        [dict create \
+        std $std \
+        lib $lib \
+        argsPrefix $hbs::ArgsPrefix \
+        argsSuffix $hbs::ArgsSuffix]
+  }
+
+  proc analyzeVhdl {file args_} {
+    set cmd "vcom [dict get $args_ argsPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
+    puts $cmd
+    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+    if {$exitStatus != 0} {
+      hbs::panic "$file analysis failed with exit status $exitStatus"
+    }
+  }
+
+  proc analyzeVerilog {file args_} {
+    set lib [dict get $args_ lib]
+    set cmd "vlog [dict get $args_ argsPrefix] -work $lib $file [dict get $args_ argsSuffix]"
+    puts $cmd
+    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+    if {$exitStatus != 0} {
+      hbs::panic "$file analysis failed with exit status $exitStatus"
+    }
+  }
+
+  proc analyzeSystemVerilog {file args_} {
+    set lib [dict get $args_ lib]
+    set cmd "vlog -sv [dict get $args_ argsPrefix] -work $lib $file [dict get $args_ argsSuffix]"
+    puts $cmd
+    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+    if {$exitStatus != 0} {
+      hbs::panic "$file analysis failed with exit status $exitStatus"
+    }
+  }
+
+  proc analyze {} {
+    hbs::dbg "starting files analysis"
+
+    set workDir [pwd]
+    cd $hbs::targetDir
+
+    dict for {file args} $hbs::questa::hdlFiles {
+      switch [file extension $file] {
+        ".v" {
+          hbs::questa::analyzeVerilog $file $args
+        }
+        ".sv" {
+          hbs::questa::analyzeSystemVerilog $file $args
+        }
+        ".vhd" -
+        ".vhdl" {
+          hbs::questa::analyzeVhdl $file $args
+        }
+      }
+    }
+
+    cd $workDir
+  }
+
+  proc simulate {} {
+    set workDir [pwd]
+    cd $hbs::targetDir
+
+    set doFile $hbs::questa::doFile
+    if {$doFile == ""} {
+      exec -ignorestderr echo "vcd add -r /*; onbreak {quit -code 1}; onerror {quit -code 1}; set BreakOnAssertion 2; run -all; quit" > run.do
+      set doFile "run.do"
+    }
+
+    set cmd "vsim $hbs::ArgsPrefix [hbs::questa::genericArgs] $hbs::Top -c -stats -vcddump $hbs::Top.vcd -do $doFile $hbs::ArgsSuffix"
+    puts $cmd
+    if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
+      puts $output
+    } else {
+      hbs::panic $output
+    }
+
+    cd $workDir
+  }
+
+  proc checkStage {stage} {
+    switch $stage {
+      "" -
+      "analysis" -
+      "simulation" {
+        ;
+      }
+      default {
+        hbs::panic "invalid stage '$stage', valid questa stages are: analysis and simulation"
+      }
+    }
+  }
+
+  proc run {stage} {
+    hbs::questa::checkStage $stage
+
+    set exitStatus [catch {eval exec -ignorestderr "which vsim"}]
+    if {$exitStatus != 0} {
+      hbs::panic "vsim not found, make sure it is in your PATH"
+    }
+
+    # Analysis
+    hbs::evalPreAnalCbs
+    hbs::questa::analyze
+    hbs::evalPostAnalCbs
+    if {$stage == "analysis"} { return }
+
+    # Simulation
+    hbs::evalPreSimCbs
+    hbs::questa::simulate
     hbs::evalPostSimCbs
   }
 }
