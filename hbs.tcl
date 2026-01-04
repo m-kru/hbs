@@ -6,6 +6,17 @@
 
 # Public API
 namespace eval hbs {
+  # True (1) if tool is run in the dry mode.
+  #
+  # In the dry run the following things change:
+  #   1. hbs.tcl does not bootstrap itself with a proper Tcl shell from EDA tool.
+  #   2. Tool commands are printed to the stdout, but are not executed or evaluated.
+  #
+  # In the dry run cores are dumped to the .json file the same way they would be
+  # dumped in the non-dry run. This is useful when you want to generate target
+  # dependency graph without running any tool flow.
+  set DryRun 0
+
   # Path of the core which target is currently being run.
   set ThisCorePath ""
 
@@ -117,8 +128,8 @@ namespace eval hbs {
   # A call to hbs::SetBuildDir has no effect if build directory was enforced
   # using the HBS_BUILD_DIR environment variable.
   proc SetBuildDir {path} {
-    if {$hbs::BuildDirEnvSet == 1} {
-        return
+    if {$hbs::BuildDirEnvSet} {
+      return
     }
 
     set hbs::BuildDir $path
@@ -165,11 +176,50 @@ namespace eval hbs {
   # A call to hbs::SetStd has no effect if standard was enforced
   # using the HBS_STD environment variable.
   proc SetStd {std} {
-    if {$hbs::StdEnvSet == 1} {
+    if {$hbs::StdEnvSet} {
       return
     }
 
+    set err [hbs::isValidStd $std]
+    if {$err ne ""} {
+      hbs::panic $err
+    }
+
     set hbs::Std $std
+  }
+
+  proc isValidVhdlStd {std} {
+    switch $std {
+      ""     -
+      "1987" -
+      "1993" -
+      "2000" -
+      "2002" -
+      "2008" -
+      "2019" { return "" }
+    }
+    return "invalid VHDL standard '$std', valid standards are: '1987', '1993', '2000', '2002' '2008', '2019'"
+  }
+
+  proc isValidVerilogStd {std} {
+    switch $std {
+      ""     -
+      "1995" -
+      "2001" -
+      "2005" -
+      "2009" -
+      "2012" -
+      "2017" -
+      "2023" { return "" }
+    }
+    return "invalid Verilog/SystemVerilog standard '$std', valid standards are: '1995', '2001', '2005', '2009' '2012', '2017', '2023'"
+  }
+
+  proc isValidStd {std} {
+    if {[hbs::isValidVhdlStd $std] eq "" || [hbs::isValidVerilogStd $std] eq ""} {
+      return ""
+    }
+    return "invalid VHDL and Verilog/SystemVerilog standard '$std'"
   }
 
   # Sets name of the top entity/module.
@@ -241,9 +291,10 @@ namespace eval hbs {
   # To get the name of currently set Tool simply
   # read the value of hbs::Tool variable.
   #
-  # This procedure bootstraps the script if it is run with tclsh, but the provide
-  # tool requires a specific EDA tool. For example, if you set the tool to 'gowin',
-  # the script will be bootstrapped with the gw_sh.
+  # If the tool is run in non-dry mode, then this procedure bootstraps
+  # the script if it is run with the OS tclsh, but the provided tool requires
+  # a specific EDA tool. For example, if you set the tool to 'gowin', the script
+  # will be bootstrapped with the gw_sh.
   #
   # If the set tool requires project creation via a custom Tcl command,
   # for example, 'vivado-prj' or 'gowin' do, the Tcl command responsible for
@@ -252,8 +303,8 @@ namespace eval hbs {
   # All the tool names are typed in lowercase.
   # Remember about this rule if you add support for a new tool.
   #
-  # A call to hbs::SetTool has no effect if tool was enforced
-  # using the HBS_TOOL environment variable.
+  # A call to hbs::SetTool does not modify the hbs::Tool variable
+  # if tool was enforced using the HBS_TOOL environment variable.
   #
   # Currently supported tools include:
   #   - ghdl,
@@ -264,20 +315,27 @@ namespace eval hbs {
   #   - vivado-prj - Vivado project mode,
   #   - xsim - Vivado simulator.
   proc SetTool {tool} {
-    if {$hbs::ToolEnvSet == 1} {
-      return
-    }
-
     set err [hbs::isValidTool $tool]
     if {$err ne ""} {
       hbs::panic "$err"
     }
 
-    if {$hbs::Tool ne ""} {
-      hbs::panic "can't set tool to '$tool', tool already set to '$hbs::Tool'"
+    if {!$hbs::ToolEnvSet} {
+      if {$hbs::Tool ne ""} {
+        hbs::panic "can't set tool to '$tool', tool already set to '$hbs::Tool'"
+      }
+      set hbs::Tool $tool
     }
 
-    set hbs::Tool $tool
+    switch $hbs::Tool {
+      "ghdl"       { hbs::ghdl::setTool }
+      "gowin"      { hbs::gowin::setTool }
+      "nvc"        { ; }
+      "questa"     { ; }
+      "vivado-prj" { hbs::vivado-prj::setTool }
+      "xsim"       { ; }
+      default      { hbs::panic "[unknownToolMsg $tool]" }
+    }
   }
 
   proc invalidToolMsg {tool} {
@@ -706,9 +764,10 @@ namespace eval hbs {
     set hbs::postSynthCbs []
   }
 
-  # Exec evaluates Tcl 'exec' command but with working directory changed to the directory
-  # in which .hbs file with given core is defined. After the 'exec' the working directory is restored.
-  proc Exec {args} {
+  # Evaluates Tcl 'exec' command with working directory changed to the core directory
+  # (the directory in which .hbs file with given core is defined).
+  # After the 'exec' the working directory is restored.
+  proc ExecInCoreDir {args} {
     set workDir [pwd]
 
     set hbsFileDir [file dirname [dict get $hbs::cores ::hbs::$hbs::ThisCorePath file]]
@@ -717,6 +776,15 @@ namespace eval hbs {
     exec {*}$args
 
     cd $workDir
+  }
+
+  # Prints command to the standard output and evaluates it using
+  # the standard `eval` command if hbs::DryRun is false.
+  proc Eval {cmd} {
+    puts $cmd
+    if {!$hbs::DryRun} {
+      eval $cmd
+    }
   }
 
   # Returns directory of file in which current core is defined.
@@ -731,6 +799,28 @@ namespace eval hbs {
       hbs::dbg "adding ignore regex $reg"
       lappend hbs::FileIgnoreRegexes $reg
     }
+  }
+
+  # Returns true (1) if ext is recognized as Verilog/SystemVerilog file extension.
+  proc isVerilogExtension {ext} {
+    switch $ext {
+      ".v"       -
+      ".vh"      -
+      ".vlg"     -
+      ".verilog" -
+      ".sv"      -
+      ".svh"     { return 1 }
+    }
+    return 0
+  }
+
+  # Returns true (1) if ext is recognized as VHDL file extension.
+  proc isVhdlExtension {ext} {
+    switch $ext {
+      ".vhd"  -
+      ".vhdl" { return 1 }
+    }
+    return 0
   }
 }
 
@@ -818,8 +908,13 @@ namespace eval hbs {
 
     # Handle HBS_STD environment variable.
     if {[info exists ::env(HBS_STD)]} {
+      set std $::env(HBS_STD)
+      set err [hbs::isValidStd $std]
+      if {$err ne ""} {
+        hbs::panic "can't set standard from HBS_STD environment variable: $err"
+      }
       set hbs::StdEnvSet 1
-      set hbs::Std $::env(HBS_STD)
+      set hbs::Std $std
     }
 
     # Handle HBS_TOOL environment variable.
@@ -896,7 +991,7 @@ namespace eval hbs {
     set hbs::ArgsPrefix ""
     set hbs::ArgsSuffix ""
 
-    if {$hbs::StdEnvSet eq 0} {
+    if {!$hbs::StdEnvSet} {
       set hbs::Std ""
     }
   }
@@ -1155,19 +1250,15 @@ namespace eval hbs::ghdl {
     return $hbs::Lib
   }
 
-  proc invalidStdMsg {std} {
-    return "invalid VHDL standard '$std', standards supported by ghdl are: '1987', '1993', '2000', '2002', '2008' (default)"
-  }
-
-  proc isValidStd {std} {
+  proc isSupportedStd {std} {
     switch $std {
-      ""     -
-      "1987" -
-      "1993" -
-      "2000" -
-      "2002" -
-      "2008" { return "" }
-      default { return [hbs::ghdl::invalidStdMsg $std] }
+      ""      -
+      "1987"  -
+      "1993"  -
+      "2000"  -
+      "2002"  -
+      "2008"  { return "" }
+      default { return "ghdl doesn't support VHDL standard '$std'" }
     }
   }
 
@@ -1180,7 +1271,6 @@ namespace eval hbs::ghdl {
       "2000" { return "00" }
       "2002" { return "02" }
       "2008" { return "08" }
-      default { hbs::panic [hbs::ghdl::invalidStdMsg $hbs::Std] }
     }
   }
 
@@ -1193,9 +1283,14 @@ namespace eval hbs::ghdl {
   }
 
   proc addVhdlFile {file} {
-    hbs::dbg  "adding file $file"
+    hbs::dbg "adding file $file"
 
-    set err [hbs::ghdl::isValidStd $hbs::Std]
+    set err [hbs::isValidVhdlStd $hbs::Std]
+    if {$err ne ""} {
+      hbs::panic "$file: $err"
+    }
+
+    set err [hbs::ghdl::isSupportedStd $hbs::Std]
     if {$err ne ""} {
       hbs::panic "$file: $err"
     }
@@ -1316,27 +1411,30 @@ namespace eval hbs::ghdl {
 #   hbs::ClearArgsSuffix
 namespace eval hbs::gowin {
   # Highest set VHDL standard revision.
-  set vhdlStd ""
+  set vhdlStandard ""
 
   # Highest set (System)Verilog standard revision.
-  set verilogStd ""
+  set verilogStandard ""
 
   proc setTool {} {
+    # gw_sh automatically creates project directory.
+    set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+    set create_prj_cmd "create_project $hbs::ArgsPrefix \
+      -name $prjName \
+      -dir $hbs::BuildDir \
+      -pn $hbs::Device \
+      -force $hbs::ArgsSuffix"
+    if {$hbs::DryRun} {
+      hbs::Eval $create_prj_cmd
+      return
+    }
+
     # Check if the script is already run by GOWIN
     if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
       # gw_sh already runs the script
 
       hbs::dbg "creating gowin project"
-
-      # gw_sh automatically creates project directory.
-      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-      set cmd "create_project $hbs::ArgsPrefix \
-        -name $prjName \
-        -dir $hbs::BuildDir \
-        -pn $hbs::Device \
-        -force $hbs::ArgsSuffix"
-      puts $cmd
-      eval $cmd
+      hbs::Eval $create_prj_cmd
 
       # Set target directory for later use.
       set hbs::targetDir [file join $hbs::BuildDir $prjName]
@@ -1385,30 +1483,23 @@ namespace eval hbs::gowin {
     }
   }
 
-  proc validVhdlStandard {std} {
-    switch $std {
-      "" -
-      "1993" -
-      "2008" -
-      "2019" {
-        return 1
-      }
-    }
-    return 0
-  }
-
-  proc vhdlStandard {} {
-    switch $hbs::gowin::vhdlStd {
-      "1993"  { return "vhd1993" }
-      "2008"  { return "vhd2008" }
-      "2019"  { return "vhd2019" }
-      default { return "vhd2019" }
+  proc vhdlStd {} {
+    switch $hbs::gowin::vhdlStandard {
+      # 2008 is the default one
+      ""     { return "vhd2008" }
+      "1987" -
+      "1993" { return "vhd1993" }
+      "2000" -
+      "2002" -
+      "2008" { return "vhd2008" }
+      "2019" { return "vhd2019" }
     }
   }
 
   proc addVhdlFile {file} {
-    if {[hbs::gowin::validVhdlStandard $hbs::Std] == 0} {
-      hbs::panic "invalid VHDL standard '$hbs::Std', file '$file'"
+    set err [hbs::isValidVhdlStd $hbs::Std]
+    if {$err ne ""} {
+      hbs::panic "$file: $err"
     }
 
     set cmd "add_file $hbs::ArgsPrefix $file $hbs::ArgsSuffix"
@@ -1424,35 +1515,29 @@ namespace eval hbs::gowin {
     puts $cmd
     eval $cmd
 
-    if {$hbs::Std > $hbs::gowin::vhdlStd} {
-      set hbs::gowin::vhdlStd $hbs::Std
+    if {$hbs::Std > $hbs::gowin::vhdlStandard} {
+      set hbs::gowin::vhdlStandard $hbs::Std
     }
   }
 
-  proc validVerilogStandard {std} {
-    switch $std {
-      "" -
-      "1995" -
-      "2001" -
-      "2017" {
-        return 1
-      }
-    }
-    return 0
-  }
-
-  proc verilogStandard {} {
-    switch $hbs::gowin::verilogStd {
+  proc verilogStd {} {
+    switch $hbs::gowin::verilogStandard {
+      # 2012 is the default one, but it is not supported so use 2017
+      ""      { return "sysv2017" }
       "1995"  { return "v1995" }
       "2001"  { return "v2001" }
+      "2005"  -
+      "2009"  -
+      "2012"  -
       "2017"  { return "sysv2017" }
-      default { return "sysv2017" }
+      default { hbs::panic "gowin doesn't support Verilog/SystemVerilog standard '$hbs::gowin::verilogStandard'" }
     }
   }
 
   proc addVerilogFile {file} {
-    if {[hbs::gowin::validVerilogStandard $hbs::Std] == 0} {
-      hbs::panic "invalid Verilog standard '$hbs::Std', file '$file'"
+    set err [hbs::isValidVerilogStd $hbs::Std]
+    if {$err ne ""} {
+      hbs::panic "$file: $err"
     }
 
     set cmd "add_file $hbs::ArgsPrefix $file $hbs::ArgsSuffix"
@@ -1500,10 +1585,10 @@ namespace eval hbs::gowin {
     set cmd "set_option -top_module $hbs::Top"
     puts $cmd
     eval $cmd
-    set cmd "set_option -vhdl_std [hbs::gowin::vhdlStandard]"
+    set cmd "set_option -vhdl_std [hbs::gowin::vhdlStd]"
     puts $cmd
     eval $cmd
-    set cmd "set_option -verilog_std [hbs::gowin::verilogStandard]"
+    set cmd "set_option -verilog_std [hbs::gowin::verilogStd]"
     puts $cmd
     eval $cmd
     hbs::evalPostPrjCbs
@@ -1557,15 +1642,11 @@ namespace eval hbs::nvc {
 
   proc addFile {files} {
     foreach file $files {
-      set extension [file extension $file]
-      switch $extension {
-        ".vhd" -
-        ".vhdl" {
-          hbs::nvc::addVhdlFile $file
-        }
-        default {
-          hbs::panic "unhandled file extension '$extension'"
-        }
+      set ext [file extension $file]
+      if {[hbs::isVhdlExtension $ext]} {
+        hbs::nvc::addVhdlFile $file
+      } else {
+        hbs::panic "unhandled file extension '$ext'"
       }
     }
   }
@@ -1575,25 +1656,6 @@ namespace eval hbs::nvc {
       return "work"
     }
     return $hbs::Lib
-  }
-
-  proc invalidStdMsg {std} {
-    return "invalid VHDL standard '$std', standards supported by nvc are: '1993', '2000', '2002', '2008', '2019' (default)"
-  }
-
-  # Checks if std standard revision is valid.
-  proc isValidStd {std} {
-    switch $std {
-      "" -
-      "1993" -
-      "2000" -
-      "2002" -
-      "2008" -
-      "2019" {
-        return ""
-      }
-    }
-    return [hbs::nvc::invalidStdMsg $std]
   }
 
   proc genericArgs {} {
@@ -1607,7 +1669,7 @@ namespace eval hbs::nvc {
   proc addVhdlFile {file} {
     hbs::dbg "adding file $file"
 
-    set err [hbs::nvc::isValidStd $hbs::Std]
+    set err [hbs::isValidVhdlStd $hbs::Std]
     if {$err ne ""} {
       hbs::panic "$file: $err"
     }
@@ -1631,9 +1693,12 @@ namespace eval hbs::nvc {
       set lib [dict get $args lib]
       set cmd "nvc [dict get $args argsPrefix] --std=$hbs::nvc::std $hbs::nvc::libs --work=$lib -a $file [dict get $args argsSuffix]"
       puts $cmd
-      set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-      if {$exitStatus != 0} {
-        hbs::panic "$file analysis failed with exit status $exitStatus"
+
+      if {!$hbs::DryRun} {
+        set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+        if {$exitStatus != 0} {
+          hbs::panic "$file analysis failed with exit status $exitStatus"
+        }
       }
     }
 
@@ -1646,9 +1711,12 @@ namespace eval hbs::nvc {
 
     set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
     puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$hbs::Top elaboration failed with exit status $exitStatus"
+
+    if {!$hbs::DryRun} {
+      set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
+      if {$exitStatus != 0} {
+        hbs::panic "$hbs::Top elaboration failed with exit status $exitStatus"
+      }
     }
 
     cd $workDir
@@ -1660,10 +1728,13 @@ namespace eval hbs::nvc {
 
     set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -r $hbs::Top --wave --exit-severity=$hbs::ExitSeverity $hbs::ArgsSuffix"
     puts $cmd
-    if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
-      puts $output
-    } else {
-      hbs::panic $output
+
+    if {!$hbs::DryRun} {
+      if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
+        puts $output
+      } else {
+        hbs::panic $output
+      }
     }
 
     cd $workDir
@@ -1694,9 +1765,9 @@ namespace eval hbs::nvc {
       }
     }
 
-    # If none of the targets enforced a standard revision, use 2019 as the default.
+    # If none of the targets enforced a standard revision, use 2008 as the default.
     if {$hbs::nvc::std == ""} {
-      set hbs::nvc::std "2019"
+      set hbs::nvc::std "2008"
     }
 
     # Analysis
@@ -1727,19 +1798,21 @@ namespace eval hbs::nvc {
 #   - bitstream.
 namespace eval hbs::vivado-prj {
   proc setTool {} {
+    set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+    set hbs::targetDir [file join $hbs::BuildDir $prjName]
+    set create_prj_cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
+    if {$hbs::DryRun} {
+      hbs::Eval $create_prj_cmd
+      return
+    }
+
     # Check if the script is already run by Vivado
     if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
       # Vivado already runs the script
       set hbs::Tool "vivado-prj"
 
       hbs::dbg "creating vivado project"
-
-      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-      set hbs::targetDir [file join $hbs::BuildDir $prjName]
-      set cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
-      puts $cmd
-      eval $cmd
-
+      hbs::Eval $create_prj_cmd
       hbs::dbg "vivado project created successfully"
     } else {
       # Run the script with Vivado
@@ -1770,34 +1843,20 @@ namespace eval hbs::vivado-prj {
 
       set extension [file extension $file]
       switch $extension {
-        ".bd" {
-          hbs::vivado-prj:addBlockDesignFile $file
-        }
-        ".mem" {
-          hbs::vivado-prj::addMemFile $file
-        }
-        ".v" {
-          hbs::vivado-prj::addVerilogFile $file
-        }
-        ".sv" {
-          hbs::vivado-prj::addSystemVerilogFile $file
-        }
-        ".vhd" -
-        ".vhdl" {
-          hbs::vivado-prj::addVhdlFile $file
-        }
-        ".tcl" {
-          hbs::vivado-prj::addTclFile $file
-        }
-        ".xci" {
-          hbs::vivado-prj::addXciFile $file
-        }
-        ".xdc" {
-          hbs::vivado-prj::addXdcFile $file
-        }
-        default {
-          hbs::panic "unhandled file extension '$extension'"
-        }
+        ".bd"   { hbs::vivado-prj:addBlockDesignFile $file }
+        ".mem"  { hbs::vivado-prj::addMemFile $file }
+        ".v"       -
+        ".vh"      -
+        ".vlg"     -
+        ".verilog" { hbs::vivado-prj::addVerilogFile $file }
+        ".sv"   -
+        ".svh"  { hbs::vivado-prj::addSystemVerilogFile $file }
+        ".vhd"  -
+        ".vhdl" { hbs::vivado-prj::addVhdlFile $file }
+        ".tcl"  { hbs::vivado-prj::addTclFile $file }
+        ".xci"  { hbs::vivado-prj::addXciFile $file }
+        ".xdc"  { hbs::vivado-prj::addXdcFile $file }
+        default { hbs::panic "unhandled file extension '$extension'" }
       }
     }
   }
@@ -1811,9 +1870,10 @@ namespace eval hbs::vivado-prj {
     switch $hbs::Std {
       # 2008 is the default one
       ""     { return "-vhdl2008" }
+      "1987" -
       "1993" { return "" }
-      "2000" { return "" }
-      "2002" { return "" }
+      "2000" -
+      "2002" -
       "2008" { return "-vhdl2008" }
       "2019" { return "-vhdl2019" }
       default {
@@ -1823,35 +1883,35 @@ namespace eval hbs::vivado-prj {
   }
 
   proc addBlockDesignFile {file} {
-    read_bd $file
+    hbs::Eval "read_bd $file"
   }
 
   proc addMemFile {file} {
-    read_mem $file
+    hbs::Eval "read_mem $file"
   }
 
   proc addTclFile {file} {
-    source $file
+    hbs::Eval "source $file"
   }
 
   proc addXciFile {file} {
-    read_ip $file
+    hbs::Eval "read_ip $file"
   }
 
   proc addXdcFile {file} {
-    read_xdc $file
+    hbs::Eval "read_xdc $file"
   }
 
   proc addVerilogFile {file} {
-    read_verilog -library [hbs::vivado-prj::library] $file
+    hbs::Eval "read_verilog -library [hbs::vivado-prj::library] $file"
   }
 
   proc addSystemVerilogFile {file} {
-    read_verilog -library [hbs::vivado-prj::library] -sv $file
+    hbs::Eval "read_verilog -library [hbs::vivado-prj::library] -sv $file"
   }
 
   proc addVhdlFile {file} {
-    read_vhdl -library [hbs::vivado-prj::library] [hbs::vivado-prj::vhdlStandard] $file
+    hbs::Eval "read_vhdl -library [hbs::vivado-prj::library] [hbs::vivado-prj::vhdlStandard] $file"
   }
 
   proc checkStage {stage} {
@@ -1879,16 +1939,12 @@ namespace eval hbs::vivado-prj {
     if {$hbs::Device == ""} {
       hbs::panic "cannot set part, hbs::Device not set"
     }
-    set cmd "set_property part $hbs::Device \[current_project\]"
-    puts $cmd
-    eval $cmd
+    hbs::Eval "set_property part $hbs::Device \[current_project\]"
 
     if {$hbs::Top == ""} {
       hbs::panic "cannot set top, hbs::Top not set"
     }
-    set cmd "set_property top $hbs::Top \[current_fileset\]"
-    puts $cmd
-    eval $cmd
+    hbs::Eval "set_property top $hbs::Top \[current_fileset\]"
 
     hbs::evalPostPrjCbs
     if {$stage == "project"} { return }
@@ -1897,14 +1953,12 @@ namespace eval hbs::vivado-prj {
     # Synthesis
     #
     hbs::evalPreSynthCbs
-    set cmd "launch_runs $hbs::ArgsPrefix synth_1 $hbs::ArgsSuffix"
-    puts $cmd
-    eval $cmd
-    set cmd "wait_on_run synth_1"
-    puts $cmd
-    eval $cmd
-    if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
-      error "ERROR: synth_1 failed"
+    hbs::Eval "launch_runs $hbs::ArgsPrefix synth_1 $hbs::ArgsSuffix"
+    hbs::Eval "wait_on_run synth_1"
+    if {!$hbs::DryRun} {
+      if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
+        error "ERROR: synth_1 failed"
+      }
     }
     hbs::evalPostSynthCbs
     if {$stage == "synthesis"} { return }
@@ -1913,14 +1967,12 @@ namespace eval hbs::vivado-prj {
     # Implementation
     #
     hbs::evalPreImplCbs
-    set cmd "launch_runs $hbs::ArgsPrefix impl_1 $hbs::ArgsSuffix"
-    puts $cmd
-    eval $cmd
-    set cmd "wait_on_run impl_1"
-    puts $cmd
-    eval $cmd
-    if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
-      error "ERROR: impl_1 failed"
+    hbs::Eval "launch_runs $hbs::ArgsPrefix impl_1 $hbs::ArgsSuffix"
+    hbs::Eval "wait_on_run impl_1"
+    if {!$hbs::DryRun} {
+      if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
+        error "ERROR: impl_1 failed"
+      }
     }
     hbs::evalPostImplCbs
     if {$stage == "implementation"} { return }
@@ -1929,12 +1981,8 @@ namespace eval hbs::vivado-prj {
     # Bitstream
     #
     hbs::evalPreBitCbs
-    set cmd "open_run impl_1"
-    puts $cmd
-    eval $cmd
-    set cmd "write_bitstream $hbs::ArgsPrefix [get_property DIRECTORY [current_run]]/[current_project].bit $hbs::ArgsSuffix"
-    puts $cmd
-    eval $cmd
+    hbs::Eval "open_run impl_1"
+    hbs::Eval "write_bitstream $hbs::ArgsPrefix \[get_property DIRECTORY \[current_run\]\]/\[current_project\].bit $hbs::ArgsSuffix"
     hbs::evalPostBitCbs
   }
 }
@@ -1995,30 +2043,30 @@ namespace eval hbs::xsim {
     return $hbs::Lib
   }
 
-  proc invalidVhdlStdMsg {std} {
-    return "invalid VHDL standard '$std', standards supported by xsim are: '1993', '2008' (default), '2019'"
-  }
-
-  proc isValidVhdlStd {std} {
+  proc vhdlStd {std} {
     switch $std {
-      ""     -
-      "1993" -
-      "2008" -
-      "2019" { return "" }
-      default { return [hbs::xsim::invalidVhdlStdMsg $std] }
+      # 2008 is the default one
+      ""     { return "--2008" }
+      "1987" -
+      "1993" { return "" }
+      "2000" -
+      "2002" -
+      "2008" { return "--2008" }
+      "2019" { return "--2019" }
     }
   }
 
-  proc vhdlStd {std} {
-    switch $std {
-      # 2008 is the default one.
-      ""     { return "--2008" }
-      "1993" { return "" }
-      "2008" { return "--2008" }
-      "2019" { return "--2019" }
-      default {
-        hbs::panic "invalid hbs::Std $std"
-      }
+  proc verilogStd {} {
+    switch $hbs::Std {
+      # SystemVerilog is the default one
+      ""     { return "-sv" }
+      "1995" -
+      "2001" { return "" }
+      "2005" -
+      "2009" -
+      "2012" -
+      "2017" -
+      "2023" { return "-sv" }
     }
   }
 
@@ -2034,17 +2082,23 @@ namespace eval hbs::xsim {
     hbs::dbg "adding file $file"
 
     set lib [hbs::xsim::library]
-    # Verilog and SystemVerilog have no standard
+
     set std ""
-    # Only VHDL has standard
-    set extension [file extension $file]
-    if {$extension == ".vhd" || $extension == ".vhdl"} {
-      set err [hbs::xsim::isValidVhdlStd $hbs::Std]
+    set ext [file extension $file]
+    if {[hbs::isVhdlExtension $ext]} {
+      set err [hbs::isValidVhdlStd $hbs::Std]
       if {$err ne ""} {
         hbs::panic "$file: $err"
       }
       set std [hbs::xsim::vhdlStd $hbs::Std]
+    } elseif {[hbs::isVerilogExtension $ext]} {
+      set err [hbs::isValidVerilogStd $hbs::Std]
+      if {$err ne ""} {
+        hbs::panic "$file: $err"
+      }
+      set std [hbs::xsim::verilogStd $hbs::Std]
     }
+
     dict append hbs::xsim::hdlFiles $file \
         [dict create \
         std $std \
@@ -2063,18 +2117,7 @@ namespace eval hbs::xsim {
   }
 
   proc analyzeVerilog {file args_} {
-    set lib [dict get $args_ lib]
-    set cmd "xvlog [dict get $args_ argsPrefix] -work $lib $file [dict get $args_ argsSuffix]"
-    puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$file analysis failed with exit status $exitStatus"
-    }
-  }
-
-  proc analyzeSystemVerilog {file args_} {
-    set lib [dict get $args_ lib]
-    set cmd "xvlog -sv [dict get $args_ argsPrefix] -work $lib $file [dict get $args_ argsSuffix]"
+    set cmd "xvlog [dict get $args_ argsPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
@@ -2089,17 +2132,11 @@ namespace eval hbs::xsim {
     cd $hbs::targetDir
 
     dict for {file args} $hbs::xsim::hdlFiles {
-      switch [file extension $file] {
-        ".v" {
-          hbs::xsim::analyzeVerilog $file $args
-        }
-        ".sv" {
-          hbs::xsim::analyzeSystemVerilog $file $args
-        }
-        ".vhd" -
-        ".vhdl" {
-          hbs::xsim::analyzeVhdl $file $args
-        }
+      set ext [file extension $file]
+      if {[hbs::isVhdlExtension $ext]} {
+        hbs::xsim::analyzeVhdl $file $args
+      } elseif {[hbs::isVerilogExtension $ext]} {
+        hbs::xsim::analyzeVerilog $file $args
       }
     }
 
@@ -2236,31 +2273,28 @@ namespace eval hbs::questa {
 
   proc vhdlStd {} {
     switch $hbs::Std {
-      # 2019 is the default one
-      ""     { return "-2019" }
+      # 2008 is the default one
+      ""     { return "-2008" }
       "1987" { return "-87" }
       "1993" { return "-93" }
       "2000" { return "" }
       "2002" { return "-2002" }
       "2008" { return "-2008" }
       "2019" { return "-2019" }
-      default {
-        hbs::panic "invalid hbs::Std $hbs::Std for VHDL file"
-      }
     }
   }
 
-  proc svStd {} {
+  proc verilogStd {} {
     switch $hbs::Std {
-      ""     { return "" }
-      "2005" { return "-sv05compat" }
-      "2009" { return "-sv09compat" }
-      "2012" { return "-sv12compat" }
-      "2017" { return "-sv17compat" }
-      "2023" { return "-sv23compat" }
-      default {
-        hbs::panic "invalid hbs::Std $hbs::Std for SystemVerilog file"
-      }
+      # 2012 is the default one
+      ""     { return "-sv -sv12compat" }
+      "1995" { return "vlog95compat" }
+      "2001" { return "vlog01compat" }
+      "2005" { return "-sv -sv05compat" }
+      "2009" { return "-sv -sv09compat" }
+      "2012" { return "-sv -sv12compat" }
+      "2017" { return "-sv -sv17compat" }
+      "2023" { return "-sv -sv23compat" }
     }
   }
 
@@ -2289,11 +2323,19 @@ namespace eval hbs::questa {
     set lib [hbs::questa::library]
 
     set std ""
-    set extension [file extension $file]
-    if {$extension == ".vhd" || $extension == ".vhdl"} {
+    set ext [file extension $file]
+    if {[hbs::isVhdlExtension $ext]} {
+      set err [hbs::isValidVhdlStd $hbs::Std]
+      if {$err ne ""} {
+        hbs::panic "$file: $err"
+      }
       set std [hbs::questa::vhdlStd]
-    } elseif {$extension == ".sv"} {
-      set std [hbs::questa::svStd]
+    } elseif {[hbs::isVerilogExtension $ext]} {
+      set err [hbs::isValidVerilogStd $hbs::Std]
+      if {$err ne ""} {
+        hbs::panic "$file: $err"
+      }
+      set std [hbs::questa::verilogStd]
     }
 
     dict append hbs::questa::hdlFiles $file \
@@ -2314,18 +2356,7 @@ namespace eval hbs::questa {
   }
 
   proc analyzeVerilog {file args_} {
-    set lib [dict get $args_ lib]
-    set cmd "vlog [dict get $args_ argsPrefix] -work $lib $file [dict get $args_ argsSuffix]"
-    puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$file analysis failed with exit status $exitStatus"
-    }
-  }
-
-  proc analyzeSystemVerilog {file args_} {
-    set lib [dict get $args_ lib]
-    set cmd "vlog -sv [dict get $args_ argsPrefix] -work $lib $file [dict get $args_ argsSuffix]"
+    set cmd "vlog [dict get $args_ argsPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
     puts $cmd
     set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
     if {$exitStatus != 0} {
@@ -2340,17 +2371,11 @@ namespace eval hbs::questa {
     cd $hbs::targetDir
 
     dict for {file args} $hbs::questa::hdlFiles {
-      switch [file extension $file] {
-        ".v" {
-          hbs::questa::analyzeVerilog $file $args
-        }
-        ".sv" {
-          hbs::questa::analyzeSystemVerilog $file $args
-        }
-        ".vhd" -
-        ".vhdl" {
-          hbs::questa::analyzeVhdl $file $args
-        }
+      set ext [file extension $file]
+      if {[hbs::isVhdlExtension $ext]} {
+        hbs::questa::analyzeVhdl $file $args
+      } elseif {[hbs::isVerilogExtension $ext]} {
+        hbs::questa::analyzeVerilog $file $args
       }
     }
 

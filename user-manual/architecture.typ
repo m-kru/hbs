@@ -677,6 +677,39 @@ namespace eval core {
 This task is even more straightforward, as you can call an external generator program directly in the target procedure.
 
 
+== HDL default standard revisions
+
+There are numerous discrepancies between EDA tools in supporting various HDL standard revisions.
+For example:
+- the default standard revision might differ,
+- the minimum supported standard revision might differ,
+- the maximum supported standard revision might differ,
+- the set of supported standard revisions might vary.
+HBS tries to unify the default HDL standard revision in the least disruptive way.
+
+For VHDL, the default standard revision is 2008.
+The 2008 revision was a significant language modernization with numerous useful features being added.
+Moreover, it was widely adopted and is supported in all actively maintained EDA tools.
+
+For Verilog/SystemVerilog, the default standard revision is 2012.
+This revision probably has the widest adoption.
+Moreover, UVM was designed to work with revision 2012.
+Some tools come with the standard revision 2017 being the default one.
+However, most of them support only part of the things introduced in this revision.
+
+When you set standard revision (`hbs::SetStd` procedure) in your hbs files, it might turn out that a particular tool does not support this standard, even if the set revision is a valid revision for a given language.
+Two things might happen in this scenario.
++ If the tool does not support the standard revision you set and any higher standard revision, `hbs.tcl` will exit with an error.
+  An example error message is presented in the following snippet:
+  ```
+  core::target: hbs::ghdl::addVhdlFile: /home/user/workspace/hbs-tests/SetStd/ghdl-unsupported-std/abc.vhd: ghdl doesn't support VHDL standard '2019'
+  ```
++ If the tool supports any higher standard revision, the set standard revision will be automatically upgraded to the nearest standard supporting features present in the standard you set.
+  For example, you cannot enforce compatibility with SystemVerilog standard revisions 2005, 2009, and 2012 in Gowin.
+  However, Gowin claims support for SystemVerilog standard revision 2017.
+  In such a case, if you set the standard to 2005, 2009, or 2012, it will be automatically upgraded to 2017.
+
+
 == HBS environment variables
 
 HBS utilizes some environment variables.
