@@ -2353,19 +2353,17 @@ namespace eval hbs::questa {
 
   proc analyzeVhdl {file args_} {
     set cmd "vcom [dict get $args_ argsPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
-    puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$file analysis failed with exit status $exitStatus"
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "$file analysis failed with exit status $err"
     }
   }
 
   proc analyzeVerilog {file args_} {
     set cmd "vlog [dict get $args_ argsPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
-    puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$file analysis failed with exit status $exitStatus"
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "$file analysis failed with exit status $err"
     }
   }
 
@@ -2398,11 +2396,9 @@ namespace eval hbs::questa {
     }
 
     set cmd "vsim $hbs::ArgsPrefix [hbs::questa::genericArgs] $hbs::Top -c -stats -vcddump $hbs::Top.vcd -do $doFile $hbs::ArgsSuffix"
-    puts $cmd
-    if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
-      puts $output
-    } else {
-      hbs::panic $output
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "simulation failed with exit status $err"
     }
 
     cd $workDir
@@ -2424,9 +2420,11 @@ namespace eval hbs::questa {
   proc run {stage} {
     hbs::questa::checkStage $stage
 
-    set exitStatus [catch {eval exec -ignorestderr "which vsim"}]
-    if {$exitStatus != 0} {
-      hbs::panic "vsim not found, make sure it is in your PATH"
+    if {!$hbs::DryRun} {
+      set err [catch {eval exec -ignorestderr "which vsim"}]
+      if {$err} {
+        hbs::panic "vsim not found, make sure it is in your \$PATH"
+      }
     }
 
     # Analysis
