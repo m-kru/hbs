@@ -39,9 +39,10 @@ The command is executed by the `hbs` file, so Python is required for the command
 Moreover, you must have `graphviz` installed on your machine.
 
 The `graph` command requires information about cores in the JSON format.
-This implies that the user must execute the `dump-cores` or `run` command before generating a dependency graph.
+This implies that the user must execute the `dump-cores`, `run` or `dry-run` command before generating a dependency graph.
 However, this is not a major issue in practice.
 Dumping cores, even for large designs, does not take more than a few seconds, as the `dump-cores` command does not run the target tool flow.
+The `dry-run` command is also very fast, as it does not execute or evaluate any commands.
 
 The following figure presents an example dependency graph generated for VSC8211 (Ethernet PHY) chip tester design:
 #align(center)[
@@ -145,6 +146,83 @@ However, the user is free to carry out any action in the target being run.
 You can, for example, use targets for software recompilation.
 
 Running targets is described in @arch-running-targets, @arch-target-parameters, and @arch-target-context.
+
+
+== `dry-run` - running target without executing and evaluating commands
+
+The `dry-run` command runs a given target without executing and evaluating commands.
+It only prints the commands to the standard output for previewing the actions carried out by the target.
+
+In the dry run, the following things change compared to the actual run:
++ `hbs.tcl` does not bootstrap itself with a proper Tcl shell from the EDA tool.
++ Shell, or EDA Tcl commands, are not executed or evaluated.
+  They are only printed to the standard output.
+
+The `dry-run` command is useful in the following scenarios:
++ When you want to generate a dependency graph without running any tool flow.
+  Running targets including synthesis, or place and route, stages might be time-consuming.
+  A dry run allows for quickly dumping cores into `.json` file for further dependency graph generation.
++ When you debug your hbs files or the build flow.
+  The `dry-run` command allows for a quick preview of all commands that are executed or evaluated during the actual run.
++ When you want to generate a Tcl or shell script for building a project or running a simulation.
+  Executing the `dry-run` command is like taking a snapshot of your build procedure.
+  For example, you think you have found a bug in a simulator, and you would like to open an issue on GitHub.
+  The project maintainer requires you to provide an example for reproducing the bug.
+  However, the bug reproducing requires multiple files and shell commands to be executed.
+  You can't expect the simulator developer to utilize HBS as a build system.
+  To deliver shell commands for bug reproducing, you can simply copy the `dry-run` output.
++ For implementing HBS internal regression tests.
+
+=== Supporting dry runs in hbs files
+
+All the `hbs.tcl` internal code supports dry runs by default.
+However, if you want your hbs files to also support dry runs, you must obey some extra rules.
+You cannot directly call EDA Tcl custom commands.
+This is because `hbs.tcl` does not bootstrap itself with a proper Tcl shell from the EDA tool in the dry run.
+For example, let's assume you build a project using Vivado, and you have the following command in your hbs file:
+```tcl
+set_msg_config -suppress -id "Synth 8-6014" -string {{REPORT_PREFIX}}
+```
+The command will simply fail during the dry run with the following message:
+```
+invalid command name "set_msg_config"
+    while executing
+...
+```
+Your OS Tcl shell (`tclsh`) does not have the built-in `set_msg_config` command.
+This is a Vivado custom command.
+
+HBS provides three procedures supporting implementing dry run compatible user hbs files, the `hbs::Eval`, `hbs::Exec`, and `hbs::ExecInCoreDir`.
+The `hbs::Eval` procedure prints the command to the standard output and evaluates it only if the current run is not a dry run.
+All you have to do is to prepend EDA tool custom command with a call to the `hbs::Eval` procedure and pass your command with arguments as a string.
+The following snippet presents an example:
+```tcl
+hbs::Eval {set_msg_config -suppress -id "Synth 8-6014" -string {{REPORT_PREFIX}}}
+```
+The `hbs::Eval` procedure has a second optional argument, which allows for forcing command evaluation in the dry run.
+See `'hbs doc Eval'` for more information.
+
+The `hbs::Exec` and `hbs::ExecInCoreDir` procedures work analogously, but they execute commands instead of evaluating them.
+Moreover, they return the exit status, allowing you to check if commands succeed.
+Check `'hbs doc Exec'` and `'hbs doc ExecInCoreDir'` for more details.
+
+An alternative approach for writing dry-run-compatible hbs files is to explicitly execute some actions in your hbs files only if the current run is not a dry run.
+The following snippet presents an example:
+```tcl
+if {!$hbs::DryRun} {
+  set_msg_config -suppress -id "Synth 8-6014" -string {{REPORT_PREFIX}}
+}
+```
+If you use this technique, the output produced by the dry run will not create a valid script for building a project.
+However, this technique still allows for generating a dependency graph without running any tool flow.
+
+Writing hbs files compatible with dry runs adds some boilerplate.
+Not a lot, but still.
+Most projects do not require hbs files compatible with dry runs.
+If you implement a core that you want to share with others, then it is a good idea to assume they might require dry runs.
+However, if you implement a project only for yourself or the company you work for, then it is advised to write dry-run-compatible hbs files only if you know you will need dry runs.
+If it later turns out you were wrong, and you need dry runs, you can easily adjust your hbs files.
+Adapting dry run incompatible hbs files is quite simple, as dry runs simply fail with an error message when they encounter an unknown command.
 
 
 == `test` - running testbench targets

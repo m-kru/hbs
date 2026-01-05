@@ -764,27 +764,56 @@ namespace eval hbs {
     set hbs::postSynthCbs []
   }
 
-  # Evaluates Tcl 'exec' command with working directory changed to the core directory
+  # Prints command to the standard output and evaluates it using
+  # the standard `eval` command if hbs::DryRun is false.
+  #
+  # To force command evaluation in the dry run, set forceInDryRun to true.
+  proc Eval {cmd {forceInDryRun 0}} {
+    puts $cmd
+    if {!$hbs::DryRun || $forceInDryRun} {
+      return [eval $cmd]
+    }
+  }
+
+  # Prints command to the standard output and executes it using
+  # the standard `exec` command if hbs::DryRun is false.
+  #
+  # To force command execution in the dry run, set forceInDryRun to true.
+  #
+  # The proc returns catched exit status.
+  proc Exec {cmd {forceInDryRun 0}} {
+    puts $cmd
+    if {$hbs::DryRun && !$forceInDryRun} {
+      return 0
+    }
+
+    set err [catch { eval exec -ignorestderr $cmd }]
+    return $err
+  }
+
+  # Prints command to the standard output and executes it using the standard 'exec'
+  # if hbs::DryRun is false in the working directory changed to the core directory
   # (the directory in which .hbs file with given core is defined).
   # After the 'exec' the working directory is restored.
-  proc ExecInCoreDir {args} {
+  #
+  # To force command execution in the dry run, set forceInDryRun to true.
+  #
+  # The proc returns catched exit status.
+  proc ExecInCoreDir {cmd {forceInDryRun 0}} {
+    puts $cmd
+    if {$hbs::DryRun && !$forceInDryRun} {
+      return 0
+    }
+
     set workDir [pwd]
 
     set hbsFileDir [file dirname [dict get $hbs::cores ::hbs::$hbs::ThisCorePath file]]
     cd $hbsFileDir
 
-    exec {*}$args
+    set err [catch { eval exec -ignorestderr $cmd }]
 
     cd $workDir
-  }
-
-  # Prints command to the standard output and evaluates it using
-  # the standard `eval` command if hbs::DryRun is false.
-  proc Eval {cmd} {
-    puts $cmd
-    if {!$hbs::DryRun} {
-      eval $cmd
-    }
+    return $err
   }
 
   # Returns directory of file in which current core is defined.
@@ -1319,10 +1348,9 @@ namespace eval hbs::ghdl {
       }
 
       set cmd "ghdl -a [dict get $args argsPrefix] --std=[dict get $args std] $hbs::ghdl::libs --work=$lib --workdir=$lib [dict get $args argsSuffix] $file"
-      puts $cmd
-      set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-      if {$exitStatus != 0} {
-        hbs::panic "$file analysis failed with exit status $exitStatus"
+      set err [hbs::Exec $cmd]
+      if {$err} {
+        hbs::panic "$file analysis failed with exit status $err"
       }
     }
 
@@ -1334,10 +1362,9 @@ namespace eval hbs::ghdl {
     cd $hbs::targetDir
 
     set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::std] --workdir=work $hbs::ghdl::libs $hbs::ArgsSuffix $hbs::Top"
-    puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$hbs::Top elaboration failed with exit status $exitStatus"
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "$hbs::Top elaboration failed with exit status $err"
     }
 
     cd $workDir
@@ -1348,11 +1375,9 @@ namespace eval hbs::ghdl {
     cd $hbs::targetDir
 
     set cmd "./$hbs::Top $hbs::ArgsPrefix --wave=$hbs::Top.ghw [hbs::ghdl::genericArgs] --assert-level=$hbs::ExitSeverity $hbs::ArgsSuffix"
-    puts $cmd
-    if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
-      puts $output
-    } else {
-      hbs::panic $output
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "simulation failed with exit status $err"
     }
 
     cd $workDir
@@ -1692,13 +1717,9 @@ namespace eval hbs::nvc {
     dict for {file args} $hbs::nvc::vhdlFiles {
       set lib [dict get $args lib]
       set cmd "nvc [dict get $args argsPrefix] --std=$hbs::nvc::std $hbs::nvc::libs --work=$lib -a $file [dict get $args argsSuffix]"
-      puts $cmd
-
-      if {!$hbs::DryRun} {
-        set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-        if {$exitStatus != 0} {
-          hbs::panic "$file analysis failed with exit status $exitStatus"
-        }
+      set err [hbs::Exec $cmd]
+      if {$err} {
+        hbs::panic "$file analysis failed with exit status $err"
       }
     }
 
@@ -1710,13 +1731,9 @@ namespace eval hbs::nvc {
     cd $hbs::targetDir
 
     set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
-    puts $cmd
-
-    if {!$hbs::DryRun} {
-      set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-      if {$exitStatus != 0} {
-        hbs::panic "$hbs::Top elaboration failed with exit status $exitStatus"
-      }
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "$hbs::Top elaboration failed with exit status $err"
     }
 
     cd $workDir
@@ -1727,14 +1744,9 @@ namespace eval hbs::nvc {
     cd $hbs::targetDir
 
     set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -r $hbs::Top --wave --exit-severity=$hbs::ExitSeverity $hbs::ArgsSuffix"
-    puts $cmd
-
-    if {!$hbs::DryRun} {
-      if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
-        puts $output
-      } else {
-        hbs::panic $output
-      }
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "simulation failed with exit status $err"
     }
 
     cd $workDir
@@ -1955,11 +1967,9 @@ namespace eval hbs::vivado-prj {
     hbs::evalPreSynthCbs
     hbs::Eval "launch_runs $hbs::ArgsPrefix synth_1 $hbs::ArgsSuffix"
     hbs::Eval "wait_on_run synth_1"
-    if {!$hbs::DryRun} {
-      if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
-        error "ERROR: synth_1 failed"
-      }
-    }
+    hbs::Eval {if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
+  error "ERROR: synth_1 failed"
+}}
     hbs::evalPostSynthCbs
     if {$stage == "synthesis"} { return }
 
@@ -1969,11 +1979,9 @@ namespace eval hbs::vivado-prj {
     hbs::evalPreImplCbs
     hbs::Eval "launch_runs $hbs::ArgsPrefix impl_1 $hbs::ArgsSuffix"
     hbs::Eval "wait_on_run impl_1"
-    if {!$hbs::DryRun} {
-      if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
-        error "ERROR: impl_1 failed"
-      }
-    }
+    hbs::Eval {if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
+  error "ERROR: impl_1 failed"
+}}
     hbs::evalPostImplCbs
     if {$stage == "implementation"} { return }
 
@@ -2496,7 +2504,12 @@ if {$argv0 eq [info script]} {
       set corePath [lindex $argv 1]
       hbs::listTargets $corePath
     }
-    "run" {
+    "run"     -
+    "dry-run" {
+      if {$hbs::cmd eq "dry-run"} {
+        set hbs::DryRun 1
+      }
+
       set hbs::TopTargetPath [lindex $argv 1]
       set hbs::TopTargetArgs [lreplace $argv 0 1]
 

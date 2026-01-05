@@ -35,6 +35,7 @@ The command is one of:
   list-targets  List targets
   list-tb       List testbench targets
   run           Run given target
+  dyr-run       Run given target without executing and evaluating commands
   test          Run testbench targets
   version       Print hbs version
   whereis       Print where given cores are defined
@@ -569,11 +570,11 @@ elif cmd == "list-cores":
     list_cores(sys.argv[2:])
 elif cmd == "list-targets":
     list_targets(sys.argv[2:])
-elif cmd == "run":
+elif cmd == "run" or cmd == "dry-run" :
     if len(sys.argv) < 3:
-        error("run command requires at least target path")
+        error(f"{cmd} command requires at least target path")
     status = subprocess.run(
-        [os.path.join(this_script_dir, 'hbs.tcl'), 'run', *sys.argv[2:]]
+        [os.path.join(this_script_dir, 'hbs.tcl'), cmd, *sys.argv[2:]]
     )
     exit(status.returncode)
 elif cmd == "test":
