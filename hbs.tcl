@@ -1392,7 +1392,7 @@ namespace eval hbs::ghdl {
         ;
       }
       default {
-        hbs::panic "invalid stage '$stage', valid ghdl stages are: analysis, elaboration and simulation"
+        hbs::panic "invalid stage '$stage', valid ghdl stages are: 'analysis', 'elaboration', 'simulation'"
       }
     }
   }
@@ -1592,7 +1592,7 @@ namespace eval hbs::gowin {
         ;
       }
       default {
-        hbs::panic "invalid stage '$stage', valid gowin stages are: project, synthesis, implementation"
+        hbs::panic "invalid stage '$stage', valid gowin stages are: 'project', 'synthesis', 'implementation'"
       }
     }
   }
@@ -1761,7 +1761,7 @@ namespace eval hbs::nvc {
         ;
       }
       default {
-        hbs::panic "invalid stage '$stage', valid nvc stages are: analysis, elaboration and simulation"
+        hbs::panic "invalid stage '$stage', valid nvc stages are: 'analysis', 'elaboration', 'simulation'"
       }
     }
   }
@@ -1936,7 +1936,7 @@ namespace eval hbs::vivado-prj {
         ;
       }
       default {
-        hbs::panic "invalid stage '$stage', valid vivado-prj stages are: project, synthesis, implementation and bitstream"
+        hbs::panic "invalid stage '$stage', valid vivado-prj stages are: 'project', 'synthesis', 'implementation', 'bitstream'"
       }
     }
   }
@@ -2064,8 +2064,8 @@ namespace eval hbs::xsim {
     }
   }
 
-  proc verilogStd {} {
-    switch $hbs::Std {
+  proc verilogStd {std} {
+    switch $std {
       # SystemVerilog is the default one
       ""     { return "-sv" }
       "1995" -
@@ -2117,19 +2117,17 @@ namespace eval hbs::xsim {
 
   proc analyzeVhdl {file args_} {
     set cmd "xvhdl [dict get $args_ argsPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
-    puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$file analysis failed with exit status $exitStatus"
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "$file analysis failed with exit status $err"
     }
   }
 
   proc analyzeVerilog {file args_} {
     set cmd "xvlog [dict get $args_ argsPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
-    puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$file analysis failed with exit status $exitStatus"
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "$file analysis failed with exit status $err"
     }
   }
 
@@ -2156,10 +2154,9 @@ namespace eval hbs::xsim {
     cd $hbs::targetDir
 
     set cmd "xelab $hbs::ArgsPrefix -debug all [hbs::xsim::genericArgs] $hbs::Top $hbs::ArgsSuffix"
-    puts $cmd
-    set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-    if {$exitStatus != 0} {
-      hbs::panic "$hbs::Top elaboration failed with exit status $exitStatus"
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "$hbs::Top elaboration failed with exit status $err"
     }
 
     cd $workDir
@@ -2176,11 +2173,9 @@ namespace eval hbs::xsim {
     }
 
     set cmd "xsim $hbs::ArgsPrefix -stats -onerror quit -tclbatch $batchFile $hbs::Top $hbs::ArgsSuffix"
-    puts $cmd
-    if {[catch {eval exec -ignorestderr $cmd} output] eq 0} {
-      puts $output
-    } else {
-      hbs::panic $output
+    set err [hbs::Exec $cmd]
+    if {$err} {
+      hbs::panic "simulation failed with exit status $err"
     }
 
     cd $workDir
@@ -2195,7 +2190,7 @@ namespace eval hbs::xsim {
         ;
       }
       default {
-        hbs::panic "invalid stage '$stage', valid xsim stages are: analysis, elaboration and simulation"
+        hbs::panic "invalid stage '$stage', valid xsim stages are: 'analysis', 'elaboration', 'simulation'"
       }
     }
   }
@@ -2203,9 +2198,11 @@ namespace eval hbs::xsim {
   proc run {stage} {
     hbs::xsim::checkStage $stage
 
-    set exitStatus [catch {eval exec -ignorestderr "which xsim"}]
-    if {$exitStatus != 0} {
-      hbs::panic "xsim not found, probably vivado settings script is not sourced"
+    if {!$hbs::DryRun} {
+      set err [catch {eval exec -ignorestderr "which xsim"}]
+      if {$err} {
+        hbs::panic "xsim not found, probably vivado settings script is not sourced"
+      }
     }
 
     # Analysis
@@ -2419,7 +2416,7 @@ namespace eval hbs::questa {
         ;
       }
       default {
-        hbs::panic "invalid stage '$stage', valid questa stages are: analysis and simulation"
+        hbs::panic "invalid stage '$stage', valid questa stages are: 'analysis', 'simulation'"
       }
     }
   }
