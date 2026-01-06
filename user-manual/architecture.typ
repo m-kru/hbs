@@ -208,6 +208,15 @@ Arguments provided to the `hbs::AddFileIgnoreRegex` proc are treated as regular 
 This allows for ignoring multiple paths using a single regex.
 However, you are free to provide multiple ignore regex, and all of them will be checked while sourcing hbs files.
 
+=== Explicitly sourcing hbs files
+
+Sometimes there might be a need to explicitly source an hbs file.
+For example, when you generate core code and would like also to generate the hbs file for the core.
+HBS automatically searches for hbs files only when `hbs.tcl` file starts running.
+If you generate code within hbs files, the newly generated hbs file will not be automatically discovered.
+However, you can easily source the newly generated hbs file.
+Simply use the Tcl built-in `source` command.
+
 
 == Targets and targets detection
 
