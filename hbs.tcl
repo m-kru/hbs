@@ -120,6 +120,9 @@ namespace eval hbs {
   # Formats and prints debug message to the standard error
   # if HBS_DEBUG environment variable is set.
   #
+  # The printed message is always prefixed with the path of the procedure
+  # in which hbs::Debug is called.
+  #
   # Usage:
   #  hbs::Debug ?-nonewline? msg
   proc Debug {args} {

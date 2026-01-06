@@ -731,6 +731,23 @@ Do not set or unset this variable manually.
 The variable is required because `hbs.tcl` sometimes must bootstrap itself.
 For example, if `hbs::Tool` is set to `"vivado-prj"`, but `hbs.tcl` was run with the OS Tcl shell (`tclsh`), then `hbs.tcl` must bootstrap itself with the Tcl shell embedded in the Vivado.
 
+=== HBS\_DEBUG - debugging build flow
+
+By setting the `HBS_DEBUG` environment variable, you can enable debug messages.
+Debug messages are printed to the standard error.
+This means that you can enable debug messages in dry runs and still be able to redirect debug messages and tool commands independently.
+
+You can extend debug messages with custom messages from your hbs files.
+There is `hbs::Debug` procedure which you can use for conditionally printing messages when the `HBS_DEBUG` environment variable is set.
+Messages printed with the `hbs::Debug` are always prefixed with the path of the procedure in which `hbs::Debug` is called.
+See `'hbs doc Debug'` for more details.
+
+If you need a more advanced logging mechanism with multiple levels, you can implement it on top of `hbs::Debug`.
+Alternatively, you can implement a custom logging mechanism.
+To check if the `HBS_DEBUG` environment variable is set you can check the value of the `hbs::DebugEnvSet` variable instead of calling `[info exists ::env(HBS_DEBUG)]`.
+HBS is not planned to natively support multi-level logging mechanism.
+The dry runs and `HBS_DEBUG` are probably more than enough for debugging build flows.
+
 === HBS\_TOOL - enforcing tool <hbs-tool>
 
 By setting the `HBS_TOOL` environment variable, you can enforce the value of the `hbs::Tool`.
