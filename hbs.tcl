@@ -1615,8 +1615,7 @@ namespace eval hbs::gowin {
 
     hbs::Eval "set err \[catch {eval \"::run $hbs::ArgsPrefix syn $hbs::ArgsSuffix\"} errMsg\]
 if {\$err} {
-  puts \$errMsg
-  exit 1
+  error \$errMsg
 }"
 
 
@@ -1629,8 +1628,7 @@ if {\$err} {
     hbs::evalPreImplCbs
     hbs::Eval "set err \[catch {eval \"::run $hbs::ArgsPrefix pnr $hbs::ArgsSuffix\"} errMsg\]
 if {\$err} {
-  puts \$errMsg
-  exit 1
+  error \$errMsg
 }"
     hbs::evalPostImplCbs
   }
@@ -1958,7 +1956,7 @@ namespace eval hbs::vivado-prj {
     hbs::Eval "launch_runs $hbs::ArgsPrefix synth_1 $hbs::ArgsSuffix"
     hbs::Eval "wait_on_run synth_1"
     hbs::Eval {if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
-  error "ERROR: synth_1 failed"
+  error "synth_1 failed"
 }}
     hbs::evalPostSynthCbs
     if {$stage == "synthesis"} { return }
@@ -1970,7 +1968,7 @@ namespace eval hbs::vivado-prj {
     hbs::Eval "launch_runs $hbs::ArgsPrefix impl_1 $hbs::ArgsSuffix"
     hbs::Eval "wait_on_run impl_1"
     hbs::Eval {if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
-  error "ERROR: impl_1 failed"
+  error "impl_1 failed"
 }}
     hbs::evalPostImplCbs
     if {$stage == "implementation"} { return }
