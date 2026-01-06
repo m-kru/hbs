@@ -6,6 +6,9 @@
 
 # Public API
 namespace eval hbs {
+  # True (1) if the HBS_DEBUG environment variable is set.
+  set DebugEnvSet 0
+
   # True (1) if tool is run in the dry mode.
   #
   # In the dry run the following things change:
@@ -114,6 +117,37 @@ namespace eval hbs {
   # See also 'hbs doc AddFileIgnoreRegex'.
   set FileIgnoreRegexes {}
 
+  # Formats and prints debug message to the standard error
+  # if HBS_DEBUG environment variable is set.
+  #
+  # Usage:
+  #  hbs::Debug ?-nonewline? msg
+  proc Debug {args} {
+    if {!$hbs::DebugEnvSet} { return }
+
+    set newline 1
+
+    if {[llength $args] == 0} {
+      error "wrong # args: should be \"hbs::Debug ?-nonewline? msg\""
+    }
+
+    if {[lindex $args 0] eq "-nonewline"} {
+      set newline 0
+      set args [lrange $args 1 end]
+    }
+
+    if {[llength $args] != 1} {
+      error "wrong # args: should be \"hbs::Debug ?-nonewline? msg\""
+    }
+
+    set msg "[lindex [info level -1] 0]: [lindex $args 0]"
+    if {$newline} {
+      puts stderr $msg
+    } else {
+      puts -nonewline stderr $msg
+    }
+  }
+
   # Sets build directory.
   # The default build directory is named 'build'.
   #
@@ -129,9 +163,11 @@ namespace eval hbs {
   # using the HBS_BUILD_DIR environment variable.
   proc SetBuildDir {path} {
     if {$hbs::BuildDirEnvSet} {
+      hbs::Debug "ignoring setting build directory  to '$path', build directory was enforced to '$hbs::BuildDir' via HBS_BUILD_DIR environment variable"
       return
     }
 
+    hbs::Debug "setting build directory to '$path'"
     set hbs::BuildDir $path
   }
 
@@ -140,6 +176,7 @@ namespace eval hbs {
   # To get the name of currently set Device simply
   # read the value of hbs::Device variable.
   proc SetDevice {dev} {
+    hbs::Debug "setting device to '$dev'"
     set hbs::Device $dev
   }
 
@@ -154,12 +191,13 @@ namespace eval hbs {
   #   hbs::AddFile entity.vhd
   proc SetLib {lib} {
     if {[string index $lib 0] == "_"} {
-      hbs::panic "invalid library name '$lib', library name can't start with '_' character"
+      hbs::panic "invalid library name '$lib', library name cannot start with '_' character"
     }
     if {[hbs::stringHasUTF $lib] == 1} {
-      hbs::panic "invalid library name '$lib', library name can't have UTF characters"
+      hbs::panic "invalid library name '$lib', library name cannot have UTF characters"
     }
 
+    hbs::Debug "setting library to '$lib'"
     set hbs::Lib $lib
   }
 
@@ -177,6 +215,7 @@ namespace eval hbs {
   # using the HBS_STD environment variable.
   proc SetStd {std} {
     if {$hbs::StdEnvSet} {
+      hbs::Debug "ignoring setting standard to '$std', standard was enforced to '$hbs::Std' via HBS_STD environment variable"
       return
     }
 
@@ -185,41 +224,8 @@ namespace eval hbs {
       hbs::panic $err
     }
 
+    hbs::Debug "setting standard to '$std'"
     set hbs::Std $std
-  }
-
-  proc isValidVhdlStd {std} {
-    switch $std {
-      ""     -
-      "1987" -
-      "1993" -
-      "2000" -
-      "2002" -
-      "2008" -
-      "2019" { return "" }
-    }
-    return "invalid VHDL standard '$std', valid standards are: '1987', '1993', '2000', '2002' '2008', '2019'"
-  }
-
-  proc isValidVerilogStd {std} {
-    switch $std {
-      ""     -
-      "1995" -
-      "2001" -
-      "2005" -
-      "2009" -
-      "2012" -
-      "2017" -
-      "2023" { return "" }
-    }
-    return "invalid Verilog/SystemVerilog standard '$std', valid standards are: '1995', '2001', '2005', '2009' '2012', '2017', '2023'"
-  }
-
-  proc isValidStd {std} {
-    if {[hbs::isValidVhdlStd $std] eq "" || [hbs::isValidVerilogStd $std] eq ""} {
-      return ""
-    }
-    return "invalid VHDL and Verilog/SystemVerilog standard '$std'"
   }
 
   # Sets name of the top entity/module.
@@ -227,6 +233,7 @@ namespace eval hbs {
   # To get the name of currently set Top simply
   # read the value of hbs::Top variable.
   proc SetTop {top} {
+    hbs::Debug "setting top to '$top'"
     set hbs::Top $top
   }
 
@@ -240,21 +247,8 @@ namespace eval hbs {
       hbs::panic "$err"
     }
 
+    hbs::Debug "setting exit severity to '$sev'"
     set hbs::ExitSeverity $sev
-  }
-
-  proc invalidExitSeverityMsg {sev} {
-    return "invalid exit severity '$sev', valid exit severities are: 'note', 'warning', 'error', 'failure'"
-  }
-
-  proc isValidExitSeverity {sev} {
-    switch $sev {
-      "note"    -
-      "warning" -
-      "error"   -
-      "failure" { return "" }
-    }
-    return [hbs::invalidExitSeverityMsg $sev]
   }
 
   # Sets arguments prefix string.
@@ -320,10 +314,13 @@ namespace eval hbs {
       hbs::panic "$err"
     }
 
-    if {!$hbs::ToolEnvSet} {
+    if {$hbs::ToolEnvSet} {
+      hbs::Debug "ignoring setting tool to '$tool', tool was enforced to '$hbs::Tool' via HBS_TOOL environment variable"
+    } else {
       if {$hbs::Tool ne ""} {
-        hbs::panic "can't set tool to '$tool', tool already set to '$hbs::Tool'"
+        hbs::panic "cannot set tool to '$tool', tool already set to '$hbs::Tool'"
       }
+      hbs::Debug "setting tool to '$tool'"
       set hbs::Tool $tool
     }
 
@@ -335,22 +332,6 @@ namespace eval hbs {
       "vivado-prj" { hbs::vivado-prj::setTool }
       "xsim"       { ; }
       default      { hbs::panic "[unknownToolMsg $tool]" }
-    }
-  }
-
-  proc invalidToolMsg {tool} {
-    return "invalid tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'questa', 'vivado-prj' \(project mode\), 'xsim'"
-  }
-
-  proc isValidTool {tool} {
-    switch $tool {
-      "ghdl"       -
-      "gowin"      -
-      "nvc"        -
-      "questa"     -
-      "vivado-prj" -
-      "xsim"       { return "" }
-      default      { return [hbs::invalidToolMsg $tool] }
     }
   }
 
@@ -389,16 +370,15 @@ namespace eval hbs {
     set core [uplevel 1 [list namespace current]]
 
     if {[dict exists $hbs::cores $core]} {
-      hbs::panic "can't register core '[string replace $core 0 6 ""]' in $file, core with the same path already registered in [dict get $hbs::cores $core file]"
+      hbs::panic "cannot register core '[string replace $core 0 6 ""]' in $file, core with the same path already registered in [dict get $hbs::cores $core file]"
     }
 
     set targets [uplevel 1 [list info procs]]
-    if {$hbs::debug} {
-      puts stderr "hbs::Register: registering core [string replace $core 0 6 ""] with following [llength $targets] targets:"
-      foreach target $targets {
-        puts stderr "  $target"
-      }
+    set msg "hbs::Register: registering core [string replace $core 0 6 ""] with following [llength $targets] targets: "
+    if {[llength $targets] > 0} {
+      append msg [join [lmap t $targets { concat "'$t'" }] ", "]
     }
+    hbs::Debug $msg
 
     set targetsDict [dict create]
     foreach target $targets {
@@ -512,7 +492,7 @@ namespace eval hbs {
       "vivado-prj" { hbs::vivado-prj::addFile $files }
       "xsim"       { hbs::xsim::addFile $files }
       "" {
-        hbs::panic "can't add file $file, hbs::Tool not set"
+        hbs::panic "cannot add file $file, hbs::Tool not set"
       }
       default {
         hbs::panic "uknown tool $hbs::Tool"
@@ -599,9 +579,11 @@ namespace eval hbs {
   # For example, Vivado for setting Verilog parameters also uses the term
   # generic, https://support.xilinx.com/s/article/52217?language=en_US.
   proc SetGeneric {name value} {
+    hbs::Debug "setting generic '$name' to '$value'"
+
     switch $hbs::Tool {
       "" {
-        hbs::panic "can't set generic '$name', hbs::Tool not set"
+        hbs::panic "cannnot set generic '$name', hbs::Tool not set"
       }
       "ghdl" {
         dict append hbs::ghdl::generics $name $value
@@ -828,31 +810,9 @@ namespace eval hbs {
   # Multiple regexes can be separated with space.
   proc AddFileIgnoreRegex {args} {
     foreach reg $args {
-      hbs::dbg "adding ignore regex $reg"
+      hbs::Debug "adding file ignore regex '$reg'"
       lappend hbs::FileIgnoreRegexes $reg
     }
-  }
-
-  # Returns true (1) if ext is recognized as Verilog/SystemVerilog file extension.
-  proc isVerilogExtension {ext} {
-    switch $ext {
-      ".v"       -
-      ".vh"      -
-      ".vlg"     -
-      ".verilog" -
-      ".sv"      -
-      ".svh"     { return 1 }
-    }
-    return 0
-  }
-
-  # Returns true (1) if ext is recognized as VHDL file extension.
-  proc isVhdlExtension {ext} {
-    switch $ext {
-      ".vhd"  -
-      ".vhdl" { return 1 }
-    }
-    return 0
   }
 }
 
@@ -860,16 +820,8 @@ namespace eval hbs {
 #
 # Only use this API directly in user hbs files if you _really_ know what you are doing.
 namespace eval hbs {
-  set debug 0
-
   # The command provided to the hbs from the command line.
   set cmd ""
-
-  # Formats and prints debug message if hbs::debug is not 0.
-  proc dbg {msg} {
-    if {$hbs::debug == 0} { return }
-    puts stderr "[lindex [info level -1] 0]: $msg"
-  }
 
   proc panic {msg} {
     set prefix ""
@@ -922,28 +874,26 @@ namespace eval hbs {
   set runTargets [dict create]
 
   proc init {} {
-    set hbs::fileList [findFiles . *.hbs]
-    hbs::sortFileList
-
-    if {$hbs::debug} {
-      puts stderr "hbs::init: found [llength $hbs::fileList] hbs files:"
-      foreach fileName $hbs::fileList {
-        puts "  $fileName"
-      }
+    # Handle HBS_DEBUG environment variable.
+    if {[info exists ::env(HBS_DEBUG)]} {
+      set hbs::DebugEnvSet 1
     }
 
     # Handle HBS_BUILD_DIR environment variable.
     if {[info exists ::env(HBS_BUILD_DIR)]} {
+      set buildDir $::env(HBS_BUILD_DIR)
+      hbs::Debug "HBS_BUILD_DIR environment variable discovered, enforcing build directory '$buildDir'"
       set hbs::BuildDirEnvSet 1
-      set hbs::BuildDir $::env(HBS_BUILD_DIR)
+      set hbs::BuildDir $buildDir
     }
 
     # Handle HBS_STD environment variable.
     if {[info exists ::env(HBS_STD)]} {
       set std $::env(HBS_STD)
+      hbs::Debug "HBS_STD environment variable discovered, enforcing standard '$std'"
       set err [hbs::isValidStd $std]
       if {$err ne ""} {
-        hbs::panic "can't set standard from HBS_STD environment variable: $err"
+        hbs::panic "cannot set standard from HBS_STD environment variable: $err"
       }
       set hbs::StdEnvSet 1
       set hbs::Std $std
@@ -952,20 +902,29 @@ namespace eval hbs {
     # Handle HBS_TOOL environment variable.
     if {[info exists ::env(HBS_TOOL)]} {
       set tool $::env(HBS_TOOL)
+      hbs::Debug "HBS_TOOL environment variable discovered, enforcing tool '$tool'"
       set err [isValidTool $tool]
       if {$err ne ""} {
-        hbs::panic "can't set tool from HBS_TOOL environment variable: $err"
+        hbs::panic "cannot set tool from HBS_TOOL environment variable: $err"
       }
       set hbs::ToolEnvSet 1
       set hbs::Tool $tool
+    }
+
+    set hbs::fileList [findFiles . *.hbs]
+    hbs::sortFileList
+
+    hbs::Debug "found following [llength $hbs::fileList] hbs files:"
+    foreach fileName $hbs::fileList {
+      hbs::Debug "  $fileName"
     }
 
     foreach fileName $hbs::fileList {
       set ignore 0
       foreach reg $hbs::FileIgnoreRegexes {
         if {[regexp $reg $fileName]} {
-            set ignore 1
-            break
+          set ignore 1
+          break
         }
       }
       if {$ignore} {
@@ -1235,6 +1194,92 @@ namespace eval hbs {
     }
     return 0
   }
+
+  proc isValidVhdlStd {std} {
+    switch $std {
+      ""     -
+      "1987" -
+      "1993" -
+      "2000" -
+      "2002" -
+      "2008" -
+      "2019" { return "" }
+    }
+    return "invalid VHDL standard '$std', valid standards are: '1987', '1993', '2000', '2002' '2008', '2019'"
+  }
+
+  proc isValidVerilogStd {std} {
+    switch $std {
+      ""     -
+      "1995" -
+      "2001" -
+      "2005" -
+      "2009" -
+      "2012" -
+      "2017" -
+      "2023" { return "" }
+    }
+    return "invalid Verilog/SystemVerilog standard '$std', valid standards are: '1995', '2001', '2005', '2009' '2012', '2017', '2023'"
+  }
+
+  proc isValidStd {std} {
+    if {[hbs::isValidVhdlStd $std] eq "" || [hbs::isValidVerilogStd $std] eq ""} {
+      return ""
+    }
+    return "invalid VHDL and Verilog/SystemVerilog standard '$std'"
+  }
+
+  proc invalidExitSeverityMsg {sev} {
+    return "invalid exit severity '$sev', valid exit severities are: 'note', 'warning', 'error', 'failure'"
+  }
+
+  proc isValidExitSeverity {sev} {
+    switch $sev {
+      "note"    -
+      "warning" -
+      "error"   -
+      "failure" { return "" }
+    }
+    return [hbs::invalidExitSeverityMsg $sev]
+  }
+
+  proc invalidToolMsg {tool} {
+    return "invalid tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'questa', 'vivado-prj' \(project mode\), 'xsim'"
+  }
+
+  proc isValidTool {tool} {
+    switch $tool {
+      "ghdl"       -
+      "gowin"      -
+      "nvc"        -
+      "questa"     -
+      "vivado-prj" -
+      "xsim"       { return "" }
+      default      { return [hbs::invalidToolMsg $tool] }
+    }
+  }
+
+  # Returns true (1) if ext is recognized as Verilog/SystemVerilog file extension.
+  proc isVerilogExtension {ext} {
+    switch $ext {
+      ".v"       -
+      ".vh"      -
+      ".vlg"     -
+      ".verilog" -
+      ".sv"      -
+      ".svh"     { return 1 }
+    }
+    return 0
+  }
+
+  # Returns true (1) if ext is recognized as VHDL file extension.
+  proc isVhdlExtension {ext} {
+    switch $ext {
+      ".vhd"  -
+      ".vhdl" { return 1 }
+    }
+    return 0
+  }
 }
 
 # GHDL simulator
@@ -1315,7 +1360,7 @@ namespace eval hbs::ghdl {
   }
 
   proc addVhdlFile {file} {
-    hbs::dbg "adding file $file"
+    hbs::Debug "adding file $file"
 
     set err [hbs::isValidVhdlStd $hbs::Std]
     if {$err ne ""} {
@@ -1337,7 +1382,7 @@ namespace eval hbs::ghdl {
   }
 
   proc analyze {} {
-    hbs::dbg "starting files analysis"
+    hbs::Debug "starting files analysis"
 
     set workDir [pwd]
     cd $hbs::targetDir
@@ -1461,13 +1506,13 @@ namespace eval hbs::gowin {
     if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
       # gw_sh already runs the script
 
-      hbs::dbg "creating gowin project"
+      hbs::Debug "creating gowin project"
       hbs::Eval $create_prj_cmd
 
       # Set target directory for later use.
       set hbs::targetDir [file join $hbs::BuildDir $prjName]
 
-      hbs::dbg "gowin project created successfully"
+      hbs::Debug "gowin project created successfully"
     } else {
       # Run the script with gw_sh
       set ::env(HBS_TOOL_BOOTSTRAP) 1
@@ -1486,7 +1531,7 @@ namespace eval hbs::gowin {
 
   proc addFile {files} {
     foreach file $files {
-      hbs::dbg "adding file $file"
+      hbs::Debug "adding file $file"
 
       set extension [file extension $file]
       switch $extension {
@@ -1680,7 +1725,7 @@ namespace eval hbs::nvc {
   }
 
   proc addVhdlFile {file} {
-    hbs::dbg "adding file $file"
+    hbs::Debug "adding file $file"
 
     set err [hbs::isValidVhdlStd $hbs::Std]
     if {$err ne ""} {
@@ -1697,7 +1742,7 @@ namespace eval hbs::nvc {
   }
 
   proc analyze {} {
-    hbs::dbg "starting files analysis"
+    hbs::Debug "starting files analysis"
 
     set workDir [pwd]
     cd $hbs::targetDir
@@ -1811,9 +1856,9 @@ namespace eval hbs::vivado-prj {
       # Vivado already runs the script
       set hbs::Tool "vivado-prj"
 
-      hbs::dbg "creating vivado project"
+      hbs::Debug "creating vivado project"
       hbs::Eval $create_prj_cmd
-      hbs::dbg "vivado project created successfully"
+      hbs::Debug "vivado project created successfully"
     } else {
       # Run the script with Vivado
       set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
@@ -1839,7 +1884,7 @@ namespace eval hbs::vivado-prj {
 
   proc addFile {files} {
     foreach file $files {
-      hbs::dbg "adding file $file"
+      hbs::Debug "adding file $file"
 
       set extension [file extension $file]
       switch $extension {
@@ -2075,7 +2120,7 @@ namespace eval hbs::xsim {
   }
 
   proc addHdlFile {file} {
-    hbs::dbg "adding file $file"
+    hbs::Debug "adding file $file"
 
     set lib [hbs::xsim::library]
 
@@ -2120,7 +2165,7 @@ namespace eval hbs::xsim {
   }
 
   proc analyze {} {
-    hbs::dbg "starting files analysis"
+    hbs::Debug "starting files analysis"
 
     set workDir [pwd]
     cd $hbs::targetDir
@@ -2311,7 +2356,7 @@ namespace eval hbs::questa {
   }
 
   proc addHdlFile {file} {
-    hbs::dbg "adding file $file"
+    hbs::Debug "adding file $file"
 
     set lib [hbs::questa::library]
 
@@ -2356,7 +2401,7 @@ namespace eval hbs::questa {
   }
 
   proc analyze {} {
-    hbs::dbg "starting files analysis"
+    hbs::Debug "starting files analysis"
 
     set workDir [pwd]
     cd $hbs::targetDir

@@ -24,6 +24,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 
 - `dry-run` command for dry run and previewing commands.
 - Questa simulator support.
+- `HBS_DEBUG` environment variable for debugging prints.
 - `HBS_BUILD_DIR` environment variable for enforcing build directory.
 - `HBS_TOOL` environment variable for enforcing tool.
 - `HBS_STD` environment variable for enforcing HDL standard revision.

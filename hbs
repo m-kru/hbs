@@ -483,7 +483,8 @@ def list_targets(patterns):
 def list_tb(patterns):
     output = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=None,
         encoding="utf-8",
     )
     if output.returncode != 0:
