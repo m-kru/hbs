@@ -606,6 +606,9 @@ namespace eval hbs {
       "ghdl" {
         dict append hbs::ghdl::generics $name $value
       }
+      "gowin" {
+        hbs::Eval "set_option -generic {$name=$value}"
+      }
       "nvc" {
         dict append hbs::nvc::generics $name $value
       }
@@ -613,7 +616,7 @@ namespace eval hbs {
         dict append hbs::questa::generics $name $value
       }
       "vivado-prj" {
-        set_property generic $name=$value [current_fileset]
+        hbs::Eval "set_property generic $name=$value \[current_fileset\]"
       }
       "xsim" {
         dict append hbs::xsim::generics $name $value
@@ -1472,11 +1475,11 @@ namespace eval hbs::gowin {
       set cmd "gw_sh \
         [file normalize [info script]] \
         $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
-      set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
-      if {$exitStatus == 0} {
-        exit 0
+      set err [catch {eval exec -ignorestderr $cmd >@ stdout}]
+      if {$err} {
+        hbs::panic "gw_sh exited with status $err"
       } else {
-        hbs::panic "gw_sh exited with status $exitStatus"
+        exit 0
       }
     }
   }
@@ -1527,18 +1530,14 @@ namespace eval hbs::gowin {
       hbs::panic "$file: $err"
     }
 
-    set cmd "add_file $hbs::ArgsPrefix $file $hbs::ArgsSuffix"
-    puts $cmd
-    eval $cmd
+    hbs::Eval "add_file $hbs::ArgsPrefix $file $hbs::ArgsSuffix"
 
     set lib $hbs::Lib
     if {$lib == ""} {
       set lib "work"
     }
 
-    set cmd "set_file_prop -lib $lib $file"
-    puts $cmd
-    eval $cmd
+    hbs::Eval "set_file_prop -lib $lib $file"
 
     if {$hbs::Std > $hbs::gowin::vhdlStandard} {
       set hbs::gowin::vhdlStandard $hbs::Std
@@ -1565,21 +1564,17 @@ namespace eval hbs::gowin {
       hbs::panic "$file: $err"
     }
 
-    set cmd "add_file $hbs::ArgsPrefix $file $hbs::ArgsSuffix"
-    puts $cmd
-    eval $cmd
+    hbs::Eval "add_file $hbs::ArgsPrefix $file $hbs::ArgsSuffix"
 
     set lib $hbs::Lib
     if {$lib == ""} {
       set lib "work"
     }
 
-    set cmd "set_file_prop -lib $lib $file"
-    puts $cmd
-    eval $cmd
+    hbs::Eval "set_file_prop -lib $lib $file"
 
-    if {$hbs::Std > $hbs::gowin::verilogStd} {
-      set hbs::gowin::verilogStd $hbs::Std
+    if {$hbs::Std > $hbs::gowin::verilogStandard} {
+      set hbs::gowin::verilogStandard $hbs::Std
     }
   }
 
@@ -1607,15 +1602,9 @@ namespace eval hbs::gowin {
     if {$hbs::Top == ""} {
       hbs::panic "cannot set top, hbs::Top not set"
     }
-    set cmd "set_option -top_module $hbs::Top"
-    puts $cmd
-    eval $cmd
-    set cmd "set_option -vhdl_std [hbs::gowin::vhdlStd]"
-    puts $cmd
-    eval $cmd
-    set cmd "set_option -verilog_std [hbs::gowin::verilogStd]"
-    puts $cmd
-    eval $cmd
+    hbs::Eval "set_option -top_module $hbs::Top"
+    hbs::Eval "set_option -vhdl_std [hbs::gowin::vhdlStd]"
+    hbs::Eval "set_option -verilog_std [hbs::gowin::verilogStd]"
     hbs::evalPostPrjCbs
     if {$stage == "project"} { return }
 
@@ -1623,12 +1612,14 @@ namespace eval hbs::gowin {
     # Synthesis
     #
     hbs::evalPreSynthCbs
-    set cmd "::run $hbs::ArgsPrefix syn $hbs::ArgsSuffix"
-    puts $cmd
-    set err [catch {eval $cmd} errMsg]
-    if {$err != 0} {
-      hbs::panic $errMsg
-    }
+
+    hbs::Eval "set err \[catch {eval \"::run $hbs::ArgsPrefix syn $hbs::ArgsSuffix\"} errMsg\]
+if {\$err} {
+  puts \$errMsg
+  exit 1
+}"
+
+
     hbs::evalPostSynthCbs
     if {$stage == "synthesis"} { return }
 
@@ -1636,12 +1627,11 @@ namespace eval hbs::gowin {
     # Implementation
     #
     hbs::evalPreImplCbs
-    set cmd "::run $hbs::ArgsPrefix pnr $hbs::ArgsSuffix"
-    puts $cmd
-    set err [catch {eval $cmd} errMsg]
-    if {$err != 0} {
-      hbs::panic $errMsg
-    }
+    hbs::Eval "set err \[catch {eval \"::run $hbs::ArgsPrefix pnr $hbs::ArgsSuffix\"} errMsg\]
+if {\$err} {
+  puts \$errMsg
+  exit 1
+}"
     hbs::evalPostImplCbs
   }
 }
