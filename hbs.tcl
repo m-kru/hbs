@@ -763,10 +763,29 @@ namespace eval hbs {
   # Prints command to the standard output and evaluates it using
   # the standard `eval` command if hbs::DryRun is false.
   #
-  # To force command evaluation in the dry run, set forceInDryRun to true.
-  proc Eval {cmd {forceInDryRun 0}} {
+  # Usage:
+  #  hbs::Eval ?-force-in-dry? cmd
+  proc Eval {args} {
+    set forceInDry 0
+    set errMsg "wrong # args: should be \"hbs::Eval ?-force-in-dry? cmd\""
+
+    if {[llength $args] == 0} {
+      error $errMsg
+    }
+
+    if {[lindex $args 0] eq "-force-in-dry"} {
+      set forceInDry 1
+      set args [lrange $args 1 end]
+    }
+
+    if {[llength $args] != 1} {
+      error $errMsg
+    }
+
+    set cmd [lindex $args 0]
     puts $cmd
-    if {!$hbs::DryRun || $forceInDryRun} {
+
+    if {!$hbs::DryRun || $forceInDry} {
       return [eval $cmd]
     }
   }
@@ -774,12 +793,31 @@ namespace eval hbs {
   # Prints command to the standard output and executes it using
   # the standard `exec` command if hbs::DryRun is false.
   #
-  # To force command execution in the dry run, set forceInDryRun to true.
-  #
   # The proc returns catched exit status.
-  proc Exec {cmd {forceInDryRun 0}} {
+  #
+  # Usage:
+  #  hbs::Exec ?-force-in-dry? cmd
+  proc Exec {args} {
+    set forceInDry 0
+    set errMsg "wrong # args: should be \"hbs::Exec ?-force-in-dry? cmd\""
+
+    if {[llength $args] == 0} {
+      error $errMsg
+    }
+
+    if {[lindex $args 0] eq "-force-in-dry"} {
+      set forceInDry 1
+      set args [lrange $args 1 end]
+    }
+
+    if {[llength $args] != 1} {
+      error $errMsg
+    }
+
+    set cmd [lindex $args 0]
     puts $cmd
-    if {$hbs::DryRun && !$forceInDryRun} {
+
+    if {$hbs::DryRun && !$forceInDry} {
       return 0
     }
 
@@ -792,12 +830,31 @@ namespace eval hbs {
   # (the directory in which .hbs file with given core is defined).
   # After the 'exec' the working directory is restored.
   #
-  # To force command execution in the dry run, set forceInDryRun to true.
-  #
   # The proc returns catched exit status.
-  proc ExecInCoreDir {cmd {forceInDryRun 0}} {
+  #
+  # Usage:
+  #  hbs::ExecInCoreDir ?-force-in-dry? cmd
+  proc ExecInCoreDir {args} {
+    set forceInDry 0
+    set errMsg "wrong # args: should be \"hbs::ExecInCoreDir ?-force-in-dry? cmd\""
+
+    if {[llength $args] == 0} {
+      error $errMsg
+    }
+
+    if {[lindex $args 0] eq "-force-in-dry"} {
+      set forceInDry 1
+      set args [lrange $args 1 end]
+    }
+
+    if {[llength $args] != 1} {
+      error $errMsg
+    }
+
+    set cmd [lindex $args 0]
     puts $cmd
-    if {$hbs::DryRun && !$forceInDryRun} {
+
+    if {$hbs::DryRun && !$forceInDry} {
       return 0
     }
 

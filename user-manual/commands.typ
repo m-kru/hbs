@@ -199,7 +199,7 @@ The following snippet presents an example:
 ```tcl
 hbs::Eval {set_msg_config -suppress -id "Synth 8-6014" -string {{REPORT_PREFIX}}}
 ```
-The `hbs::Eval` procedure has a second optional argument, which allows for forcing command evaluation in the dry run.
+The `hbs::Eval` procedure has an optional `-force-in-dry` flag, which allows for forcing command evaluation in the dry run.
 See `'hbs doc Eval'` for more information.
 
 The `hbs::Exec` and `hbs::ExecInCoreDir` procedures work analogously, but they execute commands instead of evaluating them.
