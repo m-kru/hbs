@@ -1,3 +1,5 @@
+[![Tests](https://github.com/m-kru/hbs/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/m-kru/hbs/actions?query=master)
+
 # ![Logo](user-manual/images/hbs.svg) HBS - Hardware Build System
 
 HBS is a Tcl-based, minimal common abstraction build system for hardware design projects.
