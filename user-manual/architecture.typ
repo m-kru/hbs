@@ -748,6 +748,16 @@ To check if the `HBS_DEBUG` environment variable is set you can check the value 
 HBS is not planned to natively support multi-level logging mechanism.
 The dry runs and `HBS_DEBUG` are probably more than enough for debugging build flows.
 
+=== HBS\_DEVICE - enforcing device
+
+By setting the `HBS_DEVICE` environment variable, you can enforce the value of the `hbs::Device`.
+If `HBS_DEVICE` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Device` to the value of `HBS_DEVICE`.
+If `HBS_DEVICE` is set, any call to `hbs::SetDevice` is ignored.
+
+The `HBS_DEVICE` variable might be useful for determining the target device for the build from the shell.
+Similar functionality can be achieved using the target parameters described in @arch-target-parameters.
+However, you may want to utilize target parameters for different purposes.
+
 === HBS\_TOOL - enforcing tool <hbs-tool>
 
 By setting the `HBS_TOOL` environment variable, you can enforce the value of the `hbs::Tool`.

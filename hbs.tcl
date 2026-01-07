@@ -32,7 +32,7 @@ namespace eval hbs {
   # Name of the target currently being run.
   set ThisTargetName ""
 
-  # True (1) if BuildDir is set via the HBS_BUILD_DIR environment variable.
+  # True (1) if BuildDir is enforced via the HBS_BUILD_DIR environment variable.
   set BuildDirEnvSet 0
 
   # BuildDir is the build directory path.
@@ -42,6 +42,9 @@ namespace eval hbs {
   #
   # See also 'hbs doc SetBuildDir'.
   set BuildDir "build"
+
+  # True (1) if Device is enforced via the HBS_DEVICE environment variable.
+  set DeviceEnvSet 0
 
   # Device is target device. Often also called part.
   #
@@ -53,7 +56,7 @@ namespace eval hbs {
   # See also 'hbs doc SetLib'.
   set Lib ""
 
-  # True (1) if Std is set via the HBS_STD environment variable.
+  # True (1) if Std is enforced via the HBS_STD environment variable.
   set StdEnvSet 0
 
   # Std is current HDL standard revision for adding files.
@@ -61,7 +64,7 @@ namespace eval hbs {
   # See also 'hbs doc SetStd'.
   set Std ""
 
-  # True (1) if Tool is set via the HBS_TOOL environment variable.
+  # True (1) if Tool is enforced via the HBS_TOOL environment variable.
   set ToolEnvSet 0
 
   # Tool is target tool name. It must be lowercase.
@@ -166,7 +169,7 @@ namespace eval hbs {
   # using the HBS_BUILD_DIR environment variable.
   proc SetBuildDir {path} {
     if {$hbs::BuildDirEnvSet} {
-      hbs::Debug "ignoring setting build directory  to '$path', build directory was enforced to '$hbs::BuildDir' via HBS_BUILD_DIR environment variable"
+      hbs::Debug "ignoring setting build directory to '$path', build directory was enforced to '$hbs::BuildDir' via HBS_BUILD_DIR environment variable"
       return
     }
 
@@ -179,6 +182,11 @@ namespace eval hbs {
   # To get the name of currently set Device simply
   # read the value of hbs::Device variable.
   proc SetDevice {dev} {
+    if {$hbs::DeviceEnvSet} {
+      hbs::Debug "ignoring setting device to '$dev', device was enforced to '$hbs::Device' via HBS_DEVICE environment variable"
+      return
+    }
+
     hbs::Debug "setting device to '$dev'"
     set hbs::Device $dev
   }
@@ -888,6 +896,14 @@ namespace eval hbs {
       hbs::Debug "HBS_BUILD_DIR environment variable discovered, enforcing build directory '$buildDir'"
       set hbs::BuildDirEnvSet 1
       set hbs::BuildDir $buildDir
+    }
+
+    # Handle HBS_DEVICE environment variable.
+    if {[info exists ::env(HBS_DEVICE)]} {
+      set dev $::env(HBS_DEVICE)
+      hbs::Debug "HBS_DEVICE environment variable discovered, enforcing device '$dev'"
+      set hbs::DeviceEnvSet 1
+      set hbs::Device $dev
     }
 
     # Handle HBS_STD environment variable.
