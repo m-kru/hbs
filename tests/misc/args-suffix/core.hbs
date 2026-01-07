@@ -1,0 +1,10 @@
+namespace eval core {
+  proc target {} {
+    puts $hbs::ArgsSuffix
+    hbs::SetArgsSuffix "custom args suffix"
+    puts $hbs::ArgsSuffix
+    hbs::ClearArgsSuffix
+    puts $hbs::ArgsSuffix
+  }
+  hbs::Register
+}

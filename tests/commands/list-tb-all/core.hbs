@@ -1,0 +1,26 @@
+namespace eval lib {
+  namespace eval core1 {
+    proc src {} {}
+    proc tb {} {}
+    hbs::Register
+  }
+
+  namespace eval core2 {
+    proc src {} {}
+    proc tb-1 {} {}
+    proc tb-2 {} {}
+    hbs::Register
+  }
+
+  namespace eval core3 {
+    proc my_tb {} {}
+    proc tb_my {} {}
+    hbs::Register
+  }
+
+  namespace eval core4 {
+    proc my-tb {} {}
+    proc tb-my {} {}
+    hbs::Register
+  }
+}

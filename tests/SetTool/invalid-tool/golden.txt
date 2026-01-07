@@ -1,0 +1,1 @@
+my-core::my-target: hbs::SetTool: invalid tool 'xyz', supported tools: 'ghdl', 'gowin', 'nvc', 'questa', 'vivado-prj' (project mode), 'xsim'

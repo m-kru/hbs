@@ -1,0 +1,3 @@
+checkTargetExists: core 'core' not found, maybe the core is not:
+  1. registered 'hbs doc hbs::Register',
+  2. sourced 'hbs doc hbs::FileIgnoreRegexes'.

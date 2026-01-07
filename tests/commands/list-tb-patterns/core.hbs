@@ -1,0 +1,20 @@
+namespace eval lib {
+  namespace eval foo {
+    proc src {} {}
+    proc tb {} {}
+    hbs::Register
+  }
+
+  namespace eval bar {
+    proc src {} {}
+    proc tb-1 {} {}
+    proc tb-2 {} {}
+    hbs::Register
+  }
+
+  namespace eval zaz {
+    proc my_tb {} {}
+    proc tb_my {} {}
+    hbs::Register
+  }
+}

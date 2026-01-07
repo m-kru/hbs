@@ -1,0 +1,20 @@
+namespace eval lib {
+  namespace eval core1 {
+    proc src1 {} {
+      puts "core1::src1"
+    }
+    proc src2 {} {
+      puts "core1::src2"
+    }
+    hbs::Register
+  }
+  namespace eval core2 {
+    proc src {} {
+      hbs::AddDep lib::core1::src1
+      # lib::core1::src1 shall not be run second time
+      hbs::AddDep lib::core1::src1
+      hbs::AddDep lib::core1::src2
+    }
+    hbs::Register
+  }
+}

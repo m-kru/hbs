@@ -1,0 +1,7 @@
+lib::core1::tb
+lib::core2::tb-1
+lib::core2::tb-2
+lib::core3::tb_my
+lib::core3::my_tb
+lib::core4::tb-my
+lib::core4::my-tb

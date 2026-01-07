@@ -1,0 +1,8 @@
+namespace eval core {
+  proc target {} {
+    hbs::SetTool "gowin"
+    hbs::SetStd "2008"
+    hbs::AddFile abc.v
+  }
+  hbs::Register
+}

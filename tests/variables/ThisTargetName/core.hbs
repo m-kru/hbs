@@ -1,0 +1,23 @@
+namespace eval lib1 {
+  namespace eval pkg1 {
+    namespace eval core1 {
+      proc target1 {} {
+        puts $hbs::ThisTargetName
+        hbs::AddDep lib2::pkg2::core2::target2
+        puts $hbs::ThisTargetName
+      }
+      hbs::Register
+    }
+  }
+}
+
+namespace eval lib2 {
+  namespace eval pkg2 {
+    namespace eval core2 {
+      proc target2 {} {
+        puts $hbs::ThisTargetName
+      }
+      hbs::Register
+    }
+  }
+}

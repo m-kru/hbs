@@ -1,0 +1,1 @@
+lib::core::target: hbs::SetLib: invalid library name 'lib☃', library name cannot have UTF characters

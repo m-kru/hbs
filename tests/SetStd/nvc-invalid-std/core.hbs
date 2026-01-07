@@ -1,0 +1,8 @@
+namespace eval core {
+  proc target {} {
+    hbs::SetTool "nvc"
+    hbs::SetStd "2005"
+    hbs::AddFile abc.vhd
+  }
+  hbs::Register
+}

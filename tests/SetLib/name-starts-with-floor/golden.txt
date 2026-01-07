@@ -1,0 +1,1 @@
+lib::core::target: hbs::SetLib: invalid library name '_lib', library name cannot start with '_' character

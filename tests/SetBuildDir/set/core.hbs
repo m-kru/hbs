@@ -1,0 +1,8 @@
+namespace eval core {
+  proc target {} {
+    puts $hbs::BuildDir
+    hbs::SetBuildDir "/tmp"
+    puts $hbs::BuildDir
+  }
+  hbs::Register
+}

@@ -1,0 +1,1 @@
+my-core::my-target: hbs::SetExitSeverity: invalid exit severity 'foo', valid exit severities are: 'note', 'warning', 'error', 'failure'

@@ -1,0 +1,2 @@
+core1::src1
+core1::src2

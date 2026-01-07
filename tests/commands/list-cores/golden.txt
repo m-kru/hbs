@@ -1,0 +1,5 @@
+core
+lib::core
+lib::pkg1::core1
+lib::pkg1::core2
+lib::pkg2::core

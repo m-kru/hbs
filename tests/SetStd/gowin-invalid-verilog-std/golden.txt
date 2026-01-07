@@ -1,0 +1,1 @@
+core::target: hbs::gowin::addVerilogFile: /home/mkru/data/workspace/hbs/tests/SetStd/gowin-invalid-verilog-std/abc.v: invalid Verilog/SystemVerilog standard '2008', valid standards are: '1995', '2001', '2005', '2009' '2012', '2017', '2023'

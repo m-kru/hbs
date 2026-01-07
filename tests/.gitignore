@@ -1,0 +1,8 @@
+*/output.txt
+*/*/build
+
+# Golden files generated automatically
+AddFile/tool-not-set/golden.txt
+misc/core-registered-twice/golden.txt
+SetStd/*-invalid-std/golden.txt
+dry-run/*/golden.txt

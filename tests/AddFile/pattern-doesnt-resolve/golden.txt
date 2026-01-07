@@ -1,0 +1,1 @@
+core::target: hbs::AddFile: pattern 'xxx' doesn't resolve to any file

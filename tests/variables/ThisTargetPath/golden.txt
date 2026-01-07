@@ -1,0 +1,3 @@
+lib1::pkg1::core1::target1
+lib2::pkg2::core2::target2
+lib1::pkg1::core1::target1

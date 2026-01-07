@@ -1,0 +1,33 @@
+namespace eval core-a {
+  proc src {} {
+    hbs::SetLib "lib_a"
+    hbs::SetArgsPrefix "FileAnalPrefix"
+    hbs::SetArgsSuffix "FileAnalSuffix"
+    hbs::AddFile a.vhd
+  }
+  hbs::Register
+}
+
+namespace eval core-b {
+  proc src {} {
+    hbs::AddDep core-a::src
+    hbs::SetLib "lib_b"
+    hbs::AddFile b.vhd
+  }
+  hbs::Register
+}
+
+namespace eval core-c {
+  proc src {} {
+    hbs::AddDep core-b::src
+    hbs::AddFile c.sv
+    hbs::SetGeneric GEN 64
+    hbs::AddPreSynthCb hbs::SetArgsPrefix "SynthArgsPrefix"
+    hbs::AddPreSynthCb hbs::SetArgsSuffix "SynthArgsSuffix"
+    hbs::SetTop "TopEntity"
+    hbs::AddPreImplCb hbs::SetArgsPrefix "ImplArgsPrefix"
+    hbs::AddPreImplCb hbs::SetArgsSuffix "ImplArgsSuffix"
+    hbs::Run
+  }
+  hbs::Register
+}

@@ -1,0 +1,1 @@
+core::target: hbs::ghdl::addVhdlFile: /home/mkru/data/workspace/hbs/tests/SetStd/ghdl-unsupported-std/abc.vhd: ghdl doesn't support VHDL standard '2019'
