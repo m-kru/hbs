@@ -821,7 +821,11 @@ namespace eval hbs {
       return 0
     }
 
-    set err [catch { eval exec -ignorestderr $cmd }]
+    set err [catch { eval exec -ignorestderr $cmd} output]
+    if {$output ne ""} {
+      puts $output
+    }
+
     return $err
   }
 
@@ -863,7 +867,10 @@ namespace eval hbs {
     set hbsFileDir [file dirname [dict get $hbs::cores ::hbs::$hbs::ThisCorePath file]]
     cd $hbsFileDir
 
-    set err [catch { eval exec -ignorestderr $cmd }]
+    set err [catch { eval exec -ignorestderr $cmd} output]
+    if {$output ne ""} {
+      puts $output
+    }
 
     cd $workDir
     return $err
