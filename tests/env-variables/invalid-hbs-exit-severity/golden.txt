@@ -1,0 +1,1 @@
+hbs::init: cannot set exit severity from HBS_EXIT_SEVERITY environment variable: invalid exit severity 'foo', valid exit severities are: 'note', 'warning', 'error', 'failure'

@@ -752,17 +752,26 @@ The dry runs and `HBS_DEBUG` are probably more than enough for debugging build f
 
 By setting the `HBS_DEVICE` environment variable, you can enforce the value of the `hbs::Device`.
 If `HBS_DEVICE` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Device` to the value of `HBS_DEVICE`.
-If `HBS_DEVICE` is set, any call to `hbs::SetDevice` is ignored.
+If `HBS_DEVICE` is set, any call to the `hbs::SetDevice` is ignored.
 
 The `HBS_DEVICE` variable might be useful for determining the target device for the build from the shell.
 Similar functionality can be achieved using the target parameters described in @arch-target-parameters.
 However, you may want to utilize target parameters for different purposes.
 
+=== HBS\_EXIT\_SEVERITY - enforcing exit severity
+
+By setting the `HBS_EXIT_SEVERITY` environment variable, you can enforce the value of the `hbs::ExitSeverity`.
+If `HBS_EXIT_SEVERITY` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::ExitSeverity` to the value of `HBS_EXIT_SEVERITY`.
+If `HBS_EXIT_SEVERITY` is set, any call to the `hbs::ExitSeverity` is ignored.
+
+The `HBS_EXIT_SEVERITY` environment variable is useful for quickly running testbenches with modified exit severity.
+For example, your simulation suddenly starts failing, and you would like to stop it when the first warning is encountered.
+
 === HBS\_TOOL - enforcing tool <hbs-tool>
 
 By setting the `HBS_TOOL` environment variable, you can enforce the value of the `hbs::Tool`.
 If `HBS_TOOL` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Tool` to the value of `HBS_TOOL`.
-If `HBS_TOOL` is set, any call to `hbs::SetTool` is ignored.
+If `HBS_TOOL` is set, any call to the `hbs::SetTool` is ignored.
 
 The `HBS_TOOL` environment variable is helpful in running testbench targets with different simulators.
 If you want to run just a single testbench target with multiple simulators, then you can use a target parameter (see @arch-target-parameters) for your testbench target, or you can set the `HBS_TOOL` environment variable.
@@ -791,7 +800,7 @@ hbs test
 
 By setting the `HBS_STD` environment variable, you can enforce the value of the `hbs::Std`.
 If `HBS_STD` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Std` to the value of `HBS_STD`.
-If `HBS_STD` is set, any call to `hbs::SetStd` is ignored.
+If `HBS_STD` is set, any call to the `hbs::SetStd` is ignored.
 
 The `HBS_STD` environment variable is analogous to the `HBS_TOOL` environment variable.
 However, running multiple, or even one, testbench targets with different HDL standard revisions is probably not useful.
@@ -801,5 +810,5 @@ The `HBS_STD` environment variable is rather handy for quickly checking if a giv
 
 By setting the `HBS_BUILD_DIR` environment variable, you can enforce the value of the `hbs::BuildDir`.
 If `HBS_BUILD_DIR` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::BuildDir` to the value of `HBS_BUILD_DIR`.
-If `HBS_BUILD_DIR` is set, any call to `hbs::SetBuildDir` is ignored.
+If `HBS_BUILD_DIR` is set, any call to the `hbs::SetBuildDir` is ignored.
 The usefulness and functionality of `HBS_BUILD_DIR` are described in @hbs-tool

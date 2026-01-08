@@ -81,6 +81,9 @@ namespace eval hbs {
   # See also 'hbs doc SetTop'.
   set Top ""
 
+  # True (1) if ExitSeverity is enforced via the HBS_EXIT_SEVERITY environment variable.
+  set ExitSeverityEnvSet 0
+
   # Exit severity level for simulators.
   #
   # ExitSeverity is not supported by xsim.
@@ -254,6 +257,11 @@ namespace eval hbs {
   # If simulator does not support exit severity changing, for example xsim,
   # then a call to this function has no effect.
   proc SetExitSeverity {sev} {
+    if {$hbs::ExitSeverityEnvSet} {
+      hbs::Debug "ignoring setting exit severity to '$sev', exit severity was enforced to '$hbs::ExitSeverity' via HBS_EXIT_SEVERITY environment variable"
+      return
+    }
+
     set err [hbs::isValidExitSeverity $sev]
     if {$err ne ""} {
       hbs::panic "$err"
@@ -969,6 +977,18 @@ namespace eval hbs {
       hbs::Debug "HBS_DEVICE environment variable discovered, enforcing device '$dev'"
       set hbs::DeviceEnvSet 1
       set hbs::Device $dev
+    }
+
+    # Handle HBS_EXIT_SEVERITY environment variable.
+    if {[info exists ::env(HBS_EXIT_SEVERITY)]} {
+      set sev $::env(HBS_EXIT_SEVERITY)
+      hbs::Debug "HBS_EXIT_SEVERITY environment variable discovered, enforcing exit severity '$sev'"
+      set err [isValidExitSeverity $sev]
+      if {$err ne ""} {
+        hbs::panic "cannot set exit severity from HBS_EXIT_SEVERITY environment variable: $err"
+      }
+      set hbs::ExitSeverityEnvSet 1
+      set hbs::ExitSeverity $sev
     }
 
     # Handle HBS_STD environment variable.
