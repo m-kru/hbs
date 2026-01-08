@@ -40,3 +40,4 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 
 ### Fixed
 - Generics handling for xsim.
+- `test` command returns an error if any test fails.
