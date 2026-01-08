@@ -35,7 +35,7 @@ namespace eval hbs {
   # True (1) if BuildDir is enforced via the HBS_BUILD_DIR environment variable.
   set BuildDirEnvSet 0
 
-  # BuildDir is the build directory path.
+  # Build directory path.
   #
   # You can enforce value of the BuildDir variable
   # by setting the HBS_BUILD_DIR environment variable.
@@ -46,12 +46,12 @@ namespace eval hbs {
   # True (1) if Device is enforced via the HBS_DEVICE environment variable.
   set DeviceEnvSet 0
 
-  # Device is target device. Often also called part.
+  # Target device. Often also called part, for example in Vivado nomenclature.
   #
   # See also 'hbs doc SetDevice'.
   set Device ""
 
-  # Lib is current library for adding files.
+  # Current library for adding files.
   #
   # See also 'hbs doc SetLib'.
   set Lib ""
@@ -59,7 +59,8 @@ namespace eval hbs {
   # True (1) if Std is enforced via the HBS_STD environment variable.
   set StdEnvSet 0
 
-  # Std is current HDL standard revision for adding files.
+  # Current HDL standard revision for adding files.
+  # For example, '2002', '2008'.
   #
   # See also 'hbs doc SetStd'.
   set Std ""
@@ -67,7 +68,7 @@ namespace eval hbs {
   # True (1) if Tool is enforced via the HBS_TOOL environment variable.
   set ToolEnvSet 0
 
-  # Tool is target tool name. It must be lowercase.
+  # Target tool name. It must be lowercase.
   #
   # You can enforce value of the Tool variable
   # by setting the HBS_TOOL environment variable.
@@ -75,7 +76,7 @@ namespace eval hbs {
   # See also 'hbs doc SetTool'.
   set Tool ""
 
-  # Top is name of the top entity/module. Often also called toplevel.
+  # Name of the top entity/module. Often also called toplevel.
   #
   # See also 'hbs doc SetTop'.
   set Top ""
@@ -346,7 +347,7 @@ namespace eval hbs {
     }
   }
 
-  # ToolType reutrns type of the currently set tool.
+  # Reutrns the type of the currently set tool.
   # Possible values are:
   #   - formal,
   #   - simulation,
@@ -580,7 +581,7 @@ namespace eval hbs {
     }
   }
 
-  # SetGeneric sets generic (Verilog parameter) value. The actual action might
+  # Sets generic (Verilog parameter) value. The actual action might
   # be postponed, as for example, for GHDL the generic values are provided
   # as command line arguments when running the simulation.
   #
