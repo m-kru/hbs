@@ -18,8 +18,8 @@ import multiprocessing
 this_script_dir = os.path.dirname(os.path.abspath(__file__))
 workers = multiprocessing.cpu_count()
 
-error_regexp = re.compile(r"\berror\b")
-warning_regexp = re.compile(r"\bwarning\b")
+error_regexp = re.compile(r"(?<!\=)\berror\b")
+warning_regexp = re.compile(r"(?<!\=)\bwarning\b")
 
 help_help = """Usage:
 

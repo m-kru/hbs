@@ -36,6 +36,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 
 ### Changed
 - Improved error messages.
+- Improved regex for errors and warnings.
 
 ### Fixed
 - Generics handling for xsim.
