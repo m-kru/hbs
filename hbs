@@ -365,6 +365,7 @@ test_longest_path_len = 0
 
 
 def print_test_summary(start_time):
+    """Prints tests summary and returns number of failed tests."""
     s = (datetime.now() - start_time).seconds
     hours, remainder = divmod(s, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -392,6 +393,8 @@ def print_test_summary(start_time):
     print(f"\033[91mfailed\033[0m:   {failed}")
     print(f"errors:   {errors}")
     print(f"warnings: {warnings}")
+
+    return failed
 
 
 def test(patterns):
@@ -435,7 +438,10 @@ def test(patterns):
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         executor.map(lambda t: run_to_file(t), test_targets)
 
-    print_test_summary(start_time)
+    failed_count = print_test_summary(start_time)
+
+    if failed_count > 0:
+        exit(1)
 
 
 def list_cores(patterns):
