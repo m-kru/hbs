@@ -1992,7 +1992,7 @@ namespace eval hbs::vivado-prj {
 
       set extension [file extension $file]
       switch $extension {
-        ".bd"   { hbs::vivado-prj:addBlockDesignFile $file }
+        ".bd"   { hbs::vivado-prj::addBlockDesignFile $file }
         ".mem"  { hbs::vivado-prj::addMemFile $file }
         ".v"       -
         ".vh"      -
