@@ -38,6 +38,9 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 ### Changed
 - Improved error messages.
 - Improved regex for errors and warnings.
+- `vivado-prj`: Part is set immediately as `hbs::SetDevice` is called.
+- `vivado-prj`: Bitstream file name changed from current project name to `hbs::Top`.
+  This is required for `write_hw_platform -include_bit` command to work without any extra actions.
 
 ### Fixed
 - Generics handling for xsim.

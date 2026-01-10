@@ -193,6 +193,10 @@ namespace eval hbs {
 
     hbs::Debug "setting device to '$dev'"
     set hbs::Device $dev
+
+    switch $hbs::Tool {
+      "vivado-prj" { hbs::vivado-prj::setDevice $dev }
+    }
   }
 
   # Sets name of the HDL library.
@@ -1946,6 +1950,10 @@ namespace eval hbs::nvc {
 #   - implementation.
 #   - bitstream.
 namespace eval hbs::vivado-prj {
+  proc setDevice {dev} {
+    hbs::Eval "set_property part $dev \[current_project\]"
+  }
+
   proc setTool {} {
     set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
     set hbs::targetDir [file join $hbs::BuildDir $prjName]
@@ -2086,9 +2094,8 @@ namespace eval hbs::vivado-prj {
     #
     hbs::evalPrePrjCbs
     if {$hbs::Device == ""} {
-      hbs::panic "cannot set part, hbs::Device not set"
+      hbs::panic "hbs::Device not set"
     }
-    hbs::Eval "set_property part $hbs::Device \[current_project\]"
 
     if {$hbs::Top == ""} {
       hbs::panic "cannot set top, hbs::Top not set"
@@ -2127,7 +2134,7 @@ namespace eval hbs::vivado-prj {
     #
     hbs::evalPreBitCbs
     hbs::Eval "open_run impl_1"
-    hbs::Eval "write_bitstream $hbs::ArgsPrefix \[get_property DIRECTORY \[current_run\]\]/\[current_project\].bit $hbs::ArgsSuffix"
+    hbs::Eval "write_bitstream $hbs::ArgsPrefix \[get_property DIRECTORY \[current_run\]\]/$hbs::Top.bit $hbs::ArgsSuffix"
     hbs::evalPostBitCbs
   }
 }
