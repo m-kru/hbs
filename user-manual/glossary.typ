@@ -101,8 +101,13 @@ Some of them are formally defined because they are helpful when discussing, for 
 ]
 
 #block(breakable:false)[
+/ to execute a target:
+  To execute the target procedure code by explicitly or implicitly calling the target procedure, for example, by calling `hbs::AddDep`.
+]
+
+#block(breakable:false)[
 / to run a target:
-  To execute commands defined in the target.
+  To call the `run` or `dry-run` HBS command for a given target.
 ]
 
 #pagebreak()
