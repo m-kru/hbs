@@ -1,10 +1,10 @@
 namespace eval lib1 {
   namespace eval pkg1 {
     namespace eval core1 {
-      proc target {} {
-        puts $hbs::TopCorePath
-        hbs::AddDep lib2::pkg2::core2::target
-        puts $hbs::TopCorePath
+      proc target1 {} {
+        puts $hbs::RunTargetPath
+        hbs::AddDep lib2::pkg2::core2::target2
+        puts $hbs::RunTargetPath
       }
       hbs::Register
     }
@@ -14,8 +14,8 @@ namespace eval lib1 {
 namespace eval lib2 {
   namespace eval pkg2 {
     namespace eval core2 {
-      proc target {} {
-        puts $hbs::TopCorePath
+      proc target2 {} {
+        puts $hbs::RunTargetPath
       }
       hbs::Register
     }

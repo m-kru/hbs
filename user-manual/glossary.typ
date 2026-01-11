@@ -66,6 +66,16 @@ Some of them are formally defined because they are helpful when discussing, for 
 ]
 
 #block(breakable:false)[
+/ run core:
+  The core whose target is currently being run.
+]
+
+#block(breakable:false)[
+/ run target:
+  The target which is currently being run.
+]
+
+#block(breakable:false)[
 / stage:
   A piece of a tool flow with a clearly defined task and output.
   The number and types of stages depend on a tool.

@@ -617,11 +617,11 @@ HBS also provides users with the following extra variables:
 + `hbs::ThisCoreName` - the name of the core which target is currently being run,
 + `hbs::ThisTargetPath` - the path of the target which is currently being run,
 + `hbs::ThisTargetName` - the name of the target which is currently being run,
-+ `hbs::TopCorePath` - the path of the top core beign run,
-+ `hbs::TopCoreName` - the name of the top core beign run,
-+ `hbs::TopTargetPath` - the path of the top target being run,
-+ `hbs::TopTargetName` - the name of the top target being run,
-+ `hbs::TopTargetArgs` - the list with command line arguments passed to the top target.
++ `hbs::RunCorePath` - the path of the run core,
++ `hbs::RunCoreName` - the name of the run core,
++ `hbs::RunTargetPath` - the path of the run target,
++ `hbs::RunTargetName` - the name of the run target,
++ `hbs::RunTargetArgs` - the list with command line arguments passed to the run target.
 
 To get the list of all HBS public symbols you can run `'hbs doc'` command in the shell.
 

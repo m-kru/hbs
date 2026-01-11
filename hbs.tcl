@@ -104,20 +104,20 @@ namespace eval hbs {
   # See also 'hbs doc SetArgsSuffix'.
   set ArgsSuffix ""
 
-  # Path of the top core being run.
-  set TopCorePath ""
+  # Path of the core whose target is being run.
+  set RunCorePath ""
 
-  # Name of the top core being run.
-  set TopCoreName ""
+  # Name of the core whose target is being run.
+  set RunCoreName ""
 
-  # Path of the top target being run.
-  set TopTargetPath ""
+  # Path of the target being run.
+  set RunTargetPath ""
 
-  # Name of the top target being run.
-  set TopTargetName ""
+  # Name of the target being run.
+  set RunTargetName ""
 
-  # List with command line arguments passed to the top target.
-  set TopTargetArgs ""
+  # List with command line arguments passed to the run target.
+  set RunTargetArgs ""
 
   # List containing regexes for excluding discovered .hbs files from being sourced.
   #
@@ -572,7 +572,7 @@ namespace eval hbs {
     #
     # Replace "::" with "--".
     # Glib does not support ':' in file names.
-    set fileName [string map {"::" "--"} $hbs::TopTargetPath].json
+    set fileName [string map {"::" "--"} $hbs::RunTargetPath].json
     set filePath [file join $hbs::targetDir $fileName]
     switch $hbs::Tool {
       # gw_sh changes working directory to project directory.
@@ -1627,7 +1627,7 @@ namespace eval hbs::gowin {
 
       set cmd "gw_sh \
         [file normalize [info script]] \
-        $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
+        $hbs::cmd $hbs::RunTargetPath $hbs::RunTargetArgs"
       set err [catch {eval exec -ignorestderr $cmd >@ stdout}]
       if {$err} {
         hbs::panic "gw_sh exited with status $err"
@@ -1984,7 +1984,7 @@ namespace eval hbs::vivado-prj {
           -source [file normalize [info script]] \
           -journal $prjDir/vivado.jou \
           -log $prjDir/vivado.log \
-          -tclargs $hbs::cmd $hbs::TopTargetPath $hbs::TopTargetArgs"
+          -tclargs $hbs::cmd $hbs::RunTargetPath $hbs::RunTargetArgs"
       set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
       if {$exitStatus == 0} {
         exit 0
@@ -2621,16 +2621,16 @@ if {$argv0 eq [info script]} {
       # Target path was provided, so first carry out a fake run
       # to gather inormation on dependencies.
       if {[llength $argv] != 1} {
-        set hbs::TopTargetPath [lindex $argv 1]
-        set hbs::TopTargetArgs [lreplace $argv 0 1]
+        set hbs::RunTargetPath [lindex $argv 1]
+        set hbs::RunTargetArgs [lreplace $argv 0 1]
 
-        set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
-        set hbs::TopCoreName [hbs::getCorePathFromTargetPath $hbs::TopCorePath]
-        set hbs::TopTargetName [hbs::getNameFromPath $hbs::TopTargetPath]
+        set hbs::RunCorePath [hbs::getCorePathFromTargetPath $hbs::RunTargetPath]
+        set hbs::RunCoreName [hbs::getCorePathFromTargetPath $hbs::RunCorePath]
+        set hbs::RunTargetName [hbs::getNameFromPath $hbs::RunTargetPath]
 
-        hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
+        hbs::runTarget $hbs::RunTargetPath {*}$hbs::RunTargetArgs
 
-        set fileName [string map {"::" "--"} $hbs::TopTargetPath]
+        set fileName [string map {"::" "--"} $hbs::RunTargetPath]
         set chnnl [open "$fileName.json" w]
       }
 
@@ -2649,14 +2649,14 @@ if {$argv0 eq [info script]} {
         set hbs::DryRun 1
       }
 
-      set hbs::TopTargetPath [lindex $argv 1]
-      set hbs::TopTargetArgs [lreplace $argv 0 1]
+      set hbs::RunTargetPath [lindex $argv 1]
+      set hbs::RunTargetArgs [lreplace $argv 0 1]
 
-      set hbs::TopCorePath [hbs::getCorePathFromTargetPath $hbs::TopTargetPath]
-      set hbs::TopCoreName [hbs::getCorePathFromTargetPath $hbs::TopCorePath]
-      set hbs::TopTargetName [hbs::getNameFromPath $hbs::TopTargetPath]
+      set hbs::RunCorePath [hbs::getCorePathFromTargetPath $hbs::RunTargetPath]
+      set hbs::RunCoreName [hbs::getCorePathFromTargetPath $hbs::RunCorePath]
+      set hbs::RunTargetName [hbs::getNameFromPath $hbs::RunTargetPath]
 
-      hbs::runTarget $hbs::TopTargetPath {*}$hbs::TopTargetArgs
+      hbs::runTarget $hbs::RunTargetPath {*}$hbs::RunTargetArgs
     }
     "version" {
       puts 1.0
