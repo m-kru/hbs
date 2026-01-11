@@ -226,5 +226,6 @@ Testbench targets only pass the testbench top entity name to the `_tb` procedure
 If you have some interesting exmaple of HBS usage, feel free to prepare a pull request with extension the following list:
 
 - #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library],
-- #link("https://github.com/m-kru/vsc8211-tester")[VSC8211 Tester].
+- #link("https://github.com/m-kru/vsc8211-tester")[VSC8211 Tester],
+- #link("https://github.com/m-kru/zturn-linux")[zturn-linux] - presents how to add block design to Vivado project, make HDL wrapper, and write hardware platform.
 
