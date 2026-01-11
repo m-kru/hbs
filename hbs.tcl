@@ -119,6 +119,9 @@ namespace eval hbs {
   # List with command line arguments passed to the run target.
   set RunTargetArgs ""
 
+  # Run target output build directory.
+  set RunTargetBuildDir ""
+
   # List containing regexes for excluding discovered .hbs files from being sourced.
   #
   # See also 'hbs doc AddFileIgnoreRegex'.
@@ -560,12 +563,12 @@ namespace eval hbs {
 
     if {$hbs::cmd eq "dump-cores"} { return }
 
-    if {$hbs::targetDir == ""} {
+    if {$hbs::RunTargetBuildDir == ""} {
       set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-      set hbs::targetDir [file join $hbs::BuildDir $prjName]
+      set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
     }
-    if {[file exist $hbs::targetDir] eq 0} {
-      file mkdir $hbs::targetDir
+    if {[file exist $hbs::RunTargetBuildDir] eq 0} {
+      file mkdir $hbs::RunTargetBuildDir
     }
 
     # Dump cores to JSON file.
@@ -573,7 +576,7 @@ namespace eval hbs {
     # Replace "::" with "--".
     # Glib does not support ':' in file names.
     set fileName [string map {"::" "--"} $hbs::RunTargetPath].json
-    set filePath [file join $hbs::targetDir $fileName]
+    set filePath [file join $hbs::RunTargetBuildDir $fileName]
     switch $hbs::Tool {
       # gw_sh changes working directory to project directory.
       "gowin" {
@@ -919,9 +922,6 @@ namespace eval hbs {
     puts stderr "$prefix[lindex [info level -1] 0]: $msg"
     exit 1
   }
-
-  # Target output directory.
-  set targetDir ""
 
   # Stage callbacks
   set preAnalCbs   []
@@ -1493,7 +1493,7 @@ namespace eval hbs::ghdl {
     hbs::Debug "starting files analysis"
 
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     dict for {file args} $hbs::ghdl::vhdlFiles {
       set lib [dict get $args lib]
@@ -1515,7 +1515,7 @@ namespace eval hbs::ghdl {
 
   proc elaborate {} {
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     set cmd "ghdl -e $hbs::ArgsPrefix --std=[hbs::ghdl::std] --workdir=work $hbs::ghdl::libs $hbs::ArgsSuffix $hbs::Top"
     set err [hbs::Exec $cmd]
@@ -1528,7 +1528,7 @@ namespace eval hbs::ghdl {
 
   proc simulate {} {
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     set cmd "./$hbs::Top $hbs::ArgsPrefix --wave=$hbs::Top.ghw [hbs::ghdl::genericArgs] --assert-level=$hbs::ExitSeverity $hbs::ArgsSuffix"
     set err [hbs::Exec $cmd]
@@ -1618,7 +1618,7 @@ namespace eval hbs::gowin {
       hbs::Eval $create_prj_cmd
 
       # Set target directory for later use.
-      set hbs::targetDir [file join $hbs::BuildDir $prjName]
+      set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
 
       hbs::Debug "gowin project created successfully"
     } else {
@@ -1853,7 +1853,7 @@ namespace eval hbs::nvc {
     hbs::Debug "starting files analysis"
 
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     dict for {file args} $hbs::nvc::vhdlFiles {
       set lib [dict get $args lib]
@@ -1869,7 +1869,7 @@ namespace eval hbs::nvc {
 
   proc elaborate {} {
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
     set err [hbs::Exec $cmd]
@@ -1882,7 +1882,7 @@ namespace eval hbs::nvc {
 
   proc simulate {} {
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     set cmd "nvc $hbs::ArgsPrefix --std=$hbs::nvc::std $hbs::nvc::libs -r $hbs::Top --wave --exit-severity=$hbs::ExitSeverity $hbs::ArgsSuffix"
     set err [hbs::Exec $cmd]
@@ -1956,8 +1956,8 @@ namespace eval hbs::vivado-prj {
 
   proc setTool {} {
     set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-    set hbs::targetDir [file join $hbs::BuildDir $prjName]
-    set create_prj_cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::targetDir $hbs::ArgsSuffix"
+    set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
+    set create_prj_cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::RunTargetBuildDir $hbs::ArgsSuffix"
     if {$hbs::DryRun} {
       hbs::Eval $create_prj_cmd
       return
@@ -2279,7 +2279,7 @@ namespace eval hbs::xsim {
     hbs::Debug "starting files analysis"
 
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     dict for {file args} $hbs::xsim::hdlFiles {
       set ext [file extension $file]
@@ -2295,7 +2295,7 @@ namespace eval hbs::xsim {
 
   proc elaborate {} {
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     set cmd "xelab $hbs::ArgsPrefix -debug all [hbs::xsim::genericArgs] $hbs::Top $hbs::ArgsSuffix"
     set err [hbs::Exec $cmd]
@@ -2308,7 +2308,7 @@ namespace eval hbs::xsim {
 
   proc simulate {} {
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     set batchFile $hbs::xsim::tclBatchFile
     if {$batchFile == ""} {
@@ -2515,7 +2515,7 @@ namespace eval hbs::questa {
     hbs::Debug "starting files analysis"
 
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     dict for {file args} $hbs::questa::hdlFiles {
       set ext [file extension $file]
@@ -2531,7 +2531,7 @@ namespace eval hbs::questa {
 
   proc simulate {} {
     set workDir [pwd]
-    cd $hbs::targetDir
+    cd $hbs::RunTargetBuildDir
 
     set doFile $hbs::questa::doFile
     if {$doFile == ""} {

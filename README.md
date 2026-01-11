@@ -42,6 +42,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - `vivado-prj`: Bitstream file name changed from current project name to `hbs::Top`.
   This is required for `write_hw_platform -include_bit` command to work without any extra actions.
 - Rename `TopCore` and `TopTarget` to `RunCore` and `RunTarget`.
+- Rename `targetDir` to `RunTargetBuildDir` and make it public.
 
 ### Fixed
 - Generics handling for xsim.
