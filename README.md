@@ -22,6 +22,8 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 
 ## [Unreleased]
 
+## [1.1] - 2026-01-22
+
 ### Added
 
 - `dry-run` command for dry run and previewing commands.

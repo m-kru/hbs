@@ -2659,7 +2659,7 @@ if {$argv0 eq [info script]} {
       hbs::runTarget $hbs::RunTargetPath {*}$hbs::RunTargetArgs
     }
     "version" {
-      puts 1.0
+      puts 1.1
     }
     default {
       puts stderr "invalid command '$hbs::cmd', check help"
