@@ -20,8 +20,6 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 
 # Changelog
 
-## [Unreleased]
-
 ## [1.1] - 2026-01-22
 
 ### Added
