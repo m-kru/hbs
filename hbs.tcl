@@ -127,6 +127,9 @@ namespace eval hbs {
   # See also 'hbs doc AddFileIgnoreRegex'.
   set FileIgnoreRegexes {}
 
+  # List containing file paths of all sourced hbs files.
+  set SourcedHbsFiles {}
+
   # Formats and prints debug message to the standard error
   # if HBS_DEBUG environment variable is set.
   #
@@ -401,7 +404,7 @@ namespace eval hbs {
     }
 
     set targets [uplevel 1 [list info procs]]
-    set msg "hbs::Register: registering core [string replace $core 0 6 ""] with following [llength $targets] targets: "
+    set msg "registering core [string replace $core 0 6 ""] with following [llength $targets] targets: "
     if {[llength $targets] > 0} {
       append msg [join [lmap t $targets { concat "'$t'" }] ", "]
     }
@@ -954,7 +957,6 @@ namespace eval hbs {
   proc evalPreSynthCbs  {} { foreach cb $hbs::preSynthCbs  { eval $cb } }
   proc evalPostSynthCbs {} { foreach cb $hbs::postSynthCbs { eval $cb } }
 
-  set fileList {}
   set cores [dict create]
 
   # Dictionary containing targets that already have been run.
@@ -1019,27 +1021,7 @@ namespace eval hbs {
       set hbs::Tool $tool
     }
 
-    set hbs::fileList [findFiles . *.hbs]
-    hbs::sortFileList
-
-    hbs::Debug "found following [llength $hbs::fileList] hbs files:"
-    foreach fileName $hbs::fileList {
-      hbs::Debug "  $fileName"
-    }
-
-    foreach fileName $hbs::fileList {
-      set ignore 0
-      foreach reg $hbs::FileIgnoreRegexes {
-        if {[regexp $reg $fileName]} {
-          set ignore 1
-          break
-        }
-      }
-      if {$ignore} {
-        continue
-      }
-      source $fileName
-    }
+    hbs::findAndSourceHbsFiles .
   }
 
   proc checkTargetExists {targetPath} {
@@ -1248,39 +1230,75 @@ namespace eval hbs {
     return [lindex [split $path ::] end]
   }
 
-  # Finds files in the file system.
+  # Finds and sources hbs files from the file system.
   # basedir - the directory to start looking in.
-  # pattern - A pattern, as defined by the glob command, that the files must match.
-  proc findFiles { basedir pattern } {
+  # Directories are scanned recursively.
+  #
+  # Symbolic links are followed. In case of recursive symblic links,
+  # use hbs::AddFileIgnoreRegex to break the infinite loop.
+  proc findAndSourceHbsFiles { basedir } {
     # Fix the directory name, this ensures the directory name is in the
     # native format for the platform and contains a final directory seperator
     set basedir [string trimright [file join [file normalize $basedir] { }]]
     set fileList {}
 
     # Look in the current directory for matching files, -type {f r}
-    # means ony readable normal files are looked at, -nocomplain stops
+    # means only readable normal files are looked at, -nocomplain stops
     # an error being thrown if the returned list is empty
-    foreach fileName [glob -nocomplain -type {f r} -path $basedir $pattern] {
+    foreach fileName [glob -nocomplain -type {f r} -path $basedir "*.hbs"] {
       lappend fileList $fileName
     }
 
-    # Now look for any sub direcories in the current directory
-    foreach dirName [glob -nocomplain -type {d r} -path $basedir *] {
-      # Recusively call the routine on the sub directory and append any
-      # new files to the results
-      set subDirList [findFiles $dirName $pattern]
-      if { [llength $subDirList] > 0 } {
-        foreach subDirFile $subDirList {
-          lappend fileList $subDirFile
+    set fileList [hbs::sortFileList $fileList]
+
+    if {[llength $fileList] > 0} {
+      hbs::Debug "found following [llength $fileList] hbs files in $basedir directory"
+    }
+    foreach fileName $fileList {
+      hbs::Debug "  $fileName"
+    }
+
+    # Source hbs files from this directory.
+    foreach filePath $fileList {
+      set ignore 0
+      foreach reg $hbs::FileIgnoreRegexes {
+        if {[regexp $reg $filePath]} {
+          hbs::Debug "ignoring sourcing file $filePath"
+          set ignore 1
+          break
         }
       }
+      if {$ignore} {
+        continue
+      }
+      source $filePath
+      lappend hbs::SourcedHbsFiles $filePath
     }
-    return $fileList
+
+    # Now look for any sub direcories in the current directory
+    set subdirs [glob -nocomplain -type {d r} -path $basedir *]
+
+    foreach dirName $subdirs {
+      set ignore 0
+      foreach reg $hbs::FileIgnoreRegexes {
+        if {[regexp $reg $dirName]} {
+          hbs::Debug "ignoring finding hbs files in $dirName directory"
+          set ignore 1
+          break
+        }
+      }
+      if {$ignore} {
+        continue
+      }
+
+      # Recusively call the procedure on the sub directory.
+      hbs::findAndSourceHbsFiles $dirName
+    }
   }
 
   # Sorts .hbs file list in such a way, that files with shorter
   # path depth are sourced as the first ones.
-  proc sortFileList {} {
+  proc sortFileList { fileList } {
     proc cmp {l r} {
       set li [llength [split $l /]]
       set ri [llength [split $r /]]
@@ -1293,7 +1311,7 @@ namespace eval hbs {
       }
       return 1
     }
-    set hbs::fileList [lsort -command cmp $hbs::fileList]
+    return [lsort -command cmp $fileList]
   }
 
   proc stringHasUTF {str} {

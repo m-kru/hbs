@@ -20,6 +20,12 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Hbs files are sourced as soon as they are found, not after scanning all subdirectories first.
+
 ## [1.1] - 2026-01-22
 
 ### Added
@@ -36,6 +42,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - `hbs::ExitSeverity` variable for unifying exit condition in simulators.
 
 ### Changed
+
 - Improved error messages.
 - Improved regex for errors and warnings.
 - `vivado-prj`: Part is set immediately as `hbs::SetDevice` is called.
@@ -45,5 +52,6 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Rename `targetDir` to `RunTargetBuildDir` and make it public.
 
 ### Fixed
+
 - Generics handling for xsim.
 - `test` command returns an error if any test fails.
