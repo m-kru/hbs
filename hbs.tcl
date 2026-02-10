@@ -201,6 +201,7 @@ namespace eval hbs {
     set hbs::Device $dev
 
     switch $hbs::Tool {
+      "quartus"    { hbs::quartus::setDevice $dev }
       "vivado-prj" { hbs::vivado-prj::setDevice $dev }
     }
   }
@@ -335,6 +336,7 @@ namespace eval hbs {
   #   - gowin,
   #   - modelsim - set tool to questa,
   #   - nvc,
+  #   - quartus,
   #   - questa,
   #   - vivado-prj - Vivado project mode,
   #   - xsim - Vivado simulator.
@@ -358,6 +360,7 @@ namespace eval hbs {
       "ghdl"       { hbs::ghdl::setTool }
       "gowin"      { hbs::gowin::setTool }
       "nvc"        { ; }
+      "quartus"    { hbs::quartus::setTool }
       "questa"     { ; }
       "vivado-prj" { hbs::vivado-prj::setTool }
       "xsim"       { ; }
@@ -379,6 +382,7 @@ namespace eval hbs {
         return "simulation"
       }
       "gowin" -
+      "quartus" -
       "vivado-prj" {
         return "synthesis"
       }
@@ -518,6 +522,7 @@ namespace eval hbs {
       "ghdl"       { hbs::ghdl::addFile $files }
       "gowin"      { hbs::gowin::addFile $files }
       "nvc"        { hbs::nvc::addFile $files }
+      "quartus"    { hbs::quartus::addFile $files }
       "questa"     { hbs::questa::addFile $files }
       "vivado-prj" { hbs::vivado-prj::addFile $files }
       "xsim"       { hbs::xsim::addFile $files }
@@ -581,7 +586,7 @@ namespace eval hbs {
     set fileName [string map {"::" "--"} $hbs::RunTargetPath].json
     set filePath [file join $hbs::RunTargetBuildDir $fileName]
     switch $hbs::Tool {
-      # gw_sh changes working directory to project directory.
+      # gw_sh automatically changes working directory to the project directory.
       "gowin" {
         set filePath $fileName
       }
@@ -592,6 +597,7 @@ namespace eval hbs {
       "ghdl"       { hbs::ghdl::run $stage }
       "gowin"      { hbs::gowin::run $stage }
       "nvc"        { hbs::nvc::run $stage }
+      "quartus"    { hbs::quartus::run $stage }
       "questa"     { hbs::questa::run $stage }
       "vivado-prj" { hbs::vivado-prj::run $stage }
       "xsim"       { hbs::xsim::run $stage }
@@ -623,6 +629,9 @@ namespace eval hbs {
       }
       "nvc" {
         dict append hbs::nvc::generics $name $value
+      }
+      "quartus" {
+        hbs::Eval "set_parameter -name $name $value $hbs::ArgsSuffix"
       }
       "questa" {
         dict append hbs::questa::generics $name $value
@@ -1370,7 +1379,7 @@ namespace eval hbs {
   }
 
   proc invalidToolMsg {tool} {
-    return "invalid tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'questa', 'vivado-prj' \(project mode\), 'xsim'"
+    return "invalid tool '$tool', supported tools: 'ghdl', 'gowin', 'nvc', 'quartus', 'questa', 'vivado-prj' \(project mode\), 'xsim'"
   }
 
   proc isValidTool {tool} {
@@ -1378,6 +1387,7 @@ namespace eval hbs {
       "ghdl"       -
       "gowin"      -
       "nvc"        -
+      "quartus"    -
       "questa"     -
       "vivado-prj" -
       "xsim"       { return "" }
@@ -1965,7 +1975,7 @@ namespace eval hbs::nvc {
 # vivado-prj supports the following stages:
 #   - project,
 #   - synthesis,
-#   - implementation.
+#   - implementation,
 #   - bitstream.
 namespace eval hbs::vivado-prj {
   proc setDevice {dev} {
@@ -1975,9 +1985,10 @@ namespace eval hbs::vivado-prj {
   proc setTool {} {
     set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
     set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
-    set create_prj_cmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::RunTargetBuildDir $hbs::ArgsSuffix"
+    set createPrjCmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::RunTargetBuildDir $hbs::ArgsSuffix"
+
     if {$hbs::DryRun} {
-      hbs::Eval $create_prj_cmd
+      hbs::Eval $createPrjCmd
       return
     }
 
@@ -1987,51 +1998,25 @@ namespace eval hbs::vivado-prj {
       set hbs::Tool "vivado-prj"
 
       hbs::Debug "creating vivado project"
-      hbs::Eval $create_prj_cmd
+      hbs::Eval $createPrjCmd
       hbs::Debug "vivado project created successfully"
     } else {
       # Run the script with Vivado
-      set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-      set prjDir [file join $hbs::BuildDir $prjName]
-      file mkdir $prjDir
+      file mkdir $hbs::RunTargetBuildDir
 
       set ::env(HBS_TOOL_BOOTSTRAP) 1
 
       set cmd "vivado \
           -mode batch \
           -source [file normalize [info script]] \
-          -journal $prjDir/vivado.jou \
-          -log $prjDir/vivado.log \
+          -journal [file join $hbs::RunTargetBuildDir vivado.jou] \
+          -log [file join $hbs::RunTargetBuildDir vivado.log] \
           -tclargs $hbs::cmd $hbs::RunTargetPath $hbs::RunTargetArgs"
       set exitStatus [catch {eval exec -ignorestderr $cmd >@ stdout}]
       if {$exitStatus == 0} {
         exit 0
       } else {
         hbs::panic "vivado exited with status $exitStatus"
-      }
-    }
-  }
-
-  proc addFile {files} {
-    foreach file $files {
-      hbs::Debug "adding file $file"
-
-      set extension [file extension $file]
-      switch $extension {
-        ".bd"   { hbs::vivado-prj::addBlockDesignFile $file }
-        ".mem"  { hbs::vivado-prj::addMemFile $file }
-        ".v"       -
-        ".vh"      -
-        ".vlg"     -
-        ".verilog" { hbs::vivado-prj::addVerilogFile $file }
-        ".sv"   -
-        ".svh"  { hbs::vivado-prj::addSystemVerilogFile $file }
-        ".vhd"  -
-        ".vhdl" { hbs::vivado-prj::addVhdlFile $file }
-        ".tcl"  { hbs::vivado-prj::addTclFile $file }
-        ".xci"  { hbs::vivado-prj::addXciFile $file }
-        ".xdc"  { hbs::vivado-prj::addXdcFile $file }
-        default { hbs::panic "unhandled file extension '$extension'" }
       }
     }
   }
@@ -2053,6 +2038,30 @@ namespace eval hbs::vivado-prj {
       "2019" { return "-vhdl2019" }
       default {
         hbs::panic "invalid hbs::Std $hbs::Std for VHDL file"
+      }
+    }
+  }
+
+  proc addFile {files} {
+    foreach file $files {
+      hbs::Debug "adding file $file"
+
+      set extension [file extension $file]
+      switch $extension {
+        ".bd"      { hbs::vivado-prj::addBlockDesignFile $file }
+        ".mem"     { hbs::vivado-prj::addMemFile $file }
+        ".v"       -
+        ".vh"      -
+        ".vlg"     -
+        ".verilog" { hbs::vivado-prj::addVerilogFile $file }
+        ".sv"      -
+        ".svh"     { hbs::vivado-prj::addSystemVerilogFile $file }
+        ".vhd"     -
+        ".vhdl"    { hbs::vivado-prj::addVhdlFile $file }
+        ".tcl"     { hbs::vivado-prj::addTclFile $file }
+        ".xci"     { hbs::vivado-prj::addXciFile $file }
+        ".xdc"     { hbs::vivado-prj::addXdcFile $file }
+        default    { hbs::panic "unhandled file extension '$extension'" }
       }
     }
   }
@@ -2383,6 +2392,297 @@ namespace eval hbs::xsim {
     hbs::evalPreSimCbs
     hbs::xsim::simulate
     hbs::evalPostSimCbs
+  }
+}
+
+# Quartus
+#
+# quartus supports the following stages:
+#   - project,
+#   - elaboration,
+#   - implementation,
+#   - bitstream.
+#
+# The bitstream stage (execute_flow -finalize), requires the advanced engine.
+# However, this engine is supported only in the Pro edition. In the case of
+# the Lite and Standard editions, the bitstream stage does nothing, and the
+# bitstream is generated as part of the implementation stage.
+namespace eval hbs::quartus {
+  # Highest set VHDL standard revision.
+  set vhdlStandard ""
+
+  # Highest set (System)Verilog standard revision.
+  set verilogStandard ""
+
+  # Quartus version, for example, 25.1.
+  set version ""
+
+  # Quartus edition,Lite, Standard, or Pro.
+  set edition ""
+
+  proc detectVersionAndEdition {} {
+    set ver_str $::quartus(version)
+
+    # Use regexp to capture the version number and the edition word
+    # Group 1: ([\d\.]+) - Matches digits and dots (the version)
+    # Group 2: (\w+)\s+Edition - Matches the word directly before "Edition"
+    if {[regexp {Version\s+([\d\.]+).*?(\w+)\s+Edition} $ver_str match ver edition]} {
+      set hbs::quartus::version $ver
+      set hbs::quartus::edition $edition
+      hbs::Debug "version: $ver, edition: $edition"
+    } else {
+      hbs::Debug "using fallback method for version and edition detection"
+      set ver [lindex [split $raw_str] 1]
+      set hbs::quartus::version $ver
+      hbs::Debug "version: $ver"
+    }
+  }
+
+  proc setDevice {dev} {
+    hbs::Eval "set_global_assignment -name DEVICE $dev"
+  }
+
+  proc setTool {} {
+    set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+    set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
+    set createPrjCmd "project_new $hbs::ArgsPrefix -overwrite [file join $hbs::RunTargetBuildDir $prjName] $hbs::ArgsSuffix"
+    if {$hbs::DryRun} {
+      hbs::Eval $createPrjCmd
+      return
+    }
+
+    # Check if the script is already run by Vivado
+    if {[info exists ::env(HBS_TOOL_BOOTSTRAP)] == 1} {
+      # Quartus already runs the script
+      set hbs::Tool "quartus"
+
+      hbs::quartus::detectVersionAndEdition
+
+      hbs::Debug "creating quartus project"
+      hbs::Eval $createPrjCmd
+      hbs::Debug "quartus project created successfully"
+    } else {
+      # Run the script with quartus_sh
+      file mkdir $hbs::RunTargetBuildDir
+
+      set ::env(HBS_TOOL_BOOTSTRAP) 1
+
+      set cmd "quartus_sh \
+        -t [file normalize [info script]] \
+        $hbs::cmd $hbs::RunTargetPath $hbs::RunTargetArgs"
+      set err [catch {eval exec -ignorestderr $cmd >@ stdout}]
+
+      if {$err} {
+        hbs::panic "quartus_sh exited with status $err"
+      } else {
+        exit 0
+      }
+    }
+  }
+
+  proc library {} {
+    if {$hbs::Lib eq ""} { return "work" }
+    return $hbs::Lib
+  }
+
+  proc vhdlStd {} {
+    switch $hbs::quartus::vhdlStandard {
+      # 2008 is the default one
+      ""     { return "VHDL_2008" }
+      "1987" { return "VHDL_1987" }
+      "1993" { return "VHDL_1993" }
+      "2000" -
+      "2002" -
+      "2008" { return "VHDL_2008" }
+      "2019" { return "VHDL_2019" }
+    }
+  }
+
+  proc verilogStd {} {
+    switch $hbs::quartus::verilogStandard {
+      # 2012 is the default one, but is supported only in the Pro edition.
+      "" {
+        if {$hbs::quartus::edition ne "Pro"} {
+          return "SYSTEMVERILOG_2005"
+        }
+        return "SYSTEMVERILOG_2012"
+      }
+      "1995" { return "VERILOG_1995" }
+      "2001" { return "VERILOG_1995" }
+      "2005" { return "SYSTEMVERILOG_2005" }
+      "2009" { return "SYSTEMVERILOG_2009" }
+      "2012" { return "SYSTEMVERILOG_2012" }
+      "2017" { return "SYSTEMVERILOG_2017" }
+      "2023" { return "SYSTEMVERILOG_2023" }
+    }
+  }
+
+  proc addFile {files} {
+    foreach file $files {
+      hbs::Debug "adding file $file"
+
+      set extension [file extension $file]
+      switch $extension {
+        ".v"       -
+        ".vh"      -
+        ".vlg"     -
+        ".verilog" { hbs::quartus::addVerilogFile $file }
+        ".sv"      -
+        ".svh"     { hbs::quartus::addSystemVerilogFile $file }
+        ".vhd"     -
+        ".vhdl"    { hbs::quartus::addVhdlFile $file }
+        ".qsf"     -
+        ".tcl"     { hbs::quartus::addTclFile $file}
+        ".ltp"     -
+        ".stp"     { hbs::quartus::addStpFile $file }
+        ".hex"     { hbs::quartus::addHexFile $file }
+        ".ip"      { hbs::quartus::addIpFile $file }
+        ".jdc"     { hbs::quartus::addJdcFile $file }
+        ".mif"     { hbs::quartus::addMifFile $file }
+        ".pfc"     { hbs::quartus::addPfcFile $file }
+        ".qip"     { hbs::quartus::addQipFile $file }
+        ".qsys"    { hbs::quartus::addQsysFile $file }
+        ".sip"     { hbs::quartus::addSipFile $file }
+        ".sdc"     { hbs::quartus::addSdcFile $file }
+        ".spd"     { hbs::quartus::addSpdFile $file }
+        default    { hbs::panic "unhandled file extension '$extension'" }
+      }
+    }
+  }
+
+  proc addVhdlFile {file} {
+    hbs::Eval "set_global_assignment -name VHDL_FILE $file -library [hbs::quartus::library]"
+
+    if {$hbs::Std > $hbs::quartus::vhdlStandard} {
+      set hbs::quartus::vhdlStandard $hbs::Std
+    }
+  }
+
+  proc addVerilogFile {file} {
+    hbs::Eval "set_global_assignment -name VERILOG_FILE $file -library [hbs::quartus::library]"
+
+    if {$hbs::Std > $hbs::quartus::verilogStandard} {
+      set hbs::quartus::verilogStandard $hbs::Std
+    }
+  }
+
+  proc addSystemVerilogFile {file} {
+    hbs::Eval "set_global_assignment -name SYSTEMVERILOG_FILE $file -library [hbs::quartus::library]"
+
+    if {$hbs::Std > $hbs::quartus::verilogStandard} {
+      set hbs::quartus::verilogStandard $hbs::Std
+    }
+  }
+
+  proc addTclFile {file} {
+    hbs::Eval "source $file"
+  }
+
+  proc addHexFile {file} {
+    hbs::Eval "set_global_assignment -name HEX_FILE $file"
+  }
+
+  proc addIpFile {file} {
+    hbs::Eval "set_global_assignment -name IP_FILE $file"
+  }
+
+  proc addJdcFile {file} {
+    hbs::Eval "set_global_assignment -name JDC_FILE $file"
+  }
+
+  proc addMifFile {file} {
+    hbs::Eval "set_global_assignment -name MIF_FILE $file"
+  }
+
+  proc addPfcFile {file} {
+    hbs::Eval "set_global_assignment -name PFC_FILE $file"
+  }
+
+  proc addQipFile {file} {
+    hbs::Eval "set_global_assignment -name QIP_FILE $file"
+  }
+
+  proc addQsysFile {file} {
+    hbs::Eval "set_global_assignment -name QSYS_FILE $file"
+  }
+
+  proc addSdcFile {file} {
+    hbs::Eval "set_global_assignment -name SDC_FILE $file"
+  }
+
+  proc addSipFile {file} {
+    hbs::Eval "set_global_assignment -name SIP_FILE $file"
+  }
+
+  proc addSpdFile {file} {
+    hbs::Eval "set_global_assignment -name SPD_FILE $file"
+  }
+
+  proc addStpFile {file} {
+    hbs::Eval "set_global_assignment -name SIGNALTAP_FILE $file"
+  }
+
+  proc checkStage {stage} {
+    switch $stage {
+      "" -
+      "project" -
+      "elaboration" -
+      "implementation" -
+      "bitstream" { ; }
+      default {
+        hbs::panic "invalid stage '$stage', valid quartus stages are: 'project', 'elaboration', 'implementation', 'bitstream'"
+      }
+    }
+  }
+
+  proc run {stage} {
+    hbs::quartus::checkStage $stage
+
+    #
+    # Project
+    #
+    hbs::evalPrePrjCbs
+    if {$hbs::Device == ""} {
+      hbs::panic "hbs::Device not set"
+    }
+
+    if {$hbs::Top == ""} {
+      hbs::panic "cannot set top, hbs::Top not set"
+    }
+    hbs::Eval "set_global_assignment -name TOP_LEVEL_ENTITY $hbs::Top"
+
+    hbs::Eval "set_global_assignment -name VHDL_INPUT_VERSION [hbs::quartus::vhdlStd]"
+    hbs::Eval "set_global_assignment -name VERILOG_INPUT_VERSION [hbs::quartus::verilogStd]"
+
+    hbs::evalPostPrjCbs
+    if {$stage == "project"} { return }
+
+    hbs::Eval "load_package flow"
+
+    #
+    # Elaboration
+    #
+    hbs::evalPreElabCbs
+    hbs::Eval "execute_flow $hbs::ArgsPrefix -analysis_and_elaboration $hbs::ArgsSuffix"
+    hbs::evalPostElabCbs
+    if {$stage == "elaboration"} { return }
+
+    #
+    # Implementation
+    #
+    hbs::evalPreImplCbs
+    hbs::Eval "execute_flow $hbs::ArgsPrefix -compile $hbs::ArgsSuffix"
+    hbs::evalPostImplCbs
+    if {$stage == "implementation"} { return }
+
+    #
+    # Bitstream
+    #
+    hbs::evalPreBitCbs
+    if {$hbs::quartus::edition eq "Pro"} {
+      hbs::Eval "execute_flow $hbs::ArgsPrefix -finalize $hbs::ArgsSuffix"
+    }
+    hbs::evalPostBitCbs
   }
 }
 

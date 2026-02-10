@@ -1,1 +1,1 @@
-hbs::init: cannot set tool from HBS_TOOL environment variable: invalid tool 'foo', supported tools: 'ghdl', 'gowin', 'nvc', 'questa', 'vivado-prj' (project mode), 'xsim'
+hbs::init: cannot set tool from HBS_TOOL environment variable: invalid tool 'foo', supported tools: 'ghdl', 'gowin', 'nvc', 'quartus', 'questa', 'vivado-prj' (project mode), 'xsim'

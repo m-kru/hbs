@@ -1,0 +1,39 @@
+{
+	"core-a": {
+		"file": "/home/mkru/data/workspace/hbs-tests/dry-run/gowin/core.hbs",
+		"targets": {
+			"src": {
+				"dependencies": [],
+				"files": [
+					"/home/mkru/data/workspace/hbs-tests/dry-run/gowin/a.vhd"
+				]
+			}
+		}
+	},
+	"core-b": {
+		"file": "/home/mkru/data/workspace/hbs-tests/dry-run/gowin/core.hbs",
+		"targets": {
+			"src": {
+				"dependencies": [
+					"core-a::src"
+				],
+				"files": [
+					"/home/mkru/data/workspace/hbs-tests/dry-run/gowin/b.vhd"
+				]
+			}
+		}
+	},
+	"core-c": {
+		"file": "/home/mkru/data/workspace/hbs-tests/dry-run/gowin/core.hbs",
+		"targets": {
+			"src": {
+				"dependencies": [
+					"core-b::src"
+				],
+				"files": [
+					"/home/mkru/data/workspace/hbs-tests/dry-run/gowin/c.sv"
+				]
+			}
+		}
+	}
+}

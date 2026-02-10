@@ -14,6 +14,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - gowin,
 - modelsim - set tool to questa,
 - nvc,
+- quartus,
 - questa,
 - vivado-prj - Vivado project mode,
 - xsim - Vivado simulator.
@@ -21,6 +22,10 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 # Changelog
 
 ## [Unreleased]
+
+### Added
+
+- Support for Quartus.
 
 ### Changed
 
