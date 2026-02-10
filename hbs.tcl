@@ -1609,7 +1609,7 @@ namespace eval hbs::ghdl {
 #   - project,
 #   - synthesis,
 #   - implementation (place and route).
-# In GOWIN IDE, bitstream file generatino is a part of the place and route stage.
+# In GOWIN IDE, bitstream file generation is a part of the implementation stage.
 # The bitstream file has .fs, .bin or .binx extension.
 #
 # Setting tool to gowin must be wrapped by setting arguments suffix to proper device version.
