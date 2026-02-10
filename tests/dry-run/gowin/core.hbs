@@ -19,6 +19,11 @@ namespace eval core-b {
 
 namespace eval core-c {
   proc src {} {
+    hbs::SetDevice "GW1NR-9C"
+    hbs::SetArgsSuffix "-device_version NA"
+    hbs::SetTool "gowin"
+    hbs::ClearArgsSuffix
+
     hbs::AddDep core-b::src
     hbs::AddFile c.sv
     hbs::SetGeneric GEN 64

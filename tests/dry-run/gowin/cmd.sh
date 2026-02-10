@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-echo "add_file FileAnalPrefix $HBS_TESTS_DIR/dry-run/gowin/a.vhd FileAnalSuffix
+echo "create_project   -name core-c--src  -dir build  -pn GW1NR-9C  -force -device_version NA
+add_file FileAnalPrefix $HBS_TESTS_DIR/dry-run/gowin/a.vhd FileAnalSuffix
 set_file_prop -lib lib_a $HBS_TESTS_DIR/dry-run/gowin/a.vhd
 add_file  $HBS_TESTS_DIR/dry-run/gowin/b.vhd
 set_file_prop -lib lib_b $HBS_TESTS_DIR/dry-run/gowin/b.vhd
@@ -19,5 +20,4 @@ if {\$err} {
   error \$errMsg
 }" > golden.txt
 
-export HBS_TOOL=gowin
 ../../../hbs dry-run core-c::src > output.txt

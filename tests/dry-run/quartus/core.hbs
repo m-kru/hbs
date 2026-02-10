@@ -19,6 +19,7 @@ namespace eval core-b {
 
 namespace eval core-c {
   proc src {} {
+    hbs::SetTool "quartus"
     hbs::SetDevice "10M50DAF484C7G"
     hbs::AddDep core-b::src
     hbs::AddFile c.v

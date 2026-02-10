@@ -19,6 +19,7 @@ namespace eval core-b {
 
 namespace eval core-c {
   proc src {} {
+    hbs::SetTool "vivado-prj"
     hbs::SetDevice "xc7z020clg400-1"
     hbs::AddDep core-b::src
     hbs::AddFile c.sv
