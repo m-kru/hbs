@@ -1628,13 +1628,13 @@ namespace eval hbs::gowin {
   proc setTool {} {
     # gw_sh automatically creates project directory.
     set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
-    set create_prj_cmd "create_project $hbs::ArgsPrefix \
+    set createPrjCmd "create_project $hbs::ArgsPrefix \
       -name $prjName \
       -dir $hbs::BuildDir \
       -pn $hbs::Device \
       -force $hbs::ArgsSuffix"
     if {$hbs::DryRun} {
-      hbs::Eval $create_prj_cmd
+      hbs::Eval $createPrjCmd
       return
     }
 
@@ -1643,7 +1643,7 @@ namespace eval hbs::gowin {
       # gw_sh already runs the script
 
       hbs::Debug "creating gowin project"
-      hbs::Eval $create_prj_cmd
+      hbs::Eval $createPrjCmd
 
       # Set target directory for later use.
       set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
