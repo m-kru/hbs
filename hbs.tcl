@@ -356,16 +356,7 @@ namespace eval hbs {
       set hbs::Tool $tool
     }
 
-    switch $hbs::Tool {
-      "ghdl"       { hbs::ghdl::setTool }
-      "gowin"      { hbs::gowin::setTool }
-      "nvc"        { ; }
-      "quartus"    { hbs::quartus::setTool }
-      "questa"     { ; }
-      "vivado-prj" { hbs::vivado-prj::setTool }
-      "xsim"       { ; }
-      default      { hbs::panic "[unknownToolMsg $tool]" }
-    }
+    hbs::callToolSetTool $tool
   }
 
   # Reutrns the type of the currently set tool.
@@ -926,6 +917,13 @@ namespace eval hbs {
   # The command provided to the hbs from the command line.
   set cmd ""
 
+  # Dictionary containing discovered cores.
+  set cores [dict create]
+
+  # Dictionary containing targets that already have been run.
+  # During the single flow, single target can be run only once with a given argument values.
+  set runTargets [dict create]
+
   proc panic {msg} {
     set prefix ""
     if {$hbs::ThisTargetPath ne ""} {
@@ -966,11 +964,18 @@ namespace eval hbs {
   proc evalPreSynthCbs  {} { foreach cb $hbs::preSynthCbs  { eval $cb } }
   proc evalPostSynthCbs {} { foreach cb $hbs::postSynthCbs { eval $cb } }
 
-  set cores [dict create]
-
-  # Dictionary containing targets that already have been run.
-  # During the single flow, single target can be run only once with a given argument values.
-  set runTargets [dict create]
+  proc callToolSetTool {tool} {
+    switch $tool {
+      "ghdl"       { hbs::ghdl::setTool }
+      "gowin"      { hbs::gowin::setTool }
+      "nvc"        { ; }
+      "quartus"    { hbs::quartus::setTool }
+      "questa"     { ; }
+      "vivado-prj" { hbs::vivado-prj::setTool }
+      "xsim"       { ; }
+      default      { hbs::panic "[unknownToolMsg $tool]" }
+    }
+  }
 
   proc init {} {
     # Handle HBS_DEBUG environment variable.
@@ -1028,6 +1033,8 @@ namespace eval hbs {
       }
       set hbs::ToolEnvSet 1
       set hbs::Tool $tool
+
+      hbs::callToolSetTool $tool
     }
 
     hbs::findAndSourceHbsFiles .
@@ -1627,7 +1634,7 @@ namespace eval hbs::gowin {
 
   proc setTool {} {
     # gw_sh automatically creates project directory.
-    set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+    set prjName [regsub -all :: "$hbs::RunCorePath\:\:$hbs::RunTargetName" --]
     set createPrjCmd "create_project $hbs::ArgsPrefix \
       -name $prjName \
       -dir $hbs::BuildDir \
@@ -1983,7 +1990,7 @@ namespace eval hbs::vivado-prj {
   }
 
   proc setTool {} {
-    set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+    set prjName [regsub -all :: "$hbs::RunCorePath\:\:$hbs::RunTargetName" --]
     set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
     set createPrjCmd "create_project $hbs::ArgsPrefix -force $prjName $hbs::RunTargetBuildDir $hbs::ArgsSuffix"
 
@@ -2443,7 +2450,7 @@ namespace eval hbs::quartus {
   }
 
   proc setTool {} {
-    set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
+    set prjName [regsub -all :: "$hbs::RunCorePath\:\:$hbs::RunTargetName" --]
     set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
     set createPrjCmd "project_new $hbs::ArgsPrefix -overwrite [file join $hbs::RunTargetBuildDir $prjName] $hbs::ArgsSuffix"
     if {$hbs::DryRun} {
@@ -2929,6 +2936,15 @@ if {$argv0 eq [info script]} {
     set hbs::DryRun 1
   }
 
+  if {$hbs::cmd in {"dry-run" "run"}} {
+    set hbs::RunTargetPath [lindex $argv 1]
+    set hbs::RunTargetName [hbs::getNameFromPath $hbs::RunTargetPath]
+    set hbs::RunTargetArgs [lreplace $argv 0 1]
+
+    set hbs::RunCorePath [hbs::getCorePathFromTargetPath $hbs::RunTargetPath]
+    set hbs::RunCoreName [hbs::getCorePathFromTargetPath $hbs::RunCorePath]
+  }
+
   if {$hbs::cmd ni {"help" "version"}} {
     hbs::init
   }
@@ -2967,13 +2983,6 @@ if {$argv0 eq [info script]} {
     }
     "run"     -
     "dry-run" {
-      set hbs::RunTargetPath [lindex $argv 1]
-      set hbs::RunTargetArgs [lreplace $argv 0 1]
-
-      set hbs::RunCorePath [hbs::getCorePathFromTargetPath $hbs::RunTargetPath]
-      set hbs::RunCoreName [hbs::getCorePathFromTargetPath $hbs::RunCorePath]
-      set hbs::RunTargetName [hbs::getNameFromPath $hbs::RunTargetPath]
-
       hbs::runTarget $hbs::RunTargetPath {*}$hbs::RunTargetArgs
     }
     "version" {

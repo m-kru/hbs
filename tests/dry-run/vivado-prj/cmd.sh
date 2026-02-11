@@ -20,4 +20,5 @@ if {[get_property PROGRESS [get_runs impl_1]] != \"100%\"} {
 open_run impl_1
 write_bitstream BitArgsPrefix [get_property DIRECTORY [current_run]]/TopEntity.bit BitArgsSuffix" > golden.txt
 
+export HBS_TOOL=vivado-prj
 ../../../hbs dry-run core-c::src > output.txt
