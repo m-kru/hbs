@@ -2925,6 +2925,10 @@ if {$argv0 eq [info script]} {
 
   set hbs::cmd [lindex $argv 0]
 
+  if {$hbs::cmd eq "dry-run"} {
+    set hbs::DryRun 1
+  }
+
   if {$hbs::cmd ni {"help" "version"}} {
     hbs::init
   }
@@ -2963,10 +2967,6 @@ if {$argv0 eq [info script]} {
     }
     "run"     -
     "dry-run" {
-      if {$hbs::cmd eq "dry-run"} {
-        set hbs::DryRun 1
-      }
-
       set hbs::RunTargetPath [lindex $argv 1]
       set hbs::RunTargetArgs [lreplace $argv 0 1]
 
