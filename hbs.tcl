@@ -1984,6 +1984,11 @@ namespace eval hbs::nvc {
 #   - synthesis,
 #   - implementation,
 #   - bitstream.
+#
+# Tcl files (files with the .tcl extension), when added using the hbs::AddFile
+# procedure, are treated as constraint files. To simply add a .tcl script to
+# the project explicitly call 'add_files <your-file.tcl>'. To source a .tcl file
+# explicitly call 'source <your-file.tcl>'.
 namespace eval hbs::vivado-prj {
   proc setDevice {dev} {
     hbs::Eval "set_property part $dev \[current_project\]"
@@ -2082,7 +2087,7 @@ namespace eval hbs::vivado-prj {
   }
 
   proc addTclFile {file} {
-    hbs::Eval "source $file"
+    hbs::Eval "read_xdc $file"
   }
 
   proc addXciFile {file} {
