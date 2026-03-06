@@ -1122,29 +1122,29 @@ namespace eval hbs {
   # Dumps single core info into JSON.
   proc dumpCoreInfo {info chnnl} {
     # file
-    puts $chnnl "\t\t\"file\": \"[dict get $info file]\","
+    puts $chnnl "    \"file\": \"[dict get $info file]\","
 
     # targets
-    puts $chnnl "\t\t\"targets\": \{"
+    puts $chnnl "    \"targets\": \{"
     set targets [dict get $info targets]
     set targetsSize [dict size $targets]
     set t 0
     foreach {target filesAndDeps} $targets {
-      puts $chnnl "\t\t\t\"$target\": \{"
+      puts $chnnl "      \"$target\": \{"
 
       # Dump dependencies
       set deps [dict get $filesAndDeps dependencies]
       set depsLen [llength $deps]
 
       if {$depsLen > 0} {
-        puts $chnnl "\t\t\t\t\"dependencies\": \["
+        puts $chnnl "        \"dependencies\": \["
       } else {
-        puts $chnnl "\t\t\t\t\"dependencies\": \[\],"
+        puts $chnnl "        \"dependencies\": \[\],"
       }
 
       set d 0
       foreach dep $deps {
-        puts -nonewline $chnnl "\t\t\t\t\t\"$dep\""
+        puts -nonewline $chnnl "          \"$dep\""
         incr d
         if {$d < $depsLen} {
           puts $chnnl ", "
@@ -1152,7 +1152,7 @@ namespace eval hbs {
       }
 
       if {$depsLen > 0} {
-        puts $chnnl "\n\t\t\t\t\],"
+        puts $chnnl "\n        \],"
       }
 
       # Dump files
@@ -1160,14 +1160,14 @@ namespace eval hbs {
       set filesLen [llength $files]
 
       if {$filesLen > 0} {
-        puts $chnnl "\t\t\t\t\"files\": \["
+        puts $chnnl "        \"files\": \["
       } else {
-        puts $chnnl "\t\t\t\t\"files\": \[\]"
+        puts $chnnl "        \"files\": \[\]"
       }
 
       set f 0
       foreach file $files {
-        puts -nonewline $chnnl "\t\t\t\t\t\"$file\""
+        puts -nonewline $chnnl "          \"$file\""
         incr f
         if {$f < $filesLen} {
           puts $chnnl ", "
@@ -1175,17 +1175,17 @@ namespace eval hbs {
       }
 
       if {$filesLen > 0} {
-        puts $chnnl "\n\t\t\t\t\]"
+        puts $chnnl "\n        \]"
       }
 
       incr t
       if {$t < $targetsSize} {
-        puts $chnnl "\t\t\t\},"
+        puts $chnnl "      \},"
       } else {
-        puts $chnnl "\t\t\t\}"
+        puts $chnnl "      \}"
       }
     }
-    puts $chnnl "\t\t\}"
+    puts $chnnl "    \}"
   }
 
   proc dumpCores {{chnnl stdout}} {
@@ -1194,14 +1194,14 @@ namespace eval hbs {
     set coresSize [dict size $hbs::cores]
     set c 0
     dict for {core info} $hbs::cores {
-      puts $chnnl "\t\"[string replace $core 0 6 ""]\": \{"
+      puts $chnnl "  \"[string replace $core 0 6 ""]\": \{"
       hbs::dumpCoreInfo $info $chnnl
 
       incr c
       if { $c < $coresSize } {
-        puts $chnnl "\t\},"
+        puts $chnnl "  \},"
       } else {
-        puts $chnnl "\t\}"
+        puts $chnnl "  \}"
       }
     }
 
