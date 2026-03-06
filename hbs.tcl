@@ -390,7 +390,10 @@ namespace eval hbs {
   # targets of this core with the 'hbs run' command.
   #
   # This procedure must be called as the last in the given core namespace.
-  proc Register {} {
+  #
+  # The optional 'doc' parameter is the core documentation displayed
+  # by the 'hbs doc-core' command.
+  proc Register {{doc ""}} {
     set file [file normalize [info script]]
     set core [uplevel 1 [list namespace current]]
 
@@ -415,7 +418,10 @@ namespace eval hbs {
       dict append targetsDict $target [dict create files {} dependencies {}]
     }
 
-    dict append hbs::cores $core [dict create file $file targets $targetsDict]
+    dict append hbs::cores $core [dict create \
+      doc $doc \
+      file $file \
+      targets $targetsDict]
   }
 
   # Adds target dependency.
@@ -1123,10 +1129,12 @@ namespace eval hbs {
 
   # Dumps single core info into JSON.
   proc dumpCoreInfo {info chnnl} {
-    # file
+    # File in which core is defined
     puts $chnnl "    \"file\": \"[dict get $info file]\","
+    # Core documentation
+    puts $chnnl "    \"doc\": \"[string map {"\n" "\\n"} [dict get $info doc]]\","
 
-    # targets
+    # Targets
     puts $chnnl "    \"targets\": \{"
     set targets [dict get $info targets]
     set targetsSize [dict size $targets]
@@ -2923,11 +2931,42 @@ proc hbs::PrintHelp {} {
   puts "The command is one of:"
   puts ""
   puts "  help          Print help message"
+  puts "  doc-core      Show documentation for cores"
   puts "  dump-cores    Dump info about cores in JSON format"
   puts "  list-cores    List cores found in .hbs files"
   puts "  list-targets  List targets for given core"
   puts "  run           Run given target"
+  puts "  dry-run       Run given target without executing and evaluating commands"
   puts "  version       Print hbs version"
+}
+
+proc hbs::DocCore {args} {
+  if {[llength $args] == 0} {
+    puts stderr "expected at least one core pattern"
+    exit 1
+  }
+
+  set sortedCorePaths [lsort [dict keys $hbs::cores]]
+  foreach corePath $sortedCorePaths {
+    set core [dict get $hbs::cores $corePath]
+
+    set print 0
+    foreach pattern $args {
+      if {[regexp $pattern $corePath]} {
+        set print 1
+        break
+      }
+    }
+
+    if {!$print} { continue }
+
+    set doc [dict get $core doc]
+    if {$doc eq ""} {
+      set doc "No documentation."
+    }
+
+    puts "[string range $corePath 7 end]\n$doc\n"
+  }
 }
 
 if {$argv0 eq [info script]} {
@@ -2958,6 +2997,9 @@ if {$argv0 eq [info script]} {
   switch $hbs::cmd {
     "help" {
       hbs::PrintHelp
+    }
+    "doc-core" {
+      hbs::DocCore {*}[lrange $argv 1 end]
     }
     "dump-cores" {
       set chnnl stdout

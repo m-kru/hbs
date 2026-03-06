@@ -28,6 +28,7 @@ help_help = """Usage:
 The command is one of:
 
   doc           Show documentation for hbs Tcl symbol or EDA tool
+  doc-core      Show documentation for cores"
   dump-cores    Dump info about cores in JSON format
   graph         Output dependency graph for given target
   help          Print help message for program or given command
@@ -35,7 +36,7 @@ The command is one of:
   list-targets  List targets
   list-tb       List testbench targets
   run           Run given target
-  dyr-run       Run given target without executing and evaluating commands
+  dry-run       Run given target without executing and evaluating commands
   test          Run testbench targets
   version       Print hbs version
   whereis       Print where given cores are defined
@@ -55,6 +56,14 @@ The "hbs::" prefix in the symbol name is optional.
 For example, "hbs doc AddDep" returns the same documentation as "hbs doc hbs::AddDep".
 
 If the symbol-name is not provided, all public symbols constituting HBS API are printed."""
+
+doc_core_help = """Show documentation for cores.
+
+  hbs doc-core core-path-regex ...
+
+At least one core path regex must be provided.
+If core path matches any of the provided regexes, the documentation
+for that core will be displayed."""
 
 dump_cores_help = """Dump info about cores found in .hbs files in JSON format.
 
@@ -162,6 +171,8 @@ def hbs_help(cmd):
         print(help_help)
     elif cmd == "doc":
         print(doc_help)
+    elif cmd == "doc-core":
+        print(doc_core_help)
     elif cmd == "dump-cores":
         print(dump_cores_help)
     elif cmd == "graph":
@@ -577,7 +588,7 @@ elif cmd == "list-cores":
     list_cores(sys.argv[2:])
 elif cmd == "list-targets":
     list_targets(sys.argv[2:])
-elif cmd == "run" or cmd == "dry-run" :
+elif cmd == "run" or cmd == "dry-run":
     if len(sys.argv) < 3:
         error(f"{cmd} command requires at least target path")
     status = subprocess.run(
@@ -595,5 +606,10 @@ elif cmd == "version":
     exit(status.returncode)
 elif cmd == "whereis":
     whereis(sys.argv[2:])
+elif cmd == "doc-core":
+    status = subprocess.run(
+        [os.path.join(this_script_dir, 'hbs.tcl'), cmd, *sys.argv[2:]]
+    )
+    exit(status.returncode)
 else:
     error(f"invalid command '{cmd}', check help")
