@@ -35,6 +35,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 ### Fixed
 
 - Enforcing tool via `HBS_TOOL` environment variable calls tool custom `setTool` procedure.
+- JSON dump path for gowin in dry run.
 
 ## [1.1] - 2026-01-22
 
