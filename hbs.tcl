@@ -2930,6 +2930,7 @@ proc hbs::PrintHelp {} {
   puts "  run           Run given target"
   puts "  dry-run       Run given target without executing and evaluating commands"
   puts "  version       Print hbs version"
+  puts "  where         Print where given cores are defined"
 }
 
 proc hbs::CmdDoc {args} {
@@ -2965,8 +2966,6 @@ proc hbs::CmdDoc {args} {
 proc hbs::CmdListCores {args} {
   set sortedCorePaths [lsort [dict keys $hbs::cores]]
   foreach corePath $sortedCorePaths {
-    set core [dict get $hbs::cores $corePath]
-
     set print 0
     if {[llength $args] == 0} {
       set print 1
@@ -2982,6 +2981,40 @@ proc hbs::CmdListCores {args} {
 
     # Drop the ::hbs:: prefix.
     puts "[string range $corePath 7 end]"
+  }
+}
+
+proc hbs::CmdWhere {args} {
+  set sortedCorePaths [lsort [dict keys $hbs::cores]]
+  set cores [dict create]
+  set maxCorePathLen 0
+
+  foreach corePath $sortedCorePaths {
+    set core [dict get $hbs::cores $corePath]
+
+    set found 0
+    if {[llength $args] == 0} {
+      set found 1
+    }
+    foreach pattern $args {
+      if {[regexp $pattern $corePath]} {
+        set found 1
+        break
+      }
+    }
+
+    if {$found} {
+      set len [string length $corePath]
+      if {$len > $maxCorePathLen} {
+        set maxCorePathLen $len
+      }
+      dict append cores $corePath [dict get $core file]
+    }
+  }
+
+  incr maxCorePathLen -6
+  dict for {corePath file} $cores {
+    puts [format "%-*s %s" $maxCorePathLen [string range $corePath 7 end] $file]
   }
 }
 
@@ -3051,6 +3084,9 @@ if {$argv0 eq [info script]} {
     }
     "version" {
       puts 1.1
+    }
+    "where" {
+      hbs::CmdWhere {*}[lrange $argv 1 end]
     }
     default {
       puts stderr "invalid command '$hbs::cmd', check help"
