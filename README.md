@@ -34,6 +34,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Hbs files are sourced as soon as they are found, not after scanning all subdirectories first.
 - Vivado: Treat .tcl files as constraint files by default.
 - Rename `doc` command to `info`.
+- Rename `whereis` command to `where`.
 
 ### Fixed
 
