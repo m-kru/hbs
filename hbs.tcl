@@ -2931,7 +2931,7 @@ proc hbs::PrintHelp {} {
   puts "The command is one of:"
   puts ""
   puts "  help          Print help message"
-  puts "  doc-core      Show documentation for cores"
+  puts "  doc           Show documentation for cores"
   puts "  dump-cores    Dump info about cores in JSON format"
   puts "  list-cores    List cores found in .hbs files"
   puts "  list-targets  List targets for given core"
@@ -2940,9 +2940,9 @@ proc hbs::PrintHelp {} {
   puts "  version       Print hbs version"
 }
 
-proc hbs::DocCore {args} {
+proc hbs::CmdDoc {args} {
   if {[llength $args] == 0} {
-    puts stderr "expected at least one core pattern"
+    puts stderr "expected at least one core path regex"
     exit 1
   }
 
@@ -2998,8 +2998,8 @@ if {$argv0 eq [info script]} {
     "help" {
       hbs::PrintHelp
     }
-    "doc-core" {
-      hbs::DocCore {*}[lrange $argv 1 end]
+    "doc" {
+      hbs::CmdDoc {*}[lrange $argv 1 end]
     }
     "dump-cores" {
       set chnnl stdout

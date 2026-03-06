@@ -27,7 +27,7 @@ help_help = """Usage:
 
 The command is one of:
 
-  doc-core      Show documentation for cores"
+  doc           Show documentation for cores"
   dump-cores    Dump info about cores in JSON format
   graph         Output dependency graph for given target
   help          Print help message for program or given command
@@ -57,9 +57,9 @@ For example, "hbs info AddDep" returns the same information as "hbs info hbs::Ad
 
 If the symbol-name is not provided, all public symbols constituting HBS API are printed."""
 
-doc_core_help = """Show documentation for cores.
+doc_help = """Show documentation for cores.
 
-  hbs doc-core core-path-regex ...
+  hbs doc core-path-regex ...
 
 At least one core path regex must be provided.
 If core path matches any of the provided regexes, the documentation
@@ -169,8 +169,8 @@ if len(sys.argv) < 2:
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
         print(help_help)
-    elif cmd == "doc-core":
-        print(doc_core_help)
+    elif cmd == "doc":
+        print(doc_help)
     elif cmd == "dump-cores":
         print(dump_cores_help)
     elif cmd == "graph":
@@ -225,7 +225,7 @@ def add_target_deps(graph, nodes, cores, target_path):
         add_target_deps(graph, nodes, cores, dep_path)
 
 
-def doc(args):
+def info(args):
     sym_name = None
 
     if len(args) == 1:
@@ -233,7 +233,7 @@ def doc(args):
         if sym_name.startswith("hbs::"):
             sym_name = sym_name[5:]
     if len(args) > 1:
-        error("doc command accepts only one symbol path")
+        error("info command accepts only one symbol path")
 
     doc = ""
     state = "before public api"
@@ -282,7 +282,7 @@ def doc(args):
                     print(doc)
                     return
     if sym_name != None:
-        error(f"doc for symbol '{args[0]}' not found")
+        error(f"info for symbol '{args[0]}' not found")
 
 
 # The first arg is path to the cores json file.
@@ -570,7 +570,7 @@ if cmd == "help":
     else:
         error("help command accepts one or no argument")
 elif cmd == "info":
-    doc(sys.argv[2:])
+    info(sys.argv[2:])
 elif cmd == "graph":
     if len(sys.argv) < 3:
         error(
@@ -606,7 +606,7 @@ elif cmd == "version":
     exit(status.returncode)
 elif cmd == "whereis":
     whereis(sys.argv[2:])
-elif cmd == "doc-core":
+elif cmd == "doc":
     status = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), cmd, *sys.argv[2:]]
     )

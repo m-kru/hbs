@@ -27,6 +27,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 
 - Support for Quartus.
 - Optional `doc` (core documentation) parameter to the `hbs::Register` procedure.
+- `doc` command for viewing cores documentation.
 
 ### Changed
 
