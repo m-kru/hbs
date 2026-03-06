@@ -918,6 +918,7 @@ namespace eval hbs {
   }
 }
 
+
 # Private API
 #
 # Only use this API directly in user hbs files if you _really_ know what you are doing.
@@ -1427,6 +1428,7 @@ namespace eval hbs {
   }
 }
 
+
 # GHDL simulator
 #
 # HBS requires that GHDL is compiled with the LLVM or GCC backend.
@@ -1611,6 +1613,7 @@ namespace eval hbs::ghdl {
     hbs::evalPostSimCbs
   }
 }
+
 
 # GOWIN
 #
@@ -1824,6 +1827,7 @@ if {\$err} {
   }
 }
 
+
 # nvc simulator
 #
 # nvc supports the following stages:
@@ -1978,6 +1982,7 @@ namespace eval hbs::nvc {
     hbs::evalPostSimCbs
   }
 }
+
 
 # Vivado (Project Mode)
 #
@@ -2178,6 +2183,7 @@ namespace eval hbs::vivado-prj {
     hbs::evalPostBitCbs
   }
 }
+
 
 # AMD xsim simulator.
 #
@@ -2407,6 +2413,7 @@ namespace eval hbs::xsim {
     hbs::evalPostSimCbs
   }
 }
+
 
 # Quartus
 #
@@ -2699,6 +2706,7 @@ namespace eval hbs::quartus {
   }
 }
 
+
 # Siemens questa simulator.
 #
 # Custom do file for running simulation can be added by adding file with .do extension:
@@ -2915,6 +2923,10 @@ namespace eval hbs::questa {
   }
 }
 
+#
+# Help messages
+#
+
 proc hbs::PrintHelp {} {
   puts "Usage"
   puts ""
@@ -2932,6 +2944,10 @@ proc hbs::PrintHelp {} {
   puts "  version       Print hbs version"
   puts "  where         Print where given cores are defined"
 }
+
+#
+# Commands
+#
 
 proc hbs::CmdDoc {args} {
   if {[llength $args] == 0} {
@@ -2963,6 +2979,7 @@ proc hbs::CmdDoc {args} {
   }
 }
 
+
 proc hbs::CmdListCores {args} {
   set sortedCorePaths [lsort [dict keys $hbs::cores]]
   foreach corePath $sortedCorePaths {
@@ -2983,6 +3000,7 @@ proc hbs::CmdListCores {args} {
     puts "[string range $corePath 7 end]"
   }
 }
+
 
 proc hbs::CmdWhere {args} {
   set sortedCorePaths [lsort [dict keys $hbs::cores]]
@@ -3017,6 +3035,10 @@ proc hbs::CmdWhere {args} {
     puts [format "%-*s %s" $maxCorePathLen [string range $corePath 7 end] $file]
   }
 }
+
+#
+# Script logic
+#
 
 if {$argv0 eq [info script]} {
   if {$argc < 1} {
