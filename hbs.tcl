@@ -1218,14 +1218,6 @@ namespace eval hbs {
     puts $chnnl "\}"
   }
 
-  proc listCores {} {
-    set cores [lsort [dict keys $hbs::cores]]
-    foreach core $cores {
-      # Drop the "::hbs::" prefix
-      puts [string replace $core 0 6 ""]
-    }
-  }
-
   proc listTargets {corePath {chnnl stdout}} {
     if {[dict exists $hbs::cores ::hbs::$corePath] == 0} {
       hbs::panic "core '$corePath' not found, maybe the core is not registered \(hsb::Register\)"
@@ -2965,12 +2957,36 @@ proc hbs::CmdDoc {args} {
       set doc "No documentation."
     }
 
+    # Drop the ::hbs:: prefix.
     puts "[string range $corePath 7 end]\n$doc\n"
   }
 }
 
+proc hbs::CmdListCores {args} {
+  set sortedCorePaths [lsort [dict keys $hbs::cores]]
+  foreach corePath $sortedCorePaths {
+    set core [dict get $hbs::cores $corePath]
+
+    set print 0
+    if {[llength $args] == 0} {
+      set print 1
+    }
+    foreach pattern $args {
+      if {[regexp $pattern $corePath]} {
+        set print 1
+        break
+      }
+    }
+
+    if {!$print} { continue }
+
+    # Drop the ::hbs:: prefix.
+    puts "[string range $corePath 7 end]"
+  }
+}
+
 if {$argv0 eq [info script]} {
-  if {$argc < 1 } {
+  if {$argc < 1} {
     puts stderr "missing command, check help"
     exit 1
   }
@@ -3023,7 +3039,7 @@ if {$argv0 eq [info script]} {
       hbs::dumpCores $chnnl
     }
     "list-cores" {
-      hbs::listCores
+      hbs::CmdListCores {*}[lrange $argv 1 end]
     }
     "list-targets" {
       set corePath [lindex $argv 1]

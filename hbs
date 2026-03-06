@@ -455,22 +455,6 @@ def test(patterns):
         exit(1)
 
 
-def list_cores(patterns):
-    output = subprocess.run(
-        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
-        capture_output=True,
-        encoding="utf-8",
-    )
-    if output.returncode != 0:
-        error(output.stderr, end='')
-
-    cores = json.loads(output.stdout)
-
-    for core, core_info in sorted(cores.items()):
-        if path_has_pattern(core, patterns):
-            print(core)
-
-
 def list_targets(patterns):
     output = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
@@ -581,8 +565,6 @@ elif cmd == "graph":
             "graph command requires at most 2 arguments, path to json file with cores and optional top target path"
         )
     graph(sys.argv[2:])
-elif cmd == "list-cores":
-    list_cores(sys.argv[2:])
 elif cmd == "list-targets":
     list_targets(sys.argv[2:])
 elif cmd == "test":
