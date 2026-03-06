@@ -576,10 +576,12 @@ namespace eval hbs {
     # Glib does not support ':' in file names.
     set fileName [string map {"::" "--"} $hbs::RunTargetPath].json
     set filePath [file join $hbs::RunTargetBuildDir $fileName]
-    switch $hbs::Tool {
-      # gw_sh automatically changes working directory to the project directory.
-      "gowin" {
-        set filePath $fileName
+    if {!$hbs::DryRun} {
+      switch $hbs::Tool {
+        # gw_sh automatically changes working directory to the project directory.
+        "gowin" {
+          set filePath $fileName
+        }
       }
     }
     hbs::dumpCores [open $filePath w]
