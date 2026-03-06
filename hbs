@@ -27,11 +27,11 @@ help_help = """Usage:
 
 The command is one of:
 
-  doc           Show documentation for hbs Tcl symbol or EDA tool
   doc-core      Show documentation for cores"
   dump-cores    Dump info about cores in JSON format
   graph         Output dependency graph for given target
   help          Print help message for program or given command
+  info          Show information on hbs Tcl symbol or EDA tool
   list-cores    List cores
   list-targets  List targets
   list-tb       List testbench targets
@@ -43,17 +43,17 @@ The command is one of:
 
 Type 'hbs help <command>' to obtain more information about particular command."""
 
-doc_help = """Show documentation for hbs Tcl symbol.
+info_help = """Show information for hbs Tcl symbol or EDA tool.
 
-  hbs doc [symbol-name]
+  hbs info [symbol-name]
 
 Symbol name must be part of the main API (must be defined in the hbs namespace
 and must start with an uppercase letter). Private symbols documentation cannot
-be obtained using the doc command. However, one can always open the hbs.tcl
+be obtained using the info command. However, one can always open the hbs.tcl
 file and see the documentation in the source.
 
 The "hbs::" prefix in the symbol name is optional.
-For example, "hbs doc AddDep" returns the same documentation as "hbs doc hbs::AddDep".
+For example, "hbs info AddDep" returns the same information as "hbs info hbs::AddDep".
 
 If the symbol-name is not provided, all public symbols constituting HBS API are printed."""
 
@@ -169,14 +169,14 @@ if len(sys.argv) < 2:
 def hbs_help(cmd):
     if cmd == "" or cmd == "help":
         print(help_help)
-    elif cmd == "doc":
-        print(doc_help)
     elif cmd == "doc-core":
         print(doc_core_help)
     elif cmd == "dump-cores":
         print(dump_cores_help)
     elif cmd == "graph":
         print(graph_help)
+    elif cmd == "info":
+        print(info_help)
     elif cmd == "list-cores":
         print(list_cores_help)
     elif cmd == "list-targets":
@@ -569,7 +569,7 @@ if cmd == "help":
         hbs_help(sys.argv[2])
     else:
         error("help command accepts one or no argument")
-elif cmd == "doc":
+elif cmd == "info":
     doc(sys.argv[2:])
 elif cmd == "graph":
     if len(sys.argv) < 3:
