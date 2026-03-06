@@ -581,35 +581,18 @@ elif cmd == "graph":
             "graph command requires at most 2 arguments, path to json file with cores and optional top target path"
         )
     graph(sys.argv[2:])
-elif cmd == "dump-cores":
-    status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores', *sys.argv[2:]])
-    exit(status.returncode)
 elif cmd == "list-cores":
     list_cores(sys.argv[2:])
 elif cmd == "list-targets":
     list_targets(sys.argv[2:])
-elif cmd == "run" or cmd == "dry-run":
-    if len(sys.argv) < 3:
-        error(f"{cmd} command requires at least target path")
-    status = subprocess.run(
-        [os.path.join(this_script_dir, 'hbs.tcl'), cmd, *sys.argv[2:]]
-    )
-    exit(status.returncode)
 elif cmd == "test":
     test(sys.argv[2:])
 elif cmd == "list-tb":
     list_tb(sys.argv[2:])
-elif cmd == "version":
-    if len(sys.argv) > 2:
-        error("version command doesn't accept any arguments")
-    status = subprocess.run([os.path.join(this_script_dir, 'hbs.tcl'), 'version'])
-    exit(status.returncode)
 elif cmd == "whereis":
     whereis(sys.argv[2:])
-elif cmd == "doc":
+else:
     status = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), cmd, *sys.argv[2:]]
     )
     exit(status.returncode)
-else:
-    error(f"invalid command '{cmd}', check help")
