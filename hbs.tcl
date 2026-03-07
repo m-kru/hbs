@@ -576,22 +576,25 @@ namespace eval hbs {
       file mkdir $hbs::RunTargetBuildDir
     }
 
-    # Dump cores to JSON file.
+    # Dump cores in Tcl dictionary and JSON formats.
     #
     # Replace "::" with "--".
     # Glib does not support ':' in file names.
-    set fileName [string map {"::" "--"} $hbs::RunTargetPath].json
+    set fileName [string map {"::" "--"} $hbs::RunTargetPath]
     set filePath [file join $hbs::RunTargetBuildDir $fileName]
     if {!$hbs::DryRun} {
       switch $hbs::Tool {
         # gw_sh automatically changes working directory to the project directory.
         "gowin" {
-          set filePath $fileName
+          set filePath $fileNameJSON
         }
       }
     }
-    hbs::dumpCores [open $filePath w]
-    hbs::dumpCoresJSON [open $filePath w]
+    hbs::dumpCores [open "$filePath.dict" w]
+    hbs::dumpCoresJSON [open "$filePath.json" w]
+
+    # Generate dependency graph
+    hbs::genGraph $hbs::cores $hbs::RunTargetPath [open "$filePath.dot" w]
 
     switch $hbs::Tool {
       "ghdl"       { hbs::ghdl::run $stage }
@@ -1454,6 +1457,39 @@ namespace eval hbs {
       return 1
     }
     return 0
+  }
+
+  # Generate target graph node in Graphviz dot format.
+  # More precisely, it generates target node edges.
+  proc genTargetGraphNode {nodes cores targetPath chnnl} {
+    set corePath [hbs::getCorePathFromTargetPath $targetPath]
+    set targetName [hbs::getNameFromPath $targetPath]
+
+    set core [dict get $cores "::hbs::$corePath"]
+    set targets [dict get $core targets]
+    set target [dict get $targets $targetName]
+
+    if {![dict exists $nodes $targetPath]} {
+      dict append {$targetPath} 1
+    }
+
+    foreach depTargetPath [dict get $target dependencies] {
+      if {![dict exists $nodes $depTargetPath]} {
+        hbs::genTargetGraphNode $nodes $cores $depTargetPath $chnnl
+      }
+
+      puts $chnnl "  \"$targetPath\" -> \"$depTargetPath\";"
+    }
+  }
+
+  # Generates dependency graph in Graphviz dot format.
+  proc genGraph {cores targetPath chnnl} {
+    puts $chnnl "strict digraph G {"
+
+    array set nodes {}
+    hbs::genTargetGraphNode [dict create] $cores $targetPath $chnnl
+
+    puts $chnnl "}"
   }
 }
 
@@ -2995,6 +3031,33 @@ proc hbs::CmdDoc {args} {
   }
 }
 
+
+proc hbs::CmdGraph {args} {
+  if {[llength $args] == 0} {
+    puts stderr "graph command requires at least path to cores dictionary file"
+    exit 1
+  } elseif {[llength $args] > 2} {
+    puts stderr "graph command requires at most 2 arguments, check 'hbs help graph'"
+    exit 1
+  }
+
+  set coresFilepath [lindex $args 0]
+
+  set base [file tail [file rootname $coresFilepath]]
+  set targetPath [string map {"--" "::"} $base]
+  if {[llength $args] > 1} {
+    set targetPath [lindex $args 1]
+  }
+
+  set fh [open $coresFilepath r]
+  fconfigure $fh -encoding utf-8
+  set cores [read $fh]
+  close $fh
+
+  hbs::genGraph $cores $targetPath stdout
+}
+
+
 proc hbs::CmdInfo {args} {
   set symbolName ""
 
@@ -3208,6 +3271,9 @@ if {$argv0 eq [info script]} {
         "dump"      { hbs::dumpCores $chnnl }
         "dump-json" { hbs::dumpCoresJSON $chnnl }
       }
+    }
+    "graph" {
+      hbs::CmdGraph {*}[lrange $argv 1 end]
     }
     "info" {
       hbs::CmdInfo {*}[lrange $argv 1 end]

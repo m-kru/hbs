@@ -75,10 +75,13 @@ If you want to save it in a file simply redirect stdout."""
 
 graph_help = """Output dependency graph for given target.
 
-  hbs graph path/to/file/with/cores.json [top-target-path]
+  hbs graph path/to/file/with/cores.dict [top-target-path]
 
 If top target path is not provided, then it is assumed to be the same
-as the base of the json file path, without the '.json' suffix."""
+as the base of the Tcl dictionary file, without the '.dict' suffix.
+
+The graph is generated in Graphviz dot file format.
+It can be later post processed using the dot command."""
 
 list_cores_help = """List cores found in .hbs files.
 
@@ -194,60 +197,6 @@ def hbs_help(cmd):
         print(where_help)
     else:
         error(f"can't find help for command '{cmd}'")
-
-
-def add_target_deps(graph, nodes, cores, target_path):
-    path_parts = target_path.split('::')
-
-    target_name = path_parts[-1]
-    core_path = '::'.join(path_parts[:-1])
-
-    if core_path not in cores:
-        error(f"core '{core_path}' not found in json file")
-    core = cores[core_path]
-
-    if target_name not in core['targets']:
-        error(f"target '{target_name}' for core '{core_path}' not found in json file")
-
-    target = core['targets'][target_name]
-
-    target_node = target_path.replace('::', '/')
-    if target_node not in nodes:
-        nodes[target_name] = True
-        graph.node(target_node, target_path)
-
-    for dep_path in target['dependencies']:
-        dep_node = dep_path.replace('::', '/')
-        if dep_node not in nodes:
-            nodes[dep_node] = True
-            graph.node(dep_node, dep_path)
-
-        graph.edge(target_node, dep_node)
-        add_target_deps(graph, nodes, cores, dep_path)
-
-
-# The first arg is path to the cores json file.
-# The second arg is an optional top target path.
-def graph(args):
-    import graphviz
-
-    cores_json_path = args[0]
-    if len(args) == 1:
-        target_path = os.path.basename(cores_json_path).replace('--', '::')
-        if cores_json_path.endswith('.json'):
-            target_path = target_path[0:-5]
-    elif len(args) > 1:
-        target_path = args[1]
-
-    cores_json = open(cores_json_path)
-    cores = json.load(cores_json)
-
-    nodes = dict()
-    graph = graphviz.Digraph(
-        'G', strict=True, filename=f"{target_path.replace('::', '--')}"
-    )
-    add_target_deps(graph, nodes, cores, target_path)
-    graph.render(cleanup=True)
 
 
 def path_has_pattern(path, patterns):
@@ -405,16 +354,6 @@ if cmd == "help":
         hbs_help(sys.argv[2])
     else:
         error("help command accepts one or no argument")
-elif cmd == "graph":
-    if len(sys.argv) < 3:
-        error(
-            "graph command requires at least path to json file with cores"
-        )
-    elif len(sys.argv) > 4:
-        error(
-            "graph command requires at most 2 arguments, path to json file with cores and optional top target path"
-        )
-    graph(sys.argv[2:])
 elif cmd == "test":
     test(sys.argv[2:])
 else:
