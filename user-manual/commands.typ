@@ -120,14 +120,14 @@ vhdl::amba5::apb::shared-bus::src
 The name "src" is preferred name for a core target if the core has only one target containing all sources required for core utilization.
 However, this is not a formal requirement, so feel free to name your targets however you want.
 
-== `list-tb` - listing testbench targets
+== `ls-tb` - listing testbench targets
 
-The `list-tb` command allows listing all testbench targets discovered by HBS.
-The `list-tb` command is analogous to the `ls-targets` command, but it works solely on testbench targets instead of all targets.
+The `ls-tb` command allows listing all testbench targets discovered by HBS.
+The `ls-tb` command is analogous to the `ls-targets` command, but it works solely on testbench targets instead of all targets.
 The command is executed by the `hbs` file and requires Python to work.
 The following snippet presents an output for listing testbench targets for bridges in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
-[user@host apb] hbs list-tb bridge
+[user@host apb] hbs ls-tb bridge
 vhdl::amba5::apb::cdc-bridge::tb-to-faster
 vhdl::amba5::apb::cdc-bridge::tb-similar-slower
 vhdl::amba5::apb::cdc-bridge::tb-similar-faster
@@ -135,7 +135,7 @@ vhdl::amba5::apb::cdc-bridge::tb-to-slower
 vhdl::amba5::apb::serial-bridge::tb-write
 vhdl::amba5::apb::serial-bridge::tb-read
 ```
-If no arguments are provided for the `list-tb` command, then all testbench targets for all discovered cores are listed.
+If no arguments are provided for the `ls-tb` command, then all testbench targets for all discovered cores are listed.
 
 
 == `run` - running targets

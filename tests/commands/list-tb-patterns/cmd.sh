@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-../../../hbs list-tb core ba zaz > output.txt
+../../../hbs ls-tb core ba zaz > output.txt

@@ -3015,7 +3015,7 @@ proc hbs::CmdHelp {args} {
       puts "  info        Show information on hbs Tcl symbol or EDA tool"
       puts "  ls-cores    List cores found in .hbs files"
       puts "  ls-targets  List targets for given core"
-      puts "  list-tb     List testbench targets"
+      puts "  ls-tb       List testbench targets"
       puts "  run         Run given target"
       puts "  dry-run     Run given target without executing and evaluating commands"
       puts "  test        Run testbench targets"
@@ -3096,10 +3096,10 @@ proc hbs::CmdHelp {args} {
       puts "For example, if you want to list all targets for a given core,"
       puts "simply provide the core path as the argument."
     }
-    "list-tb" {
+    "ls-tb" {
       puts "List testbench targets for cores found in .hbs files."
       puts ""
-      puts "  hbs list-tb \[target-path-regex...\]"
+      puts "  hbs ls-tb \[target-path-regex...\]"
       puts ""
       puts "If target path regexes are not provided, all found testbench targets are listed."
       puts "If target path regexes are provided, then only testbench targets whose path"
@@ -3445,7 +3445,7 @@ if {$argv0 eq [info script]} {
     "ls-targets" {
       hbs::CmdListTargets {*}[lrange $argv 1 end]
     }
-    "list-tb" {
+    "ls-tb" {
       hbs::CmdListTb {*}[lrange $argv 1 end]
     }
     "run"     -

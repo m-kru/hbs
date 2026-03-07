@@ -287,7 +287,7 @@ namespace eval my-core {
 ```
 The `hbs` program detects the following testbench targets:
 ```
-[user@host tmp] hbs list-tb
+[user@host tmp] hbs ls-tb
 my-core::my-tb
 my-core::tb
 my-core::tb_my

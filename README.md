@@ -39,6 +39,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Rename `dump-cores` command to `dump-json`.
 - Rename `list-cores` command to `ls-cores`.
 - Rename `list-targets` command to `ls-targets`.
+- Rename `list-tb` command to `ls-tb`.
 
 ### Fixed
 
