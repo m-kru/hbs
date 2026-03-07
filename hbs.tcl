@@ -1426,6 +1426,16 @@ namespace eval hbs {
     }
     return 0
   }
+
+  # Returns true (1) if str contains at least one regex pattern from args.
+  proc hasRegexPattern {str args} {
+    foreach pattern $args {
+      if {[regexp $pattern $str]} {
+        return 1
+      }
+    }
+    return 0
+  }
 }
 
 
@@ -2950,26 +2960,12 @@ proc hbs::PrintHelp {} {
 #
 
 proc hbs::CmdDoc {args} {
-  if {[llength $args] == 0} {
-    puts stderr "expected at least one core path regex"
-    exit 1
-  }
-
-  set sortedCorePaths [lsort [dict keys $hbs::cores]]
-  foreach corePath $sortedCorePaths {
-    set core [dict get $hbs::cores $corePath]
-
-    set print 0
-    foreach pattern $args {
-      if {[regexp $pattern $corePath]} {
-        set print 1
-        break
-      }
+  foreach corePath [lsort [dict keys $hbs::cores]] {
+    if {[llength $args] > 0 && ![hbs::hasRegexPattern $corePath {*}$args]} {
+      continue
     }
 
-    if {!$print} { continue }
-
-    set doc [dict get $core doc]
+    set doc [dict get [dict get $hbs::cores $corePath] doc]
     if {$doc eq ""} {
       set doc "No documentation."
     }
@@ -2981,20 +2977,10 @@ proc hbs::CmdDoc {args} {
 
 
 proc hbs::CmdListCores {args} {
-  set sortedCorePaths [lsort [dict keys $hbs::cores]]
-  foreach corePath $sortedCorePaths {
-    set print 0
-    if {[llength $args] == 0} {
-      set print 1
+  foreach corePath [lsort [dict keys $hbs::cores]] {
+    if {[llength $args] > 0 && ![hbs::hasRegexPattern $corePath {*}$args]} {
+      continue
     }
-    foreach pattern $args {
-      if {[regexp $pattern $corePath]} {
-        set print 1
-        break
-      }
-    }
-
-    if {!$print} { continue }
 
     # Drop the ::hbs:: prefix.
     puts "[string range $corePath 7 end]"
@@ -3003,31 +2989,20 @@ proc hbs::CmdListCores {args} {
 
 
 proc hbs::CmdWhere {args} {
-  set sortedCorePaths [lsort [dict keys $hbs::cores]]
   set cores [dict create]
   set maxCorePathLen 0
 
-  foreach corePath $sortedCorePaths {
-    set core [dict get $hbs::cores $corePath]
-
-    set found 0
-    if {[llength $args] == 0} {
-      set found 1
-    }
-    foreach pattern $args {
-      if {[regexp $pattern $corePath]} {
-        set found 1
-        break
-      }
+  foreach corePath [lsort [dict keys $hbs::cores]] {
+    if {[llength $args] > 0 && ![hbs::hasRegexPattern $corePath {*}$args]} {
+      continue
     }
 
-    if {$found} {
-      set len [string length $corePath]
-      if {$len > $maxCorePathLen} {
-        set maxCorePathLen $len
-      }
-      dict append cores $corePath [dict get $core file]
+    set len [string length $corePath]
+    if {$len > $maxCorePathLen} {
+      set maxCorePathLen $len
     }
+
+    dict append cores $corePath [dict get [dict get $hbs::cores $corePath] file]
   }
 
   incr maxCorePathLen -6

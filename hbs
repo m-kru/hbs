@@ -59,11 +59,11 @@ If the symbol-name is not provided, all public symbols constituting HBS API are 
 
 doc_help = """Show documentation for cores.
 
-  hbs doc core-path-regex ...
+  hbs doc [core-path-regex...]
 
-At least one core path regex must be provided.
-If core path matches any of the provided regexes, the documentation
-for that core will be displayed."""
+If core-path-regexes are not provided, documentation for all found cores is printed.
+If core-path-regexes are provided, then only cores whose path
+contains at least one regex are printed."""
 
 dump_cores_help = """Dump info about cores found in .hbs files in JSON format.
 
