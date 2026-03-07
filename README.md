@@ -37,6 +37,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Rename `doc` command to `info`.
 - Rename `whereis` command to `where`.
 - Rename `dump-cores` command to `dump-json`.
+- Rename `list-cores` command to `ls-cores`.
 
 ### Fixed
 

@@ -186,7 +186,7 @@ Using the namespace path as the core path gives the following possibilities:
   Three flip-flop cores are defined in the snippet.
   The following snippet presents output for listing flip-flop cores:
   ```
-  [user@host tmp]$ hbs list-cores
+  [user@host tmp]$ hbs ls-cores
   lib::pkg1::d-flip-flop
   lib::pkg1::t-flip-flop
   lib::pkg2::jk-flip-flop

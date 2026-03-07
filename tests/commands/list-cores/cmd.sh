@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-../../../hbs list-cores > output.txt
+../../../hbs ls-cores > output.txt

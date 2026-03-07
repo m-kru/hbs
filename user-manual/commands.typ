@@ -68,13 +68,13 @@ If you want to save it in a file simply redirect stdout.
 ```
 
 
-== `list-cores` - listing cores found in hbs files
+== `ls-cores` - listing cores found in hbs files
 
-The `list-cores` command allows listing all cores discovered by the HBS.
-The `list-cores` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
+The `ls-cores` command allows listing all cores discovered by the HBS.
+The `ls-cores` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
 The following snippet presents an output for listing all cores in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
-[user@ahost apb] hbs list-cores
+[user@ahost apb] hbs ls-cores
 vhdl::amba5::apb::bfm
 vhdl::amba5::apb::cdc-bridge
 vhdl::amba5::apb::checker
@@ -86,15 +86,15 @@ vhdl::amba5::apb::shared-bus
 ```
 The following snippet presents an output for listing various bridge cores in the same APB library:
 ```
-[user@ahost apb] hbs list-cores bridge
+[user@ahost apb] hbs ls-cores bridge
 vhdl::amba5::apb::cdc-bridge
 vhdl::amba5::apb::serial-bridge
 ```
-Please note that you can provided arbitrary strings to the `list-cores` command.
+Please note that you can provided arbitrary strings to the `ls-cores` command.
 The core is listed if its core path contains at least one string provided in arguments.
 For example, the following snippet presents an output for listing all cores containg the `bri` or `bar` string in the same APB library:
 ```
-[user@host apb] hbs list-cores bri bar
+[user@host apb] hbs ls-cores bri bar
 vhdl::amba5::apb::cdc-bridge
 vhdl::amba5::apb::crossbar
 vhdl::amba5::apb::serial-bridge
@@ -103,7 +103,7 @@ vhdl::amba5::apb::serial-bridge
 == `list-targets` - listing targets for discovered cores
 
 The `list-targets` command allows listing all targets discovered by the HBS.
-The command is analogous to the `list-cores` command but works on targets instead of cores.
+The command is analogous to the `ls-cores` command but works on targets instead of cores.
 The `list-targets` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
 The following snippet presents an output for listing `src` targets in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```

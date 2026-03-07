@@ -3013,7 +3013,7 @@ proc hbs::CmdHelp {args} {
       puts "  dump-json     Dump info about cores in JSON format"
       puts "  graph         Output dependency graph for given target"
       puts "  info          Show information on hbs Tcl symbol or EDA tool"
-      puts "  list-cores    List cores found in .hbs files"
+      puts "  ls-cores      List cores found in .hbs files"
       puts "  list-targets  List targets for given core"
       puts "  list-tb       List testbench targets"
       puts "  run           Run given target"
@@ -3075,10 +3075,10 @@ proc hbs::CmdHelp {args} {
       puts ""
       puts "If the symbol-name is not provided, all public symbols constituting HBS API are printed."
     }
-    "list-cores" {
+    "ls-cores" {
       puts "List cores found in .hbs files."
       puts ""
-      puts "  hbs list-cores \[core-path-regex...\]"
+      puts "  hbs ls-cores \[core-path-regex...\]"
       puts ""
       puts "If core path regexes are not provided, all found cores are listed."
       puts "If core path regexes are provided, then only cores whose path"
@@ -3439,7 +3439,7 @@ if {$argv0 eq [info script]} {
     "info" {
       hbs::CmdInfo {*}[lrange $argv 1 end]
     }
-    "list-cores" {
+    "ls-cores" {
       hbs::CmdListCores {*}[lrange $argv 1 end]
     }
     "list-targets" {
