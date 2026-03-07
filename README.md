@@ -28,6 +28,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Support for Quartus.
 - Optional `doc` (core documentation) parameter to the `hbs::Register` procedure.
 - `doc` command for viewing cores documentation.
+- `dump` command to dump cores in Tcl dictionary format.
 
 ### Changed
 
@@ -35,6 +36,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Vivado: Treat .tcl files as constraint files by default.
 - Rename `doc` command to `info`.
 - Rename `whereis` command to `where`.
+- Rename `dump-cores` command to `dump-json`.
 
 ### Fixed
 

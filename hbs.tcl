@@ -591,6 +591,7 @@ namespace eval hbs {
       }
     }
     hbs::dumpCores [open $filePath w]
+    hbs::dumpCoresJSON [open $filePath w]
 
     switch $hbs::Tool {
       "ghdl"       { hbs::ghdl::run $stage }
@@ -1200,6 +1201,10 @@ namespace eval hbs {
   }
 
   proc dumpCores {{chnnl stdout}} {
+    puts $chnnl $hbs::cores
+  }
+
+  proc dumpCoresJSON {{chnnl stdout}} {
     puts $chnnl "\{"
 
     set coresSize [dict size $hbs::cores]
@@ -2960,6 +2965,7 @@ proc hbs::PrintHelp {} {
   puts ""
   puts "  help          Print help message"
   puts "  doc           Show documentation for cores"
+  puts "  dump          Dump info about cores in Tcl dictionary format"
   puts "  dump-json     Dump info about cores in JSON format"
   puts "  list-cores    List cores found in .hbs files"
   puts "  list-targets  List targets for given core"
@@ -3178,6 +3184,7 @@ if {$argv0 eq [info script]} {
     "doc" {
       hbs::CmdDoc {*}[lrange $argv 1 end]
     }
+    "dump" -
     "dump-json" {
       set chnnl stdout
 
@@ -3197,7 +3204,10 @@ if {$argv0 eq [info script]} {
         set chnnl [open "$fileName.json" w]
       }
 
-      hbs::dumpCores $chnnl
+      switch $hbs::cmd {
+        "dump"      { hbs::dumpCores $chnnl }
+        "dump-json" { hbs::dumpCoresJSON $chnnl }
+      }
     }
     "info" {
       hbs::CmdInfo {*}[lrange $argv 1 end]
