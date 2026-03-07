@@ -21,146 +21,6 @@ workers = multiprocessing.cpu_count()
 error_regexp = re.compile(r"(?<!\=)\berror\b")
 warning_regexp = re.compile(r"(?<!\=)\bwarning\b")
 
-help_help = """Usage:
-
-  hbs <command> [arguments]
-
-The command is one of:
-
-  doc           Show documentation for cores
-  dump          Dump info about cores in Tcl dictionary format
-  dump-json     Dump info about cores in JSON format
-  graph         Output dependency graph for given target
-  help          Print help message for program or given command
-  info          Show information on hbs Tcl symbol or EDA tool
-  list-cores    List cores
-  list-targets  List targets
-  list-tb       List testbench targets
-  run           Run given target
-  dry-run       Run given target without executing and evaluating commands
-  test          Run testbench targets
-  version       Print hbs version
-  where         Print where given cores are defined
-
-Type 'hbs help <command>' to obtain more information about particular command."""
-
-info_help = """Show information for hbs Tcl symbol or EDA tool.
-
-  hbs info [symbol-name]
-
-Symbol name must be part of the main API (must be defined in the hbs namespace
-and must start with an uppercase letter). Private symbols documentation cannot
-be obtained using the info command. However, one can always open the hbs.tcl
-file and see the documentation in the source.
-
-The "hbs::" prefix in the symbol name is optional.
-For example, "hbs info AddDep" returns the same information as "hbs info hbs::AddDep".
-
-If the symbol-name is not provided, all public symbols constituting HBS API are printed."""
-
-doc_help = """Show documentation for cores.
-
-  hbs doc [core-path-regex...]
-
-If core-path-regexes are not provided, documentation for all found cores is printed.
-If core-path-regexes are provided, then only cores whose path
-contains at least one regex are printed."""
-
-dump_json_help = """Dump info about cores found in .hbs files in JSON format.
-
-  hbs dump-json
-
-The JSON is directed to stdout.
-If you want to save it in a file simply redirect stdout."""
-
-graph_help = """Output dependency graph for given target.
-
-  hbs graph path/to/file/with/cores.dict [top-target-path]
-
-If top target path is not provided, then it is assumed to be the same
-as the base of the Tcl dictionary file, without the '.dict' suffix.
-
-The graph is generated in Graphviz dot file format.
-It can be later post processed using the dot command."""
-
-list_cores_help = """List cores found in .hbs files.
-
-  hbs list-cores [core-path-regex...]
-
-If core-path-regexes are not provided, all found cores are listed.
-If core-path-regexes are provided, then only cores whose path
-contains at least one regex are listed."""
-
-list_targets_help= """List targets for cores found in .hbs files.
-
-  hbs list-targets [target-path-regex...]
-
-If target path regexes are not provided, all found targets are listed.
-If target path regexes are provided, then only targets whose path
-contains at least one regex are listed.
-
-For example, if you want to list all targets for a given core,
-simply provide the core path as the argument."""
-
-list_tb_help = """List testbench targets for cores found in .hbs files.
-
-  hbs list-tb [target-path-regex...]
-
-If target path regexes are not provided, all found testbench targets are listed.
-If target path regexes are provided, then only testbench targets whose path
-contains at least one regex are listed.
-
-For example, if you want to list all testbench targets for a given core,
-simply provide the core path as the argument."""
-
-run_help = """Run provided target.
-
-  hbs run <target-path> [target-args...]
-
-The target path must be absolute target path containing the core path
-and target name. Target arguments are forwarded to the target proc call.
-
-Example:
-
-  hbs run your::core::path::target-name synthesis"""
-
-test_help = """Run testbench targets.
-
-  hbs test [-workers N] [target-path-patterns...]
-
-Testbench targets are detected automatically.
-A testbench target is a target which name:
-  - starts with "tb-" or "tb_",
-  - ends with "-tb" or "_tb",
-  - equals "tb".
-
--workers specifies the number of targets to run simultaneously (in parallel).
-N must be a positive integer. -workers must be provided before target path patterns.
-Otherwise, it will be treated as one of the target path patterns.
-By default, the number of workers equals the number of available CPUs.
-
-If target path patterns are not provided, all testbench targets are run.
-If target path patterns are provided, then only testbench targets whose path
-contains at least one pattern are run."""
-
-
-version_help = """Print hbs version.
-
-  hbs version
-
-The version consists of two numbers MAJOR.MINOR (for example, 1.2).
-The major number changes in case of features or error fixes     breaking backward compatibility.
-The minor number chnages in case of features or error fixes non-breaking backward compatibility."""
-
-where_help = """Print where given cores are defined.
-
-  hbs where [core-path-regex...]
-
-If core path regexes are not provided, all found cores are printed.
-If core path regexes are provided, then only cores whose path
-contains at least one regex are printed."""
-
-
 def error(msg, end='\n'):
     print(msg, file=sys.stderr, end=end)
     exit(1)
@@ -168,35 +28,6 @@ def error(msg, end='\n'):
 
 if len(sys.argv) < 2:
     error("missing command, check help")
-
-
-def hbs_help(cmd):
-    if cmd == "" or cmd == "help":
-        print(help_help)
-    elif cmd == "doc":
-        print(doc_help)
-    elif cmd == "dump-json":
-        print(dump_json_help)
-    elif cmd == "graph":
-        print(graph_help)
-    elif cmd == "info":
-        print(info_help)
-    elif cmd == "list-cores":
-        print(list_cores_help)
-    elif cmd == "list-targets":
-        print(list_targets_help)
-    elif cmd == "list-tb":
-        print(list_tb_help)
-    elif cmd == "run":
-        print(run_help)
-    elif cmd == "test":
-        print(test_help)
-    elif cmd == "version":
-        print(version_help)
-    elif cmd == "where":
-        print(where_help)
-    else:
-        error(f"can't find help for command '{cmd}'")
 
 
 def path_has_pattern(path, patterns):
@@ -347,14 +178,7 @@ def test(patterns):
 
 cmd = sys.argv[1]
 
-if cmd == "help":
-    if len(sys.argv) == 2:
-        hbs_help('')
-    elif len(sys.argv) == 3:
-        hbs_help(sys.argv[2])
-    else:
-        error("help command accepts one or no argument")
-elif cmd == "test":
+if cmd == "test":
     test(sys.argv[2:])
 else:
     status = subprocess.run(

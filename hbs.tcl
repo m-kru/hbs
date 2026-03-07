@@ -2989,31 +2989,192 @@ namespace eval hbs::questa {
 }
 
 #
-# Help messages
-#
-
-proc hbs::PrintHelp {} {
-  puts "Usage"
-  puts ""
-  puts "  hbs.tcl <command> \[arguments\]"
-  puts ""
-  puts "The command is one of:"
-  puts ""
-  puts "  help          Print help message"
-  puts "  doc           Show documentation for cores"
-  puts "  dump          Dump info about cores in Tcl dictionary format"
-  puts "  dump-json     Dump info about cores in JSON format"
-  puts "  list-cores    List cores found in .hbs files"
-  puts "  list-targets  List targets for given core"
-  puts "  run           Run given target"
-  puts "  dry-run       Run given target without executing and evaluating commands"
-  puts "  version       Print hbs version"
-  puts "  where         Print where given cores are defined"
-}
-
-#
 # Commands
 #
+
+proc hbs::CmdHelp {args} {
+  set cmd ""
+  if {[llength $args] > 0} {
+    set cmd [lindex $args 0]
+  }
+
+  switch $cmd {
+    "" -
+    "help" {
+      puts "Usage"
+      puts ""
+      puts "  hbs.tcl <command> \[arguments\]"
+      puts ""
+      puts "The command is one of:"
+      puts ""
+      puts "  help          Print help message"
+      puts "  doc           Show documentation for cores"
+      puts "  dump          Dump info about cores in Tcl dictionary format"
+      puts "  dump-json     Dump info about cores in JSON format"
+      puts "  graph         Output dependency graph for given target"
+      puts "  info          Show information on hbs Tcl symbol or EDA tool"
+      puts "  list-cores    List cores found in .hbs files"
+      puts "  list-targets  List targets for given core"
+      puts "  list-tb       List testbench targets"
+      puts "  run           Run given target"
+      puts "  dry-run       Run given target without executing and evaluating commands"
+      puts "  test          Run testbench targets"
+      puts "  version       Print hbs version"
+      puts "  where         Print where given cores are defined"
+      puts ""
+      puts "Type 'hbs help <command>' to obtain more information about particular command."
+    }
+    "doc" {
+      puts "Show documentation for cores."
+      puts ""
+      puts "  hbs doc \[core-path-regex...\]"
+      puts ""
+      puts "If core path regexes are not provided, documentation for all found cores"
+      puts "is printed. If core path regexes are provided, then only cores whose path"
+      puts "contains at least one regex are printed."
+    }
+    "dump" {
+      puts "Dump info about cores found in .hbs files in Tcl dictionary format."
+      puts ""
+      puts "  hbs dump"
+      puts ""
+      puts "The stream is directed to stdout."
+      puts "If you want to save it in a file simply redirect stdout."
+    }
+    "dump-json" {
+      puts "Dump info about cores found in .hbs files in JSON format."
+      puts ""
+      puts "  hbs dump-json"
+      puts ""
+      puts "The JSON stream is directed to stdout."
+      puts "If you want to save it in a file simply redirect stdout."
+    }
+    "graph" {
+      puts "Output dependency graph for given target."
+      puts ""
+      puts "  hbs graph path/to/file/with/cores.dict \[top-target-path\]"
+      puts ""
+      puts "If top target path is not provided, then it is assumed to be the same"
+      puts "as the base of the Tcl dictionary file, without the '.dict' suffix."
+      puts ""
+      puts "The graph is generated in Graphviz dot file format to stdout."
+      puts "It can be later post processed using the dot command."
+    }
+    "info" {
+      puts "Show information on hbs Tcl public API symbol or EDA tool."
+      puts ""
+      puts "  hbs info \[symbol-name\]"
+      puts ""
+      puts "Symbol name must be part of the public API (must be defined in the hbs namespace"
+      puts "and must start with an uppercase letter). Private symbols documentation cannot"
+      puts "be obtained using the info command. However, one can always open the hbs.tcl"
+      puts "file and see the documentation in the source."
+      puts ""
+      puts "The 'hbs::' prefix in the symbol name is optional."
+      puts "For example, 'hbs info AddDep' returns the same information as 'hbs info hbs::AddDep'."
+      puts ""
+      puts "If the symbol-name is not provided, all public symbols constituting HBS API are printed."
+    }
+    "list-cores" {
+      puts "List cores found in .hbs files."
+      puts ""
+      puts "  hbs list-cores \[core-path-regex...\]"
+      puts ""
+      puts "If core path regexes are not provided, all found cores are listed."
+      puts "If core path regexes are provided, then only cores whose path"
+      puts "contains at least one regex are listed."
+    }
+    "list-targets" {
+      puts "List targets for cores found in .hbs files."
+      puts ""
+      puts "  hbs list-targets \[target-path-regex...\]"
+      puts ""
+      puts "If target path regexes are not provided, all found targets are listed."
+      puts "If target path regexes are provided, then only targets whose path"
+      puts "contains at least one regex are listed."
+      puts ""
+      puts "For example, if you want to list all targets for a given core,"
+      puts "simply provide the core path as the argument."
+    }
+    "list-tb" {
+      puts "List testbench targets for cores found in .hbs files."
+      puts ""
+      puts "  hbs list-tb \[target-path-regex...\]"
+      puts ""
+      puts "If target path regexes are not provided, all found testbench targets are listed."
+      puts "If target path regexes are provided, then only testbench targets whose path"
+      puts "contains at least one regex are listed."
+      puts ""
+      puts "For example, if you want to list all testbench targets for a given core,"
+      puts "simply provide the core path as the argument."
+    }
+    "run" {
+      puts "Run provided target."
+      puts ""
+      puts "  hbs run <target-path> \[target-args...\]"
+      puts ""
+      puts "The target path must be absolute target path containing the core path"
+      puts "and target name. Target arguments are forwarded to the target proc call."
+      puts ""
+      puts "Example:"
+      puts "  hbs run your::core::path::target-name synthesis"
+    }
+    "dry-run" {
+      puts "Run provided target without executing and evaluating commands."
+      puts ""
+      puts "  hbs dry-run <target-path> \[target-args...\]"
+      puts ""
+      puts "The commands are printed to the stdout. The dry-run command is useful"
+      puts "for debugging build or for generatins standalone build scripts."
+    }
+    "test" {
+      puts "Run testbench targets."
+      puts ""
+      puts "  hbs test \[-workers N\] \[target-path-regex...\]"
+      puts ""
+      puts "Testbench targets are detected automatically."
+      puts "A testbench target is a target which name:"
+      puts "  - starts with 'tb-' or 'tb_',"
+      puts "  - ends with '-tb' or '_tb',"
+      puts "  - equals 'tb'."
+      puts ""
+      puts "-workers specifies the number of targets to run simultaneously (in parallel)."
+      puts "N must be a positive integer. -workers must be provided before target path patterns."
+      puts "Otherwise, it will be treated as one of the target path patterns."
+      puts "By default, the number of workers equals the number of available CPUs."
+      puts ""
+      puts "If target path regexes are not provided, all testbench targets are run."
+      puts "If target path regexes are provided, then only testbench targets whose path"
+      puts "contains at least one regex are run."
+    }
+    "version" {
+      puts "Print hbs version."
+      puts ""
+      puts "  hbs version"
+      puts ""
+      puts "The version consists of two numbers MAJOR.MINOR (for example, 1.2)."
+      puts "The major number changes in case of features or error fixes significantly"
+      puts "breaking Tcl API backward compatibility. Non-backward compatible command"
+      puts "line interface changes do not modify major number."
+      puts ""
+      puts "Always check Changelog in README to get to know changes between versions."
+    }
+    "where" {
+      puts "Print where given cores are defined."
+      puts ""
+      puts "  hbs where \[core-path-regex...\]"
+      puts ""
+      puts "If core path regexes are not provided, all found cores are printed."
+      puts "If core path regexes are provided, then only cores whose path"
+      puts "contains at least one regex are printed."
+    }
+    default {
+      puts stderr "can't find help for command '$cmd'"
+      exit 1
+    }
+  }
+}
+
 
 proc hbs::CmdDoc {args} {
   foreach corePath [lsort [dict keys $hbs::cores]] {
@@ -3242,7 +3403,7 @@ if {$argv0 eq [info script]} {
 
   switch $hbs::cmd {
     "help" {
-      hbs::PrintHelp
+      hbs::CmdHelp {*}[lrange $argv 1 end]
     }
     "doc" {
       hbs::CmdDoc {*}[lrange $argv 1 end]
