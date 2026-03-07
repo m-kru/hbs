@@ -87,13 +87,13 @@ If core-path-regexes are not provided, all found cores are listed.
 If core-path-regexes are provided, then only cores whose path
 contains at least one regex are listed."""
 
-list_targets_help = """List targets for cores found in .hbs files.
+list_targets_help= """List targets for cores found in .hbs files.
 
-  hbs list-targets [target-path-patterns...]
+  hbs list-targets [target-path-regex...]
 
-If target-path-patterns are not provided, all found targets are listed.
-If target-path-patterns are provided, then only targets whose path
-contains at least one pattern are listed.
+If target path regexes are not provided, all found targets are listed.
+If target path regexes are provided, then only targets whose path
+contains at least one regex are listed.
 
 For example, if you want to list all targets for a given core,
 simply provide the core path as the argument."""
@@ -455,32 +455,6 @@ def test(patterns):
         exit(1)
 
 
-def list_targets(patterns):
-    output = subprocess.run(
-        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
-        capture_output=True,
-        encoding="utf-8",
-    )
-    if output.returncode != 0:
-        error(output.stderr, end='')
-
-    cores = json.loads(output.stdout)
-
-    targets = dict()
-
-    for core, core_info in cores.items():
-        for target in core_info['targets']:
-            target_path = core + '::' + target
-            if path_has_pattern(target_path, patterns):
-                if core not in targets:
-                    targets[core] = []
-                targets[core].append(target_path)
-
-    for core in sorted(targets):
-        for tb in targets[core]:
-            print(tb)
-
-
 def list_tb(patterns):
     output = subprocess.run(
         [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
@@ -541,8 +515,6 @@ elif cmd == "graph":
             "graph command requires at most 2 arguments, path to json file with cores and optional top target path"
         )
     graph(sys.argv[2:])
-elif cmd == "list-targets":
-    list_targets(sys.argv[2:])
 elif cmd == "test":
     test(sys.argv[2:])
 elif cmd == "list-tb":

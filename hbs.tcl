@@ -408,20 +408,20 @@ namespace eval hbs {
     }
     hbs::Debug $msg
 
-    set targetsDict [dict create]
+    set targetDict [dict create]
     foreach target $targets {
       # Ignore targets starting with the floor '_' character
       if {[string match "_*" $target]} {
         continue
       }
 
-      dict append targetsDict $target [dict create files {} dependencies {}]
+      dict append targetDict $target [dict create files {} dependencies {}]
     }
 
     dict append hbs::cores $core [dict create \
       doc $doc \
       file $file \
-      targets $targetsDict]
+      targets $targetDict]
   }
 
   # Adds target dependency.
@@ -2988,6 +2988,22 @@ proc hbs::CmdListCores {args} {
 }
 
 
+proc hbs::CmdListTargets {args} {
+  foreach corePath [lsort [dict keys $hbs::cores]] {
+    set core [dict get $hbs::cores $corePath]
+    foreach targetName [lsort [dict keys [dict get $core targets]]] {
+      set targetPath "$corePath\:\:$targetName"
+      if {[llength $args] > 0 && ![hbs::hasRegexPattern $targetPath {*}$args]} {
+        continue
+      }
+
+      # Drop the ::hbs:: prefix.
+      puts "[string range $targetPath 7 end]"
+    }
+  }
+}
+
+
 proc hbs::CmdWhere {args} {
   set cores [dict create]
   set maxCorePathLen 0
@@ -3070,6 +3086,9 @@ if {$argv0 eq [info script]} {
     }
     "list-cores" {
       hbs::CmdListCores {*}[lrange $argv 1 end]
+    }
+    "list-targets" {
+      hbs::CmdListTargets {*}[lrange $argv 1 end]
     }
     "list-targets" {
       set corePath [lindex $argv 1]
