@@ -225,66 +225,6 @@ def add_target_deps(graph, nodes, cores, target_path):
         add_target_deps(graph, nodes, cores, dep_path)
 
 
-def info(args):
-    sym_name = None
-
-    if len(args) == 1:
-        sym_name = args[0]
-        if sym_name.startswith("hbs::"):
-            sym_name = sym_name[5:]
-    if len(args) > 1:
-        error("info command accepts only one symbol path")
-
-    doc = ""
-    state = "before public api"
-    hbs_tcl = open(os.path.join(this_script_dir, 'hbs.tcl'))
-
-    for line in hbs_tcl:
-        if state == "before public api":
-            if line.startswith("namespace eval hbs"):
-                state = "in public api"
-        elif state == "in public api":
-            if line[0] == '}':
-                state = "after public api"
-
-        line = line.lstrip()
-
-        if len(line) == 0:
-            doc = ""
-            continue
-        elif line[0] == '#':
-            doc += line
-
-        if state == "in public api":
-            words = line.split()
-
-            if words[0] == 'set' or words[0] == 'proc':
-                sym = words[1]
-            else:
-                continue
-
-            line = line.rstrip()
-            if line[-1] == '{':
-                line = line[:-1]
-
-            if sym_name == None:
-                if not sym.startswith("hbs::") and sym[0].isupper():
-                    print(line)
-            elif sym_name == sym:
-                doc += line
-                print(doc)
-                return
-        elif state == "after public api":
-            if line.startswith("namespace eval hbs::"):
-               tool = line.split()[2].split('::')[1]
-               if tool == sym_name:
-                    doc = doc[:-1]
-                    print(doc)
-                    return
-    if sym_name != None:
-        error(f"info for symbol '{args[0]}' not found")
-
-
 # The first arg is path to the cores json file.
 # The second arg is an optional top target path.
 def graph(args):
@@ -464,8 +404,6 @@ if cmd == "help":
         hbs_help(sys.argv[2])
     else:
         error("help command accepts one or no argument")
-elif cmd == "info":
-    info(sys.argv[2:])
 elif cmd == "graph":
     if len(sys.argv) < 3:
         error(

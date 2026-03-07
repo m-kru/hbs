@@ -40,7 +40,7 @@ namespace eval hbs {
   # You can enforce value of the BuildDir variable
   # by setting the HBS_BUILD_DIR environment variable.
   #
-  # See also 'hbs doc SetBuildDir'.
+  # See also 'hbs info SetBuildDir'.
   set BuildDir "build"
 
   # True (1) if Device is enforced via the HBS_DEVICE environment variable.
@@ -48,12 +48,12 @@ namespace eval hbs {
 
   # Target device. Often also called part, for example in Vivado nomenclature.
   #
-  # See also 'hbs doc SetDevice'.
+  # See also 'hbs info SetDevice'.
   set Device ""
 
   # Current library for adding files.
   #
-  # See also 'hbs doc SetLib'.
+  # See also 'hbs info SetLib'.
   set Lib ""
 
   # True (1) if Std is enforced via the HBS_STD environment variable.
@@ -62,7 +62,7 @@ namespace eval hbs {
   # Current HDL standard revision for adding files.
   # For example, '2002', '2008'.
   #
-  # See also 'hbs doc SetStd'.
+  # See also 'hbs info SetStd'.
   set Std ""
 
   # True (1) if Tool is enforced via the HBS_TOOL environment variable.
@@ -73,12 +73,12 @@ namespace eval hbs {
   # You can enforce value of the Tool variable
   # by setting the HBS_TOOL environment variable.
   #
-  # See also 'hbs doc SetTool'.
+  # See also 'hbs info SetTool'.
   set Tool ""
 
   # Name of the top entity/module. Often also called toplevel.
   #
-  # See also 'hbs doc SetTop'.
+  # See also 'hbs info SetTop'.
   set Top ""
 
   # True (1) if ExitSeverity is enforced via the HBS_EXIT_SEVERITY environment variable.
@@ -90,18 +90,18 @@ namespace eval hbs {
   # This is because xsim does not allow changing the assert level
   # at which the simulation should exit with an error.
   #
-  # See also 'hbs doc SetExitSeverity'.
+  # See also 'hbs info SetExitSeverity'.
   set ExitSeverity "error"
 
   # Custom (set by user) arguments prefix inserted right after command or program name.
   #
-  # See also 'hbs doc SetArgsPrefix'.
+  # See also 'hbs info SetArgsPrefix'.
   set ArgsPrefix ""
 
   # Custom (set by user) arguments suffix placed at the end of command or program call
   # or before the final argument.
   #
-  # See also 'hbs doc SetArgsSuffix'.
+  # See also 'hbs info SetArgsSuffix'.
   set ArgsSuffix ""
 
   # Path of the core whose target is being run.
@@ -124,7 +124,7 @@ namespace eval hbs {
 
   # List containing regexes for excluding discovered .hbs files from being sourced.
   #
-  # See also 'hbs doc AddFileIgnoreRegex'.
+  # See also 'hbs info AddFileIgnoreRegex'.
   set FileIgnoreRegexes {}
 
   # List containing file paths of all sourced hbs files.
@@ -2989,6 +2989,87 @@ proc hbs::CmdDoc {args} {
   }
 }
 
+proc hbs::CmdInfo {args} {
+  set symbolName ""
+
+  if {[llength $args] == 1} {
+    set symbolName [lindex $args 0]
+  } elseif {[llength $args] > 1} {
+    puts stderr "info command expects at most one symbol path"
+    exit 1
+  }
+
+  # Discard the hbs:: prefix if provided by the user.
+  set symbolName [string map {"hbs::" ""} $symbolName]
+
+  set doc ""
+  set state "before public api"
+
+  set fp [open [file normalize [info script]] r]
+
+  while {[gets $fp line] >= 0} {
+    if {$state eq "before public api"} {
+      if {[string match "namespace eval hbs*" $line]} {
+        set state "in public api"
+      }
+    } elseif {$state eq "in public api"} {
+      if {[string match "\}" $line]} {
+        set state "after public api"
+      }
+    }
+
+    set line [string trim $line]
+
+    if {[string length $line] == 0} {
+      set doc ""
+      continue
+    } elseif {[string match "#*" $line]} {
+      append doc $line "\n"
+      continue
+    }
+
+    if {$state eq "in public api"} {
+      set words [split $line " "]
+
+      set word0 [lindex $words 0]
+      if {$word0 eq "set" || $word0 eq "proc"} {
+        set sym [lindex $words 1]
+      } else {
+        continue
+      }
+
+      if {[string match "*\{" $line]} {
+        set line [string range $line 0 end-1]
+      }
+
+      if {$symbolName eq ""} {
+        if {![string match "hbs::*" $sym] && [string is upper [string index $sym 0]]} {
+          puts $line
+        }
+      } elseif {$symbolName eq $sym} {
+        append doc $line "\n"
+        puts [string trim $doc]
+        return
+      }
+    } elseif {$state eq "after public api"} {
+      if {[string match "namespace eval hbs::*" $line]} {
+        set ns [lindex [split $line " "] 2]
+        set tool [lindex [split $ns ":"] 2]
+        if {$tool eq $symbolName} {
+          puts [string trim $doc]
+          return
+        } elseif {$symbolName eq ""} {
+          puts $tool
+        }
+      }
+    }
+  }
+
+  if {$symbolName ne ""} {
+    puts stderr "info for symbol '$symbolName' not found"
+    exit 1
+  }
+}
 
 proc hbs::CmdListCores {args} {
   foreach corePath [lsort [dict keys $hbs::cores]] {
@@ -3086,7 +3167,7 @@ if {$argv0 eq [info script]} {
     set hbs::RunCoreName [hbs::getCorePathFromTargetPath $hbs::RunCorePath]
   }
 
-  if {$hbs::cmd ni {"help" "version"}} {
+  if {$hbs::cmd ni {"help" "info" "version"}} {
     hbs::init
   }
 
@@ -3117,6 +3198,9 @@ if {$argv0 eq [info script]} {
       }
 
       hbs::dumpCores $chnnl
+    }
+    "info" {
+      hbs::CmdInfo {*}[lrange $argv 1 end]
     }
     "list-cores" {
       hbs::CmdListCores {*}[lrange $argv 1 end]
