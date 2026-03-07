@@ -28,7 +28,7 @@ help_help = """Usage:
 The command is one of:
 
   doc           Show documentation for cores
-  dump-cores    Dump info about cores in JSON format
+  dump-json     Dump info about cores in JSON format
   graph         Output dependency graph for given target
   help          Print help message for program or given command
   info          Show information on hbs Tcl symbol or EDA tool
@@ -65,9 +65,9 @@ If core-path-regexes are not provided, documentation for all found cores is prin
 If core-path-regexes are provided, then only cores whose path
 contains at least one regex are printed."""
 
-dump_cores_help = """Dump info about cores found in .hbs files in JSON format.
+dump_json_help = """Dump info about cores found in .hbs files in JSON format.
 
-  hbs dump-cores
+  hbs dump-json
 
 The JSON is directed to stdout.
 If you want to save it in a file simply redirect stdout."""
@@ -171,8 +171,8 @@ def hbs_help(cmd):
         print(help_help)
     elif cmd == "doc":
         print(doc_help)
-    elif cmd == "dump-cores":
-        print(dump_cores_help)
+    elif cmd == "dump-json":
+        print(dump_json_help)
     elif cmd == "graph":
         print(graph_help)
     elif cmd == "info":
@@ -353,7 +353,7 @@ def test(patterns):
     start_time = datetime.now()
 
     output = subprocess.run(
-        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-cores'],
+        [os.path.join(this_script_dir, 'hbs.tcl'), 'dump-json'],
         capture_output=True,
         encoding="utf-8",
     )

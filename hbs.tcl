@@ -566,7 +566,7 @@ namespace eval hbs {
       }
     }
 
-    if {$hbs::cmd eq "dump-cores"} { return }
+    if {$hbs::cmd eq "dump-json"} { return }
 
     if {$hbs::RunTargetBuildDir == ""} {
       set prjName [regsub -all :: "$hbs::ThisCorePath\:\:$hbs::ThisTargetName" --]
@@ -2960,7 +2960,7 @@ proc hbs::PrintHelp {} {
   puts ""
   puts "  help          Print help message"
   puts "  doc           Show documentation for cores"
-  puts "  dump-cores    Dump info about cores in JSON format"
+  puts "  dump-json     Dump info about cores in JSON format"
   puts "  list-cores    List cores found in .hbs files"
   puts "  list-targets  List targets for given core"
   puts "  run           Run given target"
@@ -3178,7 +3178,7 @@ if {$argv0 eq [info script]} {
     "doc" {
       hbs::CmdDoc {*}[lrange $argv 1 end]
     }
-    "dump-cores" {
+    "dump-json" {
       set chnnl stdout
 
       # Target path was provided, so first carry out a fake run
