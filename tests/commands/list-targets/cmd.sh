@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-../../../hbs list-targets core > output.txt
+../../../hbs ls-targets core > output.txt

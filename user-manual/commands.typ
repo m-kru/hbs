@@ -100,14 +100,14 @@ vhdl::amba5::apb::crossbar
 vhdl::amba5::apb::serial-bridge
 ```
 
-== `list-targets` - listing targets for discovered cores
+== `ls-targets` - listing targets for discovered cores
 
-The `list-targets` command allows listing all targets discovered by the HBS.
+The `ls-targets` command allows listing all targets discovered by the HBS.
 The command is analogous to the `ls-cores` command but works on targets instead of cores.
-The `list-targets` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
+The `ls-targets` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
 The following snippet presents an output for listing `src` targets in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
-[user@host apb] hbs list-targets src
+[user@host apb] hbs ls-targets src
 vhdl::amba5::apb::bfm::src
 vhdl::amba5::apb::cdc-bridge::src
 vhdl::amba5::apb::checker::src
@@ -123,7 +123,7 @@ However, this is not a formal requirement, so feel free to name your targets how
 == `list-tb` - listing testbench targets
 
 The `list-tb` command allows listing all testbench targets discovered by HBS.
-The `list-tb` command is analogous to the `list-targets` command, but it works solely on testbench targets instead of all targets.
+The `list-tb` command is analogous to the `ls-targets` command, but it works solely on testbench targets instead of all targets.
 The command is executed by the `hbs` file and requires Python to work.
 The following snippet presents an output for listing testbench targets for bridges in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```

@@ -3007,20 +3007,20 @@ proc hbs::CmdHelp {args} {
       puts ""
       puts "The command is one of:"
       puts ""
-      puts "  help          Print help message"
-      puts "  doc           Show documentation for cores"
-      puts "  dump          Dump info about cores in Tcl dictionary format"
-      puts "  dump-json     Dump info about cores in JSON format"
-      puts "  graph         Output dependency graph for given target"
-      puts "  info          Show information on hbs Tcl symbol or EDA tool"
-      puts "  ls-cores      List cores found in .hbs files"
-      puts "  list-targets  List targets for given core"
-      puts "  list-tb       List testbench targets"
-      puts "  run           Run given target"
-      puts "  dry-run       Run given target without executing and evaluating commands"
-      puts "  test          Run testbench targets"
-      puts "  version       Print hbs version"
-      puts "  where         Print where given cores are defined"
+      puts "  help        Print help message"
+      puts "  doc         Show documentation for cores"
+      puts "  dump        Dump info about cores in Tcl dictionary format"
+      puts "  dump-json   Dump info about cores in JSON format"
+      puts "  graph       Output dependency graph for given target"
+      puts "  info        Show information on hbs Tcl symbol or EDA tool"
+      puts "  ls-cores    List cores found in .hbs files"
+      puts "  ls-targets  List targets for given core"
+      puts "  list-tb     List testbench targets"
+      puts "  run         Run given target"
+      puts "  dry-run     Run given target without executing and evaluating commands"
+      puts "  test        Run testbench targets"
+      puts "  version     Print hbs version"
+      puts "  where       Print where given cores are defined"
       puts ""
       puts "Type 'hbs help <command>' to obtain more information about particular command."
     }
@@ -3084,10 +3084,10 @@ proc hbs::CmdHelp {args} {
       puts "If core path regexes are provided, then only cores whose path"
       puts "contains at least one regex are listed."
     }
-    "list-targets" {
+    "ls-targets" {
       puts "List targets for cores found in .hbs files."
       puts ""
-      puts "  hbs list-targets \[target-path-regex...\]"
+      puts "  hbs ls-targets \[target-path-regex...\]"
       puts ""
       puts "If target path regexes are not provided, all found targets are listed."
       puts "If target path regexes are provided, then only targets whose path"
@@ -3442,15 +3442,11 @@ if {$argv0 eq [info script]} {
     "ls-cores" {
       hbs::CmdListCores {*}[lrange $argv 1 end]
     }
-    "list-targets" {
+    "ls-targets" {
       hbs::CmdListTargets {*}[lrange $argv 1 end]
     }
     "list-tb" {
       hbs::CmdListTb {*}[lrange $argv 1 end]
-    }
-    "list-targets" {
-      set corePath [lindex $argv 1]
-      hbs::listTargets $corePath
     }
     "run"     -
     "dry-run" {
