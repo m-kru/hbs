@@ -1436,6 +1436,20 @@ namespace eval hbs {
     }
     return 0
   }
+
+  # Returns true (1) if name is a testbench target name.
+  proc isTbTargetName {name} {
+    if {
+      $name eq "tb" ||
+      [string match "tb_*" $name] ||
+      [string match "*_tb" $name] ||
+      [string match "tb-*" $name] ||
+      [string match "*-tb" $name]
+    } {
+      return 1
+    }
+    return 0
+  }
 }
 
 
@@ -3004,6 +3018,26 @@ proc hbs::CmdListTargets {args} {
 }
 
 
+proc hbs::CmdListTb {args} {
+  foreach corePath [lsort [dict keys $hbs::cores]] {
+    set core [dict get $hbs::cores $corePath]
+    foreach targetName [lsort [dict keys [dict get $core targets]]] {
+      if {![hbs::isTbTargetName $targetName]} {
+        continue
+      }
+
+      set targetPath "$corePath\:\:$targetName"
+      if {[llength $args] > 0 && ![hbs::hasRegexPattern $targetPath {*}$args]} {
+        continue
+      }
+
+      # Drop the ::hbs:: prefix.
+      puts "[string range $targetPath 7 end]"
+    }
+  }
+}
+
+
 proc hbs::CmdWhere {args} {
   set cores [dict create]
   set maxCorePathLen 0
@@ -3089,6 +3123,9 @@ if {$argv0 eq [info script]} {
     }
     "list-targets" {
       hbs::CmdListTargets {*}[lrange $argv 1 end]
+    }
+    "list-tb" {
+      hbs::CmdListTb {*}[lrange $argv 1 end]
     }
     "list-targets" {
       set corePath [lindex $argv 1]
