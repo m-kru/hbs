@@ -1,1 +1,1 @@
-#let revision = "1.0"
+#let revision = "1.2"
