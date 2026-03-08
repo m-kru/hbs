@@ -3003,7 +3003,7 @@ proc hbs::CmdHelp {args} {
     "help" {
       puts "Usage"
       puts ""
-      puts "  hbs.tcl <command> \[arguments\]"
+      puts "  hbs <command> \[arguments\]"
       puts ""
       puts "The command is one of:"
       puts ""
