@@ -12,7 +12,7 @@ The second option is to install the Tcl `tclreadline` package.
 This package often comes as OS distro package.
 For example, on Debian/Ubuntu, you can install it with `apt install tcl-tclreadline`.
 Once installed, create `.tclshrc` file in your home directory and add the following content:
-```
+```tcl
 package require tclreadline
 tclreadline::Loop
 ```
