@@ -606,11 +606,11 @@ The `--messages=compact` argument was appended right after the `nvc` command.
 == HBS API extra symbols
 
 The HBS API consists not only of symbols related to the common EDA abstraction layer.
-For example, there are extra `hbs::Exec` and `hbs::CoreDir` procedures.
+For example, there are extra `hbs::Exec` and `hbs::ThisCoreDir` procedures.
 The first one is a wrapper for the Tcl standard `exec` procedure.
 Before calling `exec`, the `hbs::Exec` changes the working directory to the directory where the currently evaluated core is defined.
 When `exec` returns, the `hbs::Exec` restores the working directory.
-The `hbs::CoreDir` procedure allows the user to get the path of the directory in which the currently evaluated core is defined.
+The `hbs::ThisCoreDir` procedure allows the user to get the path of the directory in which the currently evaluated core is defined.
 
 HBS also provides users with the following extra variables:
 + `hbs::ThisCorePath` - the path of the core which target is currently being run,

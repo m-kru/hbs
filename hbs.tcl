@@ -908,7 +908,7 @@ namespace eval hbs {
   }
 
   # Returns directory of file in which current core is defined.
-  proc CoreDir {} {
+  proc ThisCoreDir {} {
     return [file dirname [dict get $hbs::cores ::hbs::$hbs::ThisCorePath file]]
   }
 

@@ -42,6 +42,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Rename `list-tb` command to `ls-tb`.
 - Rename `ArgsPrefix` to `ArgPrefix`.
 - Rename `ArgsSuffix` to `ArgSuffix`.
+- Rename `CoreDir` procedure to `ThisCoreDir`.
 
 ### Fixed
 
