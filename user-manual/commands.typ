@@ -1,35 +1,24 @@
 = Command line interface commands
 
-== `doc` - viewing HBS API documentation
+== `doc` - viewing documentation for cores
 
-The `doc` command was added to ease viewing documentation for HBS Tcl symbols.
-The command is executed by the `hbs` file, so Python is required for the command to work.
-If no argument is provided for the `doc` command, then `hbs` prints a list of all HBS Tcl public symbols.
-To get more information on the particular symbol, simply provide it as an argument for the `doc` command.
-The following snippet presents an example of `doc` command output:
-```
-[user@host ~] hbs doc SetStd
-# Sets standard revision for HDL files.
-#
-# To get the value of currently set standard revision simply
-# read the value of hbs::Std variable.
-#
-# Standard revision for a given file must be set before adding a file.
-# For example:
-#   hbs::SetStd 2008
-#   hbs::AddFile entity.vhd
-proc SetStd {std}
-```
+The `doc` command allows viewing documentation for coers automatically discovered by the `hbs`.
+The command displays the message passed to the `hbs::Register` procedure during the core registration.
 
 
-== `dump-cores` - dumping cores information
+== `dump` - dumping cores information in Tcl dictionary format
 
-The `dump-cores` command allows dumping information about found cores into JSON format.
-The generated JSON data can be used for further processing.
-For example, the graph command utilizes data from JSON dump to generate the dependency graph.
-The command is executed by the `hbs.tcl` file, so Python is not required for the command to work.
-If you do not like the default behavior of the `hbs` Python wrapper, you can write your own.
-Simply utilize dumped JSON data as a stream from `hbs.tcl` to your wrapper.
+The `dump` command allows dumping information about found cores into Tcl dictionary format.
+The generated data can be easily used for further processing by other tools utilizing Tcl.
+For example, the `graph` command utilizes data from dump to generate the dependency graph.
+
+
+== `dump-json` - dumping cores information in JSON format
+
+The `dump-json` command allows dumping information about found cores into JSON format.
+The generated JSON data can be used for further processing by other tools.
+For example, if you do not like the default behavior of some `hbs` commands, you can implement your custom wrapper.
+Simply utilize dumped JSON data as a stream from `hbs` to your wrapper.
 
 
 == `graph` - generating target dependency graph
@@ -56,15 +45,39 @@ The `help` command serves as a standard help message display command.
 If no argument is provided, then the help message regards the `hbs` general use.
 If argument is provided for the `help` command, then it must be a valid command name.
 In such a case, `hbs` prints help message for the provided command.
-The following snippet presents help message for the `dump-cores` command:
+The following snippet presents help message for the `run` command:
 ```
-[user@host tmp] hbs help dump-cores
-Dump info about cores found in .hbs files in JSON format.
+[user@host tmp] hbs help run
+Run provided target.
 
-  hbs dump-cores
+  hbs run <target-path> [target-args...]
 
-The JSON is directed to stdout.
-If you want to save it in a file simply redirect stdout.
+The target path must be absolute target path containing the core path
+and target name. Target arguments are forwarded to the target proc call.
+
+Example:
+  hbs run your::core::path::target-name synthesis
+```
+
+
+== `info` - viewing HBS API documentation
+
+The `info` command was added to ease viewing information on HBS Tcl public API symbols or EDA tools.
+If no argument is provided for the `info` command, then `hbs` prints a list of all HBS Tcl public symbols and supported EDA tools.
+To get more information on the particular symbol, simply provide it as an argument for the `info` command.
+The following snippet presents an example of `info` command output:
+```
+[user@host ~] hbs info SetStd
+# Sets standard revision for HDL files.
+#
+# To get the value of currently set standard revision simply
+# read the value of hbs::Std variable.
+#
+# Standard revision for a given file must be set before adding a file.
+# For example:
+#   hbs::SetStd 2008
+#   hbs::AddFile entity.vhd
+proc SetStd {std}
 ```
 
 
