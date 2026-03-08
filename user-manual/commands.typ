@@ -84,7 +84,6 @@ proc SetStd {std}
 == `ls-cores` - listing cores found in hbs files
 
 The `ls-cores` command allows listing all cores discovered by the HBS.
-The `ls-cores` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
 The following snippet presents an output for listing all cores in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
 [user@ahost apb] hbs ls-cores
@@ -117,7 +116,6 @@ vhdl::amba5::apb::serial-bridge
 
 The `ls-targets` command allows listing all targets discovered by the HBS.
 The command is analogous to the `ls-cores` command but works on targets instead of cores.
-The `ls-targets` command is executed by the `hbs.tcl` file, so the command does not require Python to work.
 The following snippet presents an output for listing `src` targets in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
 [user@host apb] hbs ls-targets src
@@ -137,7 +135,6 @@ However, this is not a formal requirement, so feel free to name your targets how
 
 The `ls-tb` command allows listing all testbench targets discovered by HBS.
 The `ls-tb` command is analogous to the `ls-targets` command, but it works solely on testbench targets instead of all targets.
-The command is executed by the `hbs` file and requires Python to work.
 The following snippet presents an output for listing testbench targets for bridges in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library]:
 ```
 [user@host apb] hbs ls-tb bridge
@@ -241,7 +238,6 @@ Adapting dry run incompatible hbs files is quite simple, as dry runs simply fail
 == `test` - running testbench targets
 
 The `test` command allows running all automatically discovered testbench targets.
-The `test` command is executed by the `hbs` file and requires Python to work.
 By default, testbench targets are run in parallel.
 The default number of workers equals the number of threads on your CPU.
 If you provide extra arguments to the `test` command, only testbench targets which path contain at least one of the provided strings are run.
@@ -279,7 +275,6 @@ The blow snippet shows an example output for the `version` command.
 == `where` - locating cores definition
 
 The `where` command allows easily locating .hbs files in which given cores are defined
-The `where` command is executed by the `hbs` file, so the command requires Python to work.
 The following snippet presents an example of locating core definition:
 ```
 [user@host vsc8211-tester] hbs where serial-bridge
