@@ -1,7 +1,7 @@
 namespace eval core-a {
   proc src {} {
     hbs::SetLib "lib_a"
-    hbs::SetArgsPrefix "FileAnalPrefix"
+    hbs::SetArgPrefix "FileAnalPrefix"
     hbs::SetArgsSuffix "FileAnalSuffix"
     hbs::AddFile a.vhd
   }
@@ -23,12 +23,12 @@ namespace eval core-c {
     hbs::AddDep core-b::src
     hbs::AddFile c.sv
     hbs::SetGeneric GEN 64
-    hbs::AddPreSynthCb hbs::SetArgsPrefix "SynthArgsPrefix"
+    hbs::AddPreSynthCb hbs::SetArgPrefix "SynthArgPrefix"
     hbs::AddPreSynthCb hbs::SetArgsSuffix "SynthArgsSuffix"
     hbs::SetTop "TopEntity"
-    hbs::AddPreImplCb hbs::SetArgsPrefix "ImplArgsPrefix"
+    hbs::AddPreImplCb hbs::SetArgPrefix "ImplArgPrefix"
     hbs::AddPreImplCb hbs::SetArgsSuffix "ImplArgsSuffix"
-    hbs::AddPreBitCb hbs::SetArgsPrefix "BitArgsPrefix"
+    hbs::AddPreBitCb hbs::SetArgPrefix "BitArgPrefix"
     hbs::AddPreBitCb hbs::SetArgsSuffix "BitArgsSuffix"
     hbs::Run
   }

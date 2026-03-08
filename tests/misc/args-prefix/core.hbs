@@ -1,10 +1,10 @@
 namespace eval core {
   proc target {} {
-    puts $hbs::ArgsPrefix
-    hbs::SetArgsPrefix "custom args prefix"
-    puts $hbs::ArgsPrefix
-    hbs::ClearArgsPrefix
-    puts $hbs::ArgsPrefix
+    puts $hbs::ArgPrefix
+    hbs::SetArgPrefix "custom arg prefix"
+    puts $hbs::ArgPrefix
+    hbs::ClearArgPrefix
+    puts $hbs::ArgPrefix
   }
   hbs::Register
 }

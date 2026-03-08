@@ -11,7 +11,7 @@ set_global_assignment -name TOP_LEVEL_ENTITY TopEntity
 set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
 set_global_assignment -name VERILOG_INPUT_VERSION SYSTEMVERILOG_2005
 load_package flow
-execute_flow ElabArgsPrefix -analysis_and_elaboration ElabArgsSuffix
-execute_flow ImplArgsPrefix -compile ImplArgsSuffix" > golden.txt
+execute_flow ElabArgPrefix -analysis_and_elaboration ElabArgsSuffix
+execute_flow ImplArgPrefix -compile ImplArgsSuffix" > golden.txt
 
 ../../../hbs dry-run core-c::src > output.txt

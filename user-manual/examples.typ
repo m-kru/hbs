@@ -192,7 +192,7 @@ namespace eval vhdl::tinyuart {
   }
   proc _tb {top} {
     hbs::SetTool "nvc"
-    hbs::AddPostElabCb hbs::SetArgsPrefix "--messages=compact"
+    hbs::AddPostElabCb hbs::SetArgPrefix "--messages=compact"
     hbs::SetTop $top
     src
     hbs::SetLib "" ;# Place testbench entity in the default library.

@@ -562,7 +562,7 @@ In such a case, there are two possible solutions.
   For example, when adding an HDL file, the user must manually specify the library or standard revision.
   Bypassing HBS API also bypasses the target context!
 + The second option is to set the underlying command arguments prefix or suffix.
-  This can be achieved with the `hbs::SetArgsPrefix` and `hbs::SetArgsSuffix` procedures.
+  This can be achieved with the `hbs::SetArgPrefix` and `hbs::SetArgsSuffix` procedures.
   The argument prefix is always appended after the command name, and the argument suffix is always appended after all command arguments.
 
 The following snippet presents Ethernet Management Data Input/Output (MDIO) core definition:
@@ -575,7 +575,7 @@ namespace eval vhdl::ethernet {
     }
     proc tb {} {
       hbs::SetTool "nvc"
-      hbs::AddPostElabCb hbs::SetArgsPrefix "--messages=compact"
+      hbs::AddPostElabCb hbs::SetArgPrefix "--messages=compact"
       src
 
       hbs::SetLib ""
@@ -590,7 +590,7 @@ namespace eval vhdl::ethernet {
 The core has one testbench target utilizing the nvc simulator.
 Nvc report messages occupy multiple lines by default.
 However, this can be changed by specifying the `--messages=compact` argument when running the simulation.
-As running the simulation is the last stage of the nvc flow, the call to `hbs::SetArgsPrefix` must be wrapped by the call to the `hbs::AddPostElabCb` procedure.
+As running the simulation is the last stage of the nvc flow, the call to `hbs::SetArgPrefix` must be wrapped by the call to the `hbs::AddPostElabCb` procedure.
 
 The following snippet shows commands executed by the HBS to run the simulation:
 ```

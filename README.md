@@ -40,6 +40,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Rename `list-cores` command to `ls-cores`.
 - Rename `list-targets` command to `ls-targets`.
 - Rename `list-tb` command to `ls-tb`.
+- Rename `ArgsPrefix` to `ArgPrefix`.
 
 ### Fixed
 
