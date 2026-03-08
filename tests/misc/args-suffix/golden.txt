@@ -1,3 +1,3 @@
 
-custom args suffix
+custom arg suffix
 

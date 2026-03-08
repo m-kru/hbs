@@ -101,8 +101,8 @@ namespace eval hbs {
   # Custom (set by user) arguments suffix placed at the end of command or program call
   # or before the final argument.
   #
-  # See also 'hbs info SetArgsSuffix'.
-  set ArgsSuffix ""
+  # See also 'hbs info SetArgSuffix'.
+  set ArgSuffix ""
 
   # Path of the core whose target is being run.
   set RunCorePath ""
@@ -293,22 +293,22 @@ namespace eval hbs {
   }
 
   # Sets arguments suffix string.
-  proc SetArgsSuffix {suffix} {
-    set hbs::ArgsSuffix $suffix
+  proc SetArgSuffix {suffix} {
+    set hbs::ArgSuffix $suffix
   }
 
   # Clears arguments suffix string.
-  proc ClearArgsSuffix {} {
-    set hbs::ArgsSuffix ""
+  proc ClearArgSuffix {} {
+    set hbs::ArgSuffix ""
   }
 
   # Clears arguments affixes strings (prefix and suffix).
   #
   # Calling this procedure is equivalent to calling both
-  # hbs::ClearArgPrefix and hbs::ClearArgsSuffix.
-  proc ClearArgsAffixes {} {
+  # hbs::ClearArgPrefix and hbs::ClearArgSuffix.
+  proc ClearArgAffixes {} {
     set hbs::ArgPrefix ""
-    set hbs::ArgsSuffix ""
+    set hbs::ArgSuffix ""
   }
 
   # Sets the Tool.
@@ -634,7 +634,7 @@ namespace eval hbs {
         dict append hbs::nvc::generics $name $value
       }
       "quartus" {
-        hbs::Eval "set_parameter -name $name $value $hbs::ArgsSuffix"
+        hbs::Eval "set_parameter -name $name $value $hbs::ArgSuffix"
       }
       "questa" {
         dict append hbs::questa::generics $name $value
@@ -1099,7 +1099,7 @@ namespace eval hbs {
     set hbs::ThisTargetPath ""
     set hbs::ThisTargetName ""
     set hbs::ArgPrefix ""
-    set hbs::ArgsSuffix ""
+    set hbs::ArgSuffix ""
 
     if {!$hbs::StdEnvSet} {
       set hbs::Std ""
@@ -1116,7 +1116,7 @@ namespace eval hbs {
       ThisTargetPath $hbs::ThisTargetPath \
       ThisTargetName $hbs::ThisTargetName \
       ArgPrefix $hbs::ArgPrefix \
-      ArgsSuffix $hbs::ArgsSuffix]
+      ArgSuffix $hbs::ArgSuffix]
     return $ctx
   }
 
@@ -1129,7 +1129,7 @@ namespace eval hbs {
     set hbs::ThisTargetPath [dict get $ctx ThisTargetPath]
     set hbs::ThisTargetName [dict get $ctx ThisTargetName]
     set hbs::ArgPrefix [dict get $ctx ArgPrefix]
-    set hbs::ArgsSuffix [dict get $ctx ArgsSuffix]
+    set hbs::ArgSuffix [dict get $ctx ArgSuffix]
   }
 
   # Dumps single core info into JSON.
@@ -1590,7 +1590,7 @@ namespace eval hbs::ghdl {
         std [hbs::ghdl::std] \
         lib $lib \
         argPrefix $hbs::ArgPrefix \
-        argsSuffix $hbs::ArgsSuffix]
+        argSuffix $hbs::ArgSuffix]
   }
 
   proc analyze {} {
@@ -1607,7 +1607,7 @@ namespace eval hbs::ghdl {
           append hbs::ghdl::libs " -P$lib"
       }
 
-      set cmd "ghdl -a [dict get $args argPrefix] --std=[dict get $args std] $hbs::ghdl::libs --work=$lib --workdir=$lib [dict get $args argsSuffix] $file"
+      set cmd "ghdl -a [dict get $args argPrefix] --std=[dict get $args std] $hbs::ghdl::libs --work=$lib --workdir=$lib [dict get $args argSuffix] $file"
       set err [hbs::Exec $cmd]
       if {$err} {
         hbs::panic "$file analysis failed with exit status $err"
@@ -1621,7 +1621,7 @@ namespace eval hbs::ghdl {
     set workDir [pwd]
     cd $hbs::RunTargetBuildDir
 
-    set cmd "ghdl -e $hbs::ArgPrefix --std=[hbs::ghdl::std] --workdir=work $hbs::ghdl::libs $hbs::ArgsSuffix $hbs::Top"
+    set cmd "ghdl -e $hbs::ArgPrefix --std=[hbs::ghdl::std] --workdir=work $hbs::ghdl::libs $hbs::ArgSuffix $hbs::Top"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "$hbs::Top elaboration failed with exit status $err"
@@ -1634,7 +1634,7 @@ namespace eval hbs::ghdl {
     set workDir [pwd]
     cd $hbs::RunTargetBuildDir
 
-    set cmd "./$hbs::Top $hbs::ArgPrefix --wave=$hbs::Top.ghw [hbs::ghdl::genericArgs] --assert-level=$hbs::ExitSeverity $hbs::ArgsSuffix"
+    set cmd "./$hbs::Top $hbs::ArgPrefix --wave=$hbs::Top.ghw [hbs::ghdl::genericArgs] --assert-level=$hbs::ExitSeverity $hbs::ArgSuffix"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "simulation failed with exit status $err"
@@ -1692,9 +1692,9 @@ namespace eval hbs::ghdl {
 # Setting tool to gowin must be wrapped by setting arguments suffix to proper device version.
 # This is because each device in GOWIN also has associated device version.
 # Example:
-#   hbs::SetArgsSuffix "-device_version NA"
+#   hbs::SetArgSuffix "-device_version NA"
 #   hbs::SetTool "gowin"
-#   hbs::ClearArgsSuffix
+#   hbs::ClearArgSuffix
 namespace eval hbs::gowin {
   # Highest set VHDL standard revision.
   set vhdlStandard ""
@@ -1709,7 +1709,7 @@ namespace eval hbs::gowin {
       -name $prjName \
       -dir $hbs::BuildDir \
       -pn $hbs::Device \
-      -force $hbs::ArgsSuffix"
+      -force $hbs::ArgSuffix"
     if {$hbs::DryRun} {
       hbs::Eval $createPrjCmd
       return
@@ -1788,7 +1788,7 @@ namespace eval hbs::gowin {
       hbs::panic "$file: $err"
     }
 
-    hbs::Eval "add_file $hbs::ArgPrefix $file $hbs::ArgsSuffix"
+    hbs::Eval "add_file $hbs::ArgPrefix $file $hbs::ArgSuffix"
 
     set lib $hbs::Lib
     if {$lib == ""} {
@@ -1822,7 +1822,7 @@ namespace eval hbs::gowin {
       hbs::panic "$file: $err"
     }
 
-    hbs::Eval "add_file $hbs::ArgPrefix $file $hbs::ArgsSuffix"
+    hbs::Eval "add_file $hbs::ArgPrefix $file $hbs::ArgSuffix"
 
     set lib $hbs::Lib
     if {$lib == ""} {
@@ -1871,7 +1871,7 @@ namespace eval hbs::gowin {
     #
     hbs::evalPreSynthCbs
 
-    hbs::Eval "set err \[catch {eval \"::run $hbs::ArgPrefix syn $hbs::ArgsSuffix\"} errMsg\]
+    hbs::Eval "set err \[catch {eval \"::run $hbs::ArgPrefix syn $hbs::ArgSuffix\"} errMsg\]
 if {\$err} {
   error \$errMsg
 }"
@@ -1884,7 +1884,7 @@ if {\$err} {
     # Implementation
     #
     hbs::evalPreImplCbs
-    hbs::Eval "set err \[catch {eval \"::run $hbs::ArgPrefix pnr $hbs::ArgsSuffix\"} errMsg\]
+    hbs::Eval "set err \[catch {eval \"::run $hbs::ArgPrefix pnr $hbs::ArgSuffix\"} errMsg\]
 if {\$err} {
   error \$errMsg
 }"
@@ -1952,7 +1952,7 @@ namespace eval hbs::nvc {
         lib $lib \
         std $hbs::Std \
         argPrefix $hbs::ArgPrefix \
-        argsSuffix $hbs::ArgsSuffix]
+        argSuffix $hbs::ArgSuffix]
   }
 
   proc analyze {} {
@@ -1963,7 +1963,7 @@ namespace eval hbs::nvc {
 
     dict for {file args} $hbs::nvc::vhdlFiles {
       set lib [dict get $args lib]
-      set cmd "nvc [dict get $args argPrefix] --std=$hbs::nvc::std $hbs::nvc::libs --work=$lib -a $file [dict get $args argsSuffix]"
+      set cmd "nvc [dict get $args argPrefix] --std=$hbs::nvc::std $hbs::nvc::libs --work=$lib -a $file [dict get $args argSuffix]"
       set err [hbs::Exec $cmd]
       if {$err} {
         hbs::panic "$file analysis failed with exit status $err"
@@ -1977,7 +1977,7 @@ namespace eval hbs::nvc {
     set workDir [pwd]
     cd $hbs::RunTargetBuildDir
 
-    set cmd "nvc $hbs::ArgPrefix --std=$hbs::nvc::std $hbs::nvc::libs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgsSuffix"
+    set cmd "nvc $hbs::ArgPrefix --std=$hbs::nvc::std $hbs::nvc::libs -e $hbs::Top [hbs::nvc::genericArgs] $hbs::ArgSuffix"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "$hbs::Top elaboration failed with exit status $err"
@@ -1990,7 +1990,7 @@ namespace eval hbs::nvc {
     set workDir [pwd]
     cd $hbs::RunTargetBuildDir
 
-    set cmd "nvc $hbs::ArgPrefix --std=$hbs::nvc::std $hbs::nvc::libs -r $hbs::Top --wave --exit-severity=$hbs::ExitSeverity $hbs::ArgsSuffix"
+    set cmd "nvc $hbs::ArgPrefix --std=$hbs::nvc::std $hbs::nvc::libs -r $hbs::Top --wave --exit-severity=$hbs::ExitSeverity $hbs::ArgSuffix"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "simulation failed with exit status $err"
@@ -2068,7 +2068,7 @@ namespace eval hbs::vivado-prj {
   proc setTool {} {
     set prjName [regsub -all :: "$hbs::RunCorePath\:\:$hbs::RunTargetName" --]
     set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
-    set createPrjCmd "create_project $hbs::ArgPrefix -force $prjName $hbs::RunTargetBuildDir $hbs::ArgsSuffix"
+    set createPrjCmd "create_project $hbs::ArgPrefix -force $prjName $hbs::RunTargetBuildDir $hbs::ArgSuffix"
 
     if {$hbs::DryRun} {
       hbs::Eval $createPrjCmd
@@ -2219,7 +2219,7 @@ namespace eval hbs::vivado-prj {
     # Synthesis
     #
     hbs::evalPreSynthCbs
-    hbs::Eval "launch_runs $hbs::ArgPrefix synth_1 $hbs::ArgsSuffix"
+    hbs::Eval "launch_runs $hbs::ArgPrefix synth_1 $hbs::ArgSuffix"
     hbs::Eval "wait_on_run synth_1"
     hbs::Eval {if {[get_property PROGRESS [get_runs synth_1]] != "100%"} {
   error "synth_1 failed"
@@ -2231,7 +2231,7 @@ namespace eval hbs::vivado-prj {
     # Implementation
     #
     hbs::evalPreImplCbs
-    hbs::Eval "launch_runs $hbs::ArgPrefix impl_1 $hbs::ArgsSuffix"
+    hbs::Eval "launch_runs $hbs::ArgPrefix impl_1 $hbs::ArgSuffix"
     hbs::Eval "wait_on_run impl_1"
     hbs::Eval {if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
   error "impl_1 failed"
@@ -2244,7 +2244,7 @@ namespace eval hbs::vivado-prj {
     #
     hbs::evalPreBitCbs
     hbs::Eval "open_run impl_1"
-    hbs::Eval "write_bitstream $hbs::ArgPrefix \[get_property DIRECTORY \[current_run\]\]/$hbs::Top.bit $hbs::ArgsSuffix"
+    hbs::Eval "write_bitstream $hbs::ArgPrefix \[get_property DIRECTORY \[current_run\]\]/$hbs::Top.bit $hbs::ArgSuffix"
     hbs::evalPostBitCbs
   }
 }
@@ -2367,11 +2367,11 @@ namespace eval hbs::xsim {
         std $std \
         lib $lib \
         argPrefix $hbs::ArgPrefix \
-        argsSuffix $hbs::ArgsSuffix]
+        argSuffix $hbs::ArgSuffix]
   }
 
   proc analyzeVhdl {file args_} {
-    set cmd "xvhdl [dict get $args_ argPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
+    set cmd "xvhdl [dict get $args_ argPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argSuffix]"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "$file analysis failed with exit status $err"
@@ -2379,7 +2379,7 @@ namespace eval hbs::xsim {
   }
 
   proc analyzeVerilog {file args_} {
-    set cmd "xvlog [dict get $args_ argPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
+    set cmd "xvlog [dict get $args_ argPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argSuffix]"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "$file analysis failed with exit status $err"
@@ -2408,7 +2408,7 @@ namespace eval hbs::xsim {
     set workDir [pwd]
     cd $hbs::RunTargetBuildDir
 
-    set cmd "xelab $hbs::ArgPrefix -debug all [hbs::xsim::genericArgs] $hbs::Top $hbs::ArgsSuffix"
+    set cmd "xelab $hbs::ArgPrefix -debug all [hbs::xsim::genericArgs] $hbs::Top $hbs::ArgSuffix"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "$hbs::Top elaboration failed with exit status $err"
@@ -2427,7 +2427,7 @@ namespace eval hbs::xsim {
       set batchFile "run.tcl"
     }
 
-    set cmd "xsim $hbs::ArgPrefix -stats -onerror quit -tclbatch $batchFile $hbs::Top $hbs::ArgsSuffix"
+    set cmd "xsim $hbs::ArgPrefix -stats -onerror quit -tclbatch $batchFile $hbs::Top $hbs::ArgSuffix"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "simulation failed with exit status $err"
@@ -2530,7 +2530,7 @@ namespace eval hbs::quartus {
   proc setTool {} {
     set prjName [regsub -all :: "$hbs::RunCorePath\:\:$hbs::RunTargetName" --]
     set hbs::RunTargetBuildDir [file join $hbs::BuildDir $prjName]
-    set createPrjCmd "project_new $hbs::ArgPrefix -overwrite [file join $hbs::RunTargetBuildDir $prjName] $hbs::ArgsSuffix"
+    set createPrjCmd "project_new $hbs::ArgPrefix -overwrite [file join $hbs::RunTargetBuildDir $prjName] $hbs::ArgSuffix"
     if {$hbs::DryRun} {
       hbs::Eval $createPrjCmd
       return
@@ -2748,7 +2748,7 @@ namespace eval hbs::quartus {
     # Elaboration
     #
     hbs::evalPreElabCbs
-    hbs::Eval "execute_flow $hbs::ArgPrefix -analysis_and_elaboration $hbs::ArgsSuffix"
+    hbs::Eval "execute_flow $hbs::ArgPrefix -analysis_and_elaboration $hbs::ArgSuffix"
     hbs::evalPostElabCbs
     if {$stage == "elaboration"} { return }
 
@@ -2756,7 +2756,7 @@ namespace eval hbs::quartus {
     # Implementation
     #
     hbs::evalPreImplCbs
-    hbs::Eval "execute_flow $hbs::ArgPrefix -compile $hbs::ArgsSuffix"
+    hbs::Eval "execute_flow $hbs::ArgPrefix -compile $hbs::ArgSuffix"
     hbs::evalPostImplCbs
     if {$stage == "implementation"} { return }
 
@@ -2765,7 +2765,7 @@ namespace eval hbs::quartus {
     #
     hbs::evalPreBitCbs
     if {$hbs::quartus::edition eq "Pro"} {
-      hbs::Eval "execute_flow $hbs::ArgPrefix -finalize $hbs::ArgsSuffix"
+      hbs::Eval "execute_flow $hbs::ArgPrefix -finalize $hbs::ArgSuffix"
     }
     hbs::evalPostBitCbs
   }
@@ -2896,11 +2896,11 @@ namespace eval hbs::questa {
         std $std \
         lib $lib \
         argPrefix $hbs::ArgPrefix \
-        argsSuffix $hbs::ArgsSuffix]
+        argSuffix $hbs::ArgSuffix]
   }
 
   proc analyzeVhdl {file args_} {
-    set cmd "vcom [dict get $args_ argPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
+    set cmd "vcom [dict get $args_ argPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argSuffix]"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "$file analysis failed with exit status $err"
@@ -2908,7 +2908,7 @@ namespace eval hbs::questa {
   }
 
   proc analyzeVerilog {file args_} {
-    set cmd "vlog [dict get $args_ argPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argsSuffix]"
+    set cmd "vlog [dict get $args_ argPrefix] -work [dict get $args_ lib] [dict get $args_ std] $file [dict get $args_ argSuffix]"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "$file analysis failed with exit status $err"
@@ -2943,7 +2943,7 @@ namespace eval hbs::questa {
       set doFile "run.do"
     }
 
-    set cmd "vsim $hbs::ArgPrefix [hbs::questa::genericArgs] $hbs::Top -c -stats -vcddump $hbs::Top.vcd -do $doFile $hbs::ArgsSuffix"
+    set cmd "vsim $hbs::ArgPrefix [hbs::questa::genericArgs] $hbs::Top -c -stats -vcddump $hbs::Top.vcd -do $doFile $hbs::ArgSuffix"
     set err [hbs::Exec $cmd]
     if {$err} {
       hbs::panic "simulation failed with exit status $err"

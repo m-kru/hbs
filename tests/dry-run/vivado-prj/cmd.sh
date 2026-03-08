@@ -7,18 +7,18 @@ read_vhdl -library lib_b -vhdl2008 $HBS_TESTS_DIR/dry-run/vivado-prj/b.vhd
 read_verilog -library xil_defaultlib -sv $HBS_TESTS_DIR/dry-run/vivado-prj/c.sv
 set_property generic GEN=64 [current_fileset]
 set_property top TopEntity [current_fileset]
-launch_runs SynthArgPrefix synth_1 SynthArgsSuffix
+launch_runs SynthArgPrefix synth_1 SynthArgSuffix
 wait_on_run synth_1
 if {[get_property PROGRESS [get_runs synth_1]] != \"100%\"} {
   error \"synth_1 failed\"
 }
-launch_runs ImplArgPrefix impl_1 ImplArgsSuffix
+launch_runs ImplArgPrefix impl_1 ImplArgSuffix
 wait_on_run impl_1
 if {[get_property PROGRESS [get_runs impl_1]] != \"100%\"} {
   error \"impl_1 failed\"
 }
 open_run impl_1
-write_bitstream BitArgPrefix [get_property DIRECTORY [current_run]]/TopEntity.bit BitArgsSuffix" > golden.txt
+write_bitstream BitArgPrefix [get_property DIRECTORY [current_run]]/TopEntity.bit BitArgSuffix" > golden.txt
 
 export HBS_TOOL=vivado-prj
 ../../../hbs dry-run core-c::src > output.txt

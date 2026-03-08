@@ -562,7 +562,7 @@ In such a case, there are two possible solutions.
   For example, when adding an HDL file, the user must manually specify the library or standard revision.
   Bypassing HBS API also bypasses the target context!
 + The second option is to set the underlying command arguments prefix or suffix.
-  This can be achieved with the `hbs::SetArgPrefix` and `hbs::SetArgsSuffix` procedures.
+  This can be achieved with the `hbs::SetArgPrefix` and `hbs::SetArgSuffix` procedures.
   The argument prefix is always appended after the command name, and the argument suffix is always appended after all command arguments.
 
 The following snippet presents Ethernet Management Data Input/Output (MDIO) core definition:

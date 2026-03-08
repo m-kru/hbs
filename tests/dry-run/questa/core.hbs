@@ -2,7 +2,7 @@ namespace eval core-a {
   proc src {} {
     hbs::SetLib "lib_a"
     hbs::SetArgPrefix "FileAnalPrefix"
-    hbs::SetArgsSuffix "FileAnalSuffix"
+    hbs::SetArgSuffix "FileAnalSuffix"
     hbs::AddFile a.vhd
   }
   hbs::Register
@@ -23,10 +23,10 @@ namespace eval core-c {
     hbs::AddFile c.sv
     hbs::SetGeneric GEN 64
     hbs::AddPreElabCb hbs::SetArgPrefix "ElabArgPrefix"
-    hbs::AddPreElabCb hbs::SetArgsSuffix "ElabArgsSuffix"
+    hbs::AddPreElabCb hbs::SetArgSuffix "ElabArgSuffix"
     hbs::SetTop "TopEntity"
     hbs::AddPreSimCb hbs::SetArgPrefix "SimArgPrefix"
-    hbs::AddPreSimCb hbs::SetArgsSuffix "SimArgsSuffix"
+    hbs::AddPreSimCb hbs::SetArgSuffix "SimArgSuffix"
     hbs::Run
   }
   hbs::Register

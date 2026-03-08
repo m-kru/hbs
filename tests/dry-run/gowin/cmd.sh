@@ -11,11 +11,11 @@ set_option -generic {GEN=64}
 set_option -top_module TopEntity
 set_option -vhdl_std vhd2008
 set_option -verilog_std sysv2017
-set err [catch {eval \"::run SynthArgPrefix syn SynthArgsSuffix\"} errMsg]
+set err [catch {eval \"::run SynthArgPrefix syn SynthArgSuffix\"} errMsg]
 if {\$err} {
   error \$errMsg
 }
-set err [catch {eval \"::run ImplArgPrefix pnr ImplArgsSuffix\"} errMsg]
+set err [catch {eval \"::run ImplArgPrefix pnr ImplArgSuffix\"} errMsg]
 if {\$err} {
   error \$errMsg
 }" > golden.txt
