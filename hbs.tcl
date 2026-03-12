@@ -1459,6 +1459,30 @@ namespace eval hbs {
     return 0
   }
 
+  # Returns a list of tb target paths found in cores dictionary.
+  # The args are regex patterns.
+  proc findTbTargets {cores args} {
+    set tbTargets {}
+
+    foreach corePath [lsort [dict keys $cores]] {
+      set core [dict get $hbs::cores $corePath]
+      foreach targetName [lsort [dict keys [dict get $core targets]]] {
+        if {![hbs::isTbTargetName $targetName]} {
+          continue
+        }
+
+        set targetPath "$corePath\:\:$targetName"
+        if {[llength $args] > 0 && ![hbs::hasRegexPattern $targetPath {*}$args]} {
+          continue
+        }
+
+        lappend tbTargets $targetPath
+      }
+    }
+
+    return $tbTargets
+  }
+
   # Generate target graph node in Graphviz dot format.
   # More precisely, it generates target node edges.
   proc genTargetGraphNode {nodes cores targetPath chnnl} {
@@ -3330,21 +3354,11 @@ proc hbs::CmdListTargets {args} {
 
 
 proc hbs::CmdListTb {args} {
-  foreach corePath [lsort [dict keys $hbs::cores]] {
-    set core [dict get $hbs::cores $corePath]
-    foreach targetName [lsort [dict keys [dict get $core targets]]] {
-      if {![hbs::isTbTargetName $targetName]} {
-        continue
-      }
+  set tbTargets [hbs::findTbTargets $hbs::cores {*}$args]
 
-      set targetPath "$corePath\:\:$targetName"
-      if {[llength $args] > 0 && ![hbs::hasRegexPattern $targetPath {*}$args]} {
-        continue
-      }
-
-      # Drop the ::hbs:: prefix.
-      puts "[string range $targetPath 7 end]"
-    }
+  foreach path $tbTargets {
+    # Drop the ::hbs:: prefix.
+    puts "[string range $path 7 end]"
   }
 }
 
