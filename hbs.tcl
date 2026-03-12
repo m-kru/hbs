@@ -1515,6 +1515,38 @@ namespace eval hbs {
 
     puts $chnnl "}"
   }
+
+  # Returns number of CPU of the platform the script runs on.
+  proc cpuCount {} {
+    global tcl_platform env
+
+    switch $tcl_platform(platform) {
+      "windows" {
+        return $env(NUMBER_OF_PROCESSORS)
+      }
+      "unix" {
+        # Try 'nproc' (common on modern Linux)
+        if {![catch {exec nproc} count]} {
+          return [string trim $count]
+        }
+        # Fallback for older Linux/Unix: check /proc/cpuinfo
+        if {![catch {open "/proc/cpuinfo" r} f]} {
+          set data [read $f]
+          close $f
+          return [regexp -all -line {^processor\s*:} $data]
+        }
+      }
+      "macosx" -
+      "Darwin" {
+        if {![catch {exec sysctl -n hw.ncpu} count]} {
+          return [string trim $count]
+        }
+      }
+    }
+
+    # Return 1 by default
+    return 1
+  }
 }
 
 
