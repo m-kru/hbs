@@ -937,6 +937,27 @@ namespace eval hbs {
   # During the single flow, single target can be run only once with a given argument values.
   set runTargets [dict create]
 
+  # Dictionary containing the test command context.
+  # It has the following keys:
+  #   - workerCount - number of workers,
+  #   - activeCount - number of active workers,
+  #   - tbCount - number of testbenches to be run,
+  #   - tbTargets - list of testbench targets to be run,
+  #   - tbIdx - index of the next testbench target to be run,
+  #   - maxTbTargetPathLen - maximum testbench target path length.
+  set testContext [dict create]
+
+  # Dictionary containing test command results.
+  # Each key is a testbench target path.
+  # Each value is a dictionary with the following keys:
+  #  - status - status returned by the testbench (0 means success),
+  #  - errorCount - number of errors in stdout and stderr,
+  #  - warningCount - number of warnings in stdout and stderr.
+  set testResults [dict create]
+
+  # Test finished flag.
+  set testFinished 0
+
   proc panic {msg} {
     set prefix ""
     if {$hbs::ThisTargetPath ne ""} {
@@ -1461,6 +1482,7 @@ namespace eval hbs {
 
   # Returns a list of tb target paths found in cores dictionary.
   # The args are regex patterns.
+  # The proc discards the "::hbs::" prefix from target paths.
   proc findTbTargets {cores args} {
     set tbTargets {}
 
@@ -1476,7 +1498,7 @@ namespace eval hbs {
           continue
         }
 
-        lappend tbTargets $targetPath
+        lappend tbTargets [string range $targetPath 7 end]
       }
     }
 
@@ -1546,6 +1568,83 @@ namespace eval hbs {
 
     # Return 1 by default
     return 1
+  }
+
+  proc testHandleFileEvent {pipe tbPath} {
+    if {[gets $pipe line] >= 0} {
+      set result [dict get $hbs::testResults $tbPath]
+      # Count errors
+      if {[regexp {(^|[^=])\merror\M} $line]} {
+        dict incr result errorCount
+      }
+      # Count warnings
+      if {[regexp {(^|[^=])\mwarning\M} $line]} {
+        dict incr result warningCount
+      }
+      dict set hbs::testResults $tbPath $result
+    } elseif {[eof $pipe]} {
+      # The process has finished.
+
+      # Force the pipe into blocking mode.
+      # This ensures 'close' waits for the process to report its final status.
+      fconfigure $pipe -blocking 1
+
+      # Catch the close to inspect the exit state.
+      if {[catch {close $pipe} result]} {
+        # '::errorCode' contains the machine-readable status
+        # Do nothing
+      } else {
+        dict set hbs::testResults $tbPath status 0
+      }
+
+      # Print results
+      set result [dict get $hbs::testResults $tbPath]
+      set status "\033\[91mfailed\033\[0m"
+      if {[dict get $result status] == 0} {
+        set status "\033\[92mpassed\033\[0m"
+      }
+      set pathLen [dict get $hbs::testContext maxTbTargetPathLen]
+      puts -nonewline [format "%-*s  $status" $pathLen $tbPath]
+      set eCnt [dict get $result errorCount]
+      if {$eCnt > 0} {
+        puts -nonewline "  errors: $eCnt"
+      }
+      set wCnt [dict get $result warningCount]
+      if {$wCnt > 0} {
+        puts -nonewline "  warnings: $wCnt"
+      }
+      puts ""
+
+      # Decrease active count
+      dict incr hbs::testContext activeCount -1
+
+      # Run next testbench or signal finish
+      if {[dict get $hbs::testContext tbIdx] < [dict get $hbs::testContext tbCount]} {
+        hbs::testRunNext
+      } elseif {[dict get $hbs::testContext activeCount] == 0} {
+        set hbs::testFinished 1
+      }
+    }
+  }
+
+  proc testRunNext {} {
+    set tbIdx [dict get $hbs::testContext tbIdx]
+    set tbPath [lindex [dict get $hbs::testContext tbTargets] $tbIdx]
+    dict set hbs::testContext tbIdx [incr tbIdx]
+
+    # By default assume error status.
+    dict set hbs::testResults $tbPath [dict create status 1 errorCount 0 warningCount 0]
+
+    # Run subprocess for given testbench
+    set cmd "hbs run $tbPath 2>@1"
+    if {[catch {open "|$cmd" r} pipe]} {
+      return
+    }
+    fconfigure $pipe -blocking 0 -buffering line
+    fileevent $pipe readable [list hbs::testHandleFileEvent $pipe $tbPath]
+
+    # Increment active count
+    dict incr hbs::testContext activeCount
   }
 }
 
@@ -3390,8 +3489,74 @@ proc hbs::CmdListTb {args} {
 
   foreach path $tbTargets {
     # Drop the ::hbs:: prefix.
-    puts "[string range $path 7 end]"
+    puts $path
   }
+}
+
+
+proc hbs::CmdTest {args} {
+  # TODO: Add support for -workers flag
+
+  set workerCount [hbs::cpuCount]
+
+  set tbTargets [hbs::findTbTargets $hbs::cores {*}$args]
+  set maxTbTargetPathLen 0
+  foreach tbPath $tbTargets {
+    set pathLen [string length $tbPath]
+    if {$pathLen > $maxTbTargetPathLen} {
+      set maxTbTargetPathLen $pathLen
+    }
+  }
+
+  set hbs::testContext [dict create \
+    activeCount 0 \
+    workerCount $workerCount \
+    tbTargets $tbTargets \
+    tbCount [llength $tbTargets] \
+    tbIdx 0 \
+    maxTbTargetPathLen $maxTbTargetPathLen]
+
+  set startTime [clock seconds]
+
+  # Run testbenches
+  for {set i 0} {$i < $workerCount} {incr i} {
+    hbs::testRunNext
+  }
+
+  # Wait for all testbenches to finish
+  vwait hbs::testFinished
+
+  set passedCount 0
+  set failedCount 0
+  set errorCount 0
+  set warningCount 0
+
+  # Calculate results statistics
+  dict for {tbPath result} $hbs::testResults {
+    if {[dict get $result status] == 0} {
+      incr passedCount
+    } else {
+      incr failedCount
+    }
+
+    incr errorCount [dict get $result errorCount]
+    incr warningCount [dict get $result warningCount]
+  }
+
+  # Calculate test time
+  set endTime [clock seconds]
+  set testTime [expr {$endTime - $startTime}]
+  set testTimeS [expr {$testTime % 60}]
+  set testTimeMin [expr {($testTime / 60) % 60}]
+  set testTimeH [expr {$testTime / 3600}]
+
+  # Print overall summary
+  puts "\ntime:     $testTimeH h $testTimeMin min $testTime s"
+  puts "targets:  [dict get $hbs::testContext tbCount]"
+  puts "passed:   $passedCount"
+  puts "\033\[91mfailed\033\[0m:   $failedCount"
+  puts "errors:   $errorCount"
+  puts "warnings: $warningCount"
 }
 
 
@@ -3497,6 +3662,9 @@ if {$argv0 eq [info script]} {
     "run"     -
     "dry-run" {
       hbs::runTarget $hbs::RunTargetPath {*}$hbs::RunTargetArgs
+    }
+    "test" {
+      hbs::CmdTest {*}[lrange $argv 1 end]
     }
     "version" {
       puts 1.1

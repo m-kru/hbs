@@ -164,7 +164,7 @@ The `dry-run` command runs a given target without executing and evaluating comma
 It only prints the commands to the standard output for previewing the actions carried out by the target.
 
 In the dry run, the following things change compared to the actual run:
-+ `hbs.tcl` does not bootstrap itself with a proper Tcl shell from the EDA tool.
++ `hbs` does not bootstrap itself with a proper Tcl shell from the EDA tool.
 + Shell, or EDA Tcl commands, are not executed or evaluated.
   They are only printed to the standard output.
 
@@ -185,10 +185,10 @@ The `dry-run` command is useful in the following scenarios:
 
 === Supporting dry runs in hbs files
 
-All the `hbs.tcl` internal code supports dry runs by default.
+All the `hbs` internal code supports dry runs by default.
 However, if you want your hbs files to also support dry runs, you must obey some extra rules.
 You cannot directly call EDA Tcl custom commands.
-This is because `hbs.tcl` does not bootstrap itself with a proper Tcl shell from the EDA tool in the dry run.
+This is because `hbs` does not bootstrap itself with a proper Tcl shell from the EDA tool in the dry run.
 For example, let's assume you build a project using Vivado, and you have the following command in your hbs file:
 ```tcl
 set_msg_config -suppress -id "Synth 8-6014" -string {{REPORT_PREFIX}}

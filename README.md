@@ -43,6 +43,7 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 - Rename `ArgsPrefix` to `ArgPrefix`.
 - Rename `ArgsSuffix` to `ArgSuffix`.
 - Rename `CoreDir` procedure to `ThisCoreDir`.
+- All the logic is now implemented in the single Tcl file, no Python required anymore.
 
 ### Fixed
 

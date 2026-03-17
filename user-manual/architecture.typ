@@ -34,24 +34,17 @@ At the end, it was decided that the following actions should constitute the comm
 
 == General structure
 
-The HBS is implemented in two files `hbs.tcl` and `hbs`.
-The first is implemented in Tcl, and the second in Python.
-The `hbs.tcl` file implements all the core features related directly to the interaction with the EDA tools.
-The `hbs.tcl` provides the following functions:
+The HBS is entirely implemented in the single two `hbs`, which is a Tcl script.
+The `hbs` provides the following functions:
++ Dumping information about detected cores in Tcl dictionary format.
 + Dumping information about detected cores in JSON format.
 + Listing cores found in hbs files.
-+ Listing targets for a given core.
++ Listing testbench targets for a given core.
++ Listing testbench targets.
 + Running target provided as a command line argument.
-
-The `hbs` is a wrapper for the `hbs.tcl` and serves the following additional functions:
 + Showing documentation for hbs Tcl symbols.
 + Generating dependency graph.
-+ Listing testbench targets.
 + Running testbench targets.
-
-By default, the user calls the `hbs` program.
-However, if none of the additional functions are required, the user can call the `hbs.tcl` directly.
-In such a case, the whole build system is limited to a single file.
 
 
 == Tcl naming conventions
@@ -61,7 +54,7 @@ All HBS code is hidden under the `hbs` namespace.
 Code related to a particular tool is further hidden in the `hbs::{tool}` namespace.
 
 Tcl does not allow defining private symbols within namespaces; all symbols are public.
-However, `hbs.tcl` differentiates between public and private symbols.
+However, `hbs` differentiates between public and private symbols.
 Public symbols start with an uppercase letter, and private symbols begin with a lowercase letter.
 
 The user should only use public symbols within hbs files.
@@ -87,8 +80,8 @@ Most `hbs::Set*` procedures assert that users provide lowercase names.
 
 == Cores and cores detection <cores-and-cores-detection>
 
-When the user calls `hbs` (or `hbs.tcl`), all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
-Files with the `.hbs` extension are regular Tcl files that are sourced by the `hbs.tcl` script.
+When the user calls `hbs`, all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
+Files with the `.hbs` extension are regular Tcl files that are sourced by the `hbs` script.
 However, before sourcing hbs files, the file list is sorted so that scripts with shorter path depth are sourced as the first ones.
 For example, let us assume the following three hbs files were found:
 - `a/b/c/foo.hbs`,
@@ -212,7 +205,7 @@ However, you are free to provide multiple ignore regex, and all of them will be 
 
 Sometimes there might be a need to explicitly source an hbs file.
 For example, when you generate core code and would like also to generate the hbs file for the core.
-HBS automatically searches for hbs files only when `hbs.tcl` file starts running.
+HBS automatically searches for hbs files only when `hbs` script file starts running.
 If you generate code within hbs files, the newly generated hbs file will not be automatically discovered.
 However, you can easily source the newly generated hbs file.
 Simply use the Tcl built-in `source` command.
@@ -708,7 +701,7 @@ However, most of them support only part of the things introduced in this revisio
 
 When you set standard revision (`hbs::SetStd` procedure) in your hbs files, it might turn out that a particular tool does not support this standard, even if the set revision is a valid revision for a given language.
 Two things might happen in this scenario.
-+ If the tool does not support the standard revision you set and any higher standard revision, `hbs.tcl` will exit with an error.
++ If the tool does not support the standard revision you set and any higher standard revision, `hbs` will exit with an error.
   An example error message is presented in the following snippet:
   ```
   core::target: hbs::ghdl::addVhdlFile: /home/user/workspace/hbs-tests/SetStd/ghdl-unsupported-std/abc.vhd: ghdl doesn't support VHDL standard '2019'
@@ -724,12 +717,12 @@ Two things might happen in this scenario.
 HBS utilizes some environment variables.
 Some of them are used internally, for example, `HBS_TOOL_BOOTSTRAP`, and some can be set by the user to control HBS behavior.
 
-=== HBS\_TOOL\_BOOTSTRAP - hbs.tcl bootstraps itself
+=== HBS\_TOOL\_BOOTSTRAP - hbs bootstraps itself
 
-The `HBS_TOOL_BOOTSTRAP` environment variable is entirely managed by the `hbs.tcl` file.
+The `HBS_TOOL_BOOTSTRAP` environment variable is entirely managed by the `hbs` file.
 Do not set or unset this variable manually.
-The variable is required because `hbs.tcl` sometimes must bootstrap itself.
-For example, if `hbs::Tool` is set to `"vivado-prj"`, but `hbs.tcl` was run with the OS Tcl shell (`tclsh`), then `hbs.tcl` must bootstrap itself with the Tcl shell embedded in the Vivado.
+The variable is required because `hbs` sometimes must bootstrap itself.
+For example, if `hbs::Tool` is set to `"vivado-prj"`, but `hbs` was run with the OS Tcl shell (`tclsh`), then `hbs` must bootstrap itself with the Tcl shell embedded in the Vivado.
 
 === HBS\_DEBUG - debugging build flow
 
@@ -751,7 +744,7 @@ The dry runs and `HBS_DEBUG` are probably more than enough for debugging build f
 === HBS\_DEVICE - enforcing device
 
 By setting the `HBS_DEVICE` environment variable, you can enforce the value of the `hbs::Device`.
-If `HBS_DEVICE` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Device` to the value of `HBS_DEVICE`.
+If `HBS_DEVICE` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::Device` to the value of `HBS_DEVICE`.
 If `HBS_DEVICE` is set, any call to the `hbs::SetDevice` is ignored.
 
 The `HBS_DEVICE` variable might be useful for determining the target device for the build from the shell.
@@ -761,7 +754,7 @@ However, you may want to utilize target parameters for different purposes.
 === HBS\_EXIT\_SEVERITY - enforcing exit severity
 
 By setting the `HBS_EXIT_SEVERITY` environment variable, you can enforce the value of the `hbs::ExitSeverity`.
-If `HBS_EXIT_SEVERITY` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::ExitSeverity` to the value of `HBS_EXIT_SEVERITY`.
+If `HBS_EXIT_SEVERITY` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::ExitSeverity` to the value of `HBS_EXIT_SEVERITY`.
 If `HBS_EXIT_SEVERITY` is set, any call to the `hbs::ExitSeverity` is ignored.
 
 The `HBS_EXIT_SEVERITY` environment variable is useful for quickly running testbenches with modified exit severity.
@@ -770,7 +763,7 @@ For example, your simulation suddenly starts failing, and you would like to stop
 === HBS\_TOOL - enforcing tool <hbs-tool>
 
 By setting the `HBS_TOOL` environment variable, you can enforce the value of the `hbs::Tool`.
-If `HBS_TOOL` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Tool` to the value of `HBS_TOOL`.
+If `HBS_TOOL` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::Tool` to the value of `HBS_TOOL`.
 If `HBS_TOOL` is set, any call to the `hbs::SetTool` is ignored.
 
 The `HBS_TOOL` environment variable is helpful in running testbench targets with different simulators.
@@ -799,7 +792,7 @@ hbs test
 === HBS\_STD - enforcing HDL standard revision
 
 By setting the `HBS_STD` environment variable, you can enforce the value of the `hbs::Std`.
-If `HBS_STD` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::Std` to the value of `HBS_STD`.
+If `HBS_STD` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::Std` to the value of `HBS_STD`.
 If `HBS_STD` is set, any call to the `hbs::SetStd` is ignored.
 
 The `HBS_STD` environment variable is analogous to the `HBS_TOOL` environment variable.
@@ -809,6 +802,6 @@ The `HBS_STD` environment variable is rather handy for quickly checking if a giv
 === HBS\_BUILD\_DIR - changing build directory
 
 By setting the `HBS_BUILD_DIR` environment variable, you can enforce the value of the `hbs::BuildDir`.
-If `HBS_BUILD_DIR` is set, then `hbs.tcl` during initialization (before any hbs file is sourced) sets the value of `hbs::BuildDir` to the value of `HBS_BUILD_DIR`.
+If `HBS_BUILD_DIR` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::BuildDir` to the value of `HBS_BUILD_DIR`.
 If `HBS_BUILD_DIR` is set, any call to the `hbs::SetBuildDir` is ignored.
 The usefulness and functionality of `HBS_BUILD_DIR` are described in @hbs-tool
