@@ -944,7 +944,8 @@ namespace eval hbs {
   #   - tbCount - number of testbenches to be run,
   #   - tbTargets - list of testbench targets to be run,
   #   - tbIdx - index of the next testbench target to be run,
-  #   - maxTbTargetPathLen - maximum testbench target path length.
+  #   - maxTbTargetPathLen - maximum testbench target path length,
+  #   - noColor - true (1), if output shall be monochrome.
   set testContext [dict create]
 
   # Dictionary containing test command results.
@@ -1599,9 +1600,17 @@ namespace eval hbs {
 
       # Print results
       set result [dict get $hbs::testResults $tbPath]
-      set status "\033\[91mfailed\033\[0m"
+      if {[dict get $hbs::testContext noColor]} {
+        set status "failed"
+      } else {
+        set status "\033\[91mfailed\033\[0m"
+      }
       if {[dict get $result status] == 0} {
-        set status "\033\[92mpassed\033\[0m"
+        if {[dict get $hbs::testContext noColor]} {
+          set status "passed"
+        } else {
+          set status "\033\[92mpassed\033\[0m"
+        }
       }
       set pathLen [dict get $hbs::testContext maxTbTargetPathLen]
       puts -nonewline [format "%-*s  $status" $pathLen $tbPath]
@@ -3285,13 +3294,17 @@ proc hbs::CmdHelp {args} {
     "test" {
       puts "Run testbench targets."
       puts ""
-      puts "  hbs test \[-workers N\] \[target-path-regex...\]"
+      puts "  hbs test \[-no-color\] \[-workers N\] \[target-path-regex...\]"
       puts ""
       puts "Testbench targets are detected automatically."
       puts "A testbench target is a target which name:"
       puts "  - starts with 'tb-' or 'tb_',"
       puts "  - ends with '-tb' or '_tb',"
       puts "  - equals 'tb'."
+      puts ""
+      puts "When the -no-color flag is provided, the output in monochrome."
+      puts "If the flag is present, it must be provided as the first one."
+      puts "Otherwise, it will treated as a target path regex."
       puts ""
       puts "-workers specifies the number of targets to run simultaneously (in parallel)."
       puts "N must be a positive integer. -workers must be provided before target path patterns."
@@ -3495,6 +3508,13 @@ proc hbs::CmdListTb {args} {
 
 
 proc hbs::CmdTest {args} {
+  # Handle -no-color flag
+  set noColor 0
+  if {[llength $args] > 0 && [lindex $args 0] eq "-no-color"} {
+    set noColor 1
+    set args [lrange $args 1 end]
+  }
+
   # Handle -workers flag
   if {[llength $args] > 1 && [lindex $args 0] eq "-workers"} {
     set workerCount [lindex $args 1]
@@ -3526,7 +3546,8 @@ proc hbs::CmdTest {args} {
     tbTargets $tbTargets \
     tbCount [llength $tbTargets] \
     tbIdx 0 \
-    maxTbTargetPathLen $maxTbTargetPathLen]
+    maxTbTargetPathLen $maxTbTargetPathLen \
+    noColor $noColor ]
 
   set startTime [clock seconds]
 
@@ -3567,8 +3588,13 @@ proc hbs::CmdTest {args} {
   # Print overall summary
   puts "\ntime:     $testTimeH h $testTimeMin min $testTime s"
   puts "targets:  [dict get $hbs::testContext tbCount]"
-  puts "passed:   $passedCount"
-  puts "\033\[91mfailed\033\[0m:   $failedCount"
+  if {[dict get $hbs::testContext noColor]} {
+    puts "passed:   $passedCount"
+    puts "failed:   $failedCount"
+  } else {
+    puts "\033\[92mpassed\033\[0m:   $passedCount"
+    puts "\033\[91mfailed\033\[0m:   $failedCount"
+  }
   puts "errors:   $errorCount"
   puts "warnings: $warningCount"
 }
