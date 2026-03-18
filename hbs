@@ -3495,11 +3495,23 @@ proc hbs::CmdListTb {args} {
 
 
 proc hbs::CmdTest {args} {
-  # TODO: Add support for -workers flag
-
-  set workerCount [hbs::cpuCount]
+  # Handle -workers flag
+  if {[llength $args] > 1 && [lindex $args 0] eq "-workers"} {
+    set workerCount [lindex $args 1]
+    set args [lrange $args 2 end]
+    if {![string is integer -strict $workerCount]} {
+      puts stderr "-workers argument must be a number, current value '$workerCount'"
+      exit 1
+    }
+  } else {
+    set workerCount [hbs::cpuCount]
+  }
 
   set tbTargets [hbs::findTbTargets $hbs::cores {*}$args]
+  if {[llength $tbTargets] == 0} {
+    # No testbenches to run
+    return
+  }
   set maxTbTargetPathLen 0
   foreach tbPath $tbTargets {
     set pathLen [string length $tbPath]
@@ -3520,7 +3532,9 @@ proc hbs::CmdTest {args} {
 
   # Run testbenches
   for {set i 0} {$i < $workerCount} {incr i} {
-    hbs::testRunNext
+    if {[dict get $hbs::testContext tbIdx] < [dict get $hbs::testContext tbCount]} {
+      hbs::testRunNext
+    }
   }
 
   # Wait for all testbenches to finish
