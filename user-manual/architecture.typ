@@ -191,9 +191,9 @@ Using the namespace path as the core path gives the following possibilities:
 
 Sometimes a file with the `.hbs` extension is not a valid hbs file, or maybe you want to temporarily disable valid hbs files from being sourced.
 HBS provides a built-in mechanism for excluding files with the `.hbs` extension from being sourced.
-This is achieved using the `hbs::AddFileIgnoreRegex` function.
-You just have to call this function in one of valid hbs files.
-The function will be executed once the file containing the call is sourced.
+This is achieved using the `hbs::AddFileIgnoreRegex` proc.
+You just have to call this proc in one of valid hbs files.
+The proc will be executed once the file containing the call is sourced.
 
 Usually the hbs file containing calls to the `hbs::AddFileIgnoreRegex` proc is placed in the project root directory.
 This is becuase hbs files placed in the project root directory are sourced before hbs files placed in subdirectories.
@@ -201,7 +201,7 @@ Order of hbs files sourcing is described in @cores-and-cores-detection.
 
 Arguments provided to the `hbs::AddFileIgnoreRegex` proc are treated as regular expressions.
 This allows for ignoring multiple paths using a single regex.
-However, you are free to provide multiple ignore regex, and all of them will be checked while sourcing hbs files.
+However, you are free to provide multiple ignore regexes, and all of them will be checked while sourcing hbs files.
 
 === Explicitly sourcing hbs files
 
@@ -215,7 +215,7 @@ Simply use the Tcl built-in `source` command.
 
 == Targets and targets detection
 
-HBS automatically detects targets.
+The `hbs` automatically detects targets.
 Targets are all Tcl procedures defined in the scope of core namespaces (namespaces with a call to `hbs::Register`).
 However, to allow users to define custom utility procedures within cores, procedures with names starting with the floor character (`_`) are not treated as core targets.
 The following snippet presents an example edge detector core definition:
@@ -254,16 +254,16 @@ The `_tb` procedure calls the `src` procedure because the `edge_detector.vhd` fi
 
 All targets are represented by a unique target path.
 Target path consists of the core path and target name.
-For example, the `src` target of the edge detector has the following path `vhdl::simple::edge-detector::src`.
+For example, the `src` target of the edge detector has the following target path `vhdl::simple::edge-detector::src`.
 
 
 == Testbench targets
 
-HBS is capable of automatically detecting testbench targets.
+The `hbs` is capable of automatically detecting testbench targets.
 Testbench targets are targets which names:
-+ start with the `tb-` or `tb_` prefix,
-+ end with the `-tb` or `_tb` suffix,
-+ equal `tb`.
++ start with the `"tb-"` or `"tb_"` prefix,
++ end with the `"-tb"` or `"_tb"` suffix,
++ equal `"tb"`.
 
 For example, for the following hbs file:
 ```tcl
@@ -291,7 +291,7 @@ my-core::tb_my
 
 == Running targets <arch-running-targets>
 
-HBS allows running any target of registered cores.
+The `hbs` allows running any target of registered cores.
 Even if the target itself has nothing to do with the hardware design.
 For example, running target `print` from the following snippet:
 ```tcl
@@ -358,8 +358,8 @@ The target context assures that the following variables are not affected by depe
 + HDL library,
 + HDL standard,
 + top module name,
-+ arguments prefix,
-+ arguments suffix,
++ argument prefix,
++ argument suffix,
 + the core path,
 + the core name,
 + the target path,
