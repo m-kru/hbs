@@ -11,6 +11,6 @@ There are the following four preferred installation methods:
 
 == HBS Dependencies
 
-HBS has two dependencies, one mandatory and one optional.
-+ `tclsh (version >= 8.5)`.
-+ `graphviz` - required only if user wants to generate a dependency graph.
+The HBS has the following two dependencies, one mandatory and one optional:
++ `tclsh (version >= 8.5)`,
++ `graphviz` - required only if you want to generate a dependency graph.
