@@ -1,12 +1,12 @@
 = Internal architecture
 
-It was decided that HBS will be implemented using Tcl language because of the following reasons:
+It was decided that HBS will be implemented using the Tcl language because of the following reasons:
 + Implementing a hardware build system in Tcl allows the execution of build system code during the EDA tool flow.
   This, in turn, gives direct access to all EDA tool custom commands.
   Moreover, these custom commands can be evaluated in arbitrary places.
 + If the EDA tool provides the Tcl interface, then the Tcl shell is provided by the EDA tool vendor.
-  The shell is nstalled during the installation of vendor tools.
-  This implies that, in some cases, the build system user does not even have to install additional programs.
+  The shell is installed during the installation of vendor tools.
+  This implies that, in some cases, you do not even have to install additional programs.
 + Executing arbitrary programs in arbitrary places in Tcl is very simple.
   There is a dedicated `exec` command for invoking subprocesses.
   If executing a subprocess requires prior dynamic arguments evaluation, the `exec` command call must be prepended with the `eval` command.
@@ -34,17 +34,19 @@ At the end, it was decided that the following actions should constitute the comm
 
 == General structure
 
-The HBS is entirely implemented in the single two `hbs`, which is a Tcl script.
+The HBS is entirely implemented in the single `hbs` file, which is a Tcl script.
 The `hbs` provides the following functions:
 + Dumping information about detected cores in Tcl dictionary format.
 + Dumping information about detected cores in JSON format.
 + Listing cores found in hbs files.
-+ Listing testbench targets for a given core.
++ Listing core targets.
 + Listing testbench targets.
 + Running target provided as a command line argument.
-+ Showing documentation for hbs Tcl symbols.
++ Showing documentation for `hbs` Tcl symbols.
++ Showing documentation for cores.
 + Generating dependency graph.
-+ Running testbench targets.
++ Running testbench targets in parallel.
++ Locating core definition within hbs files.
 
 
 == Tcl naming conventions
@@ -64,8 +66,8 @@ The `hbs` namespace consists of variables and procs.
 Even though some variables are public, the user shall not set them directly.
 They are public because they can be safely read from the hbs files.
 However, setting them might require some additional actions.
-For example, `hbs::Tool` is a public variable, but the user shall use `hbs::SetTool` function for setting the tool.
-There is no such requirement for getting the value of a public variable.
+For example, the `hbs::Tool` is a public variable, but you shall use `hbs::SetTool` proc for setting the tool.
+On the other hand, there is no such requirement for getting the value of a public variable.
 
 All variables representing choices (enumeration) use lowercase strings.
 For example, the `hbs::Tool` can be `"ghdl"`, `"vivado-prj"`, etc.
@@ -75,12 +77,12 @@ The point of this is to avoid error cases when one core maintainer sets the tool
 if {$hbs::Tool eq "ghdl"}
 ```
 The expression would evaluate to false, although the tool is GHDL.
-Most `hbs::Set*` procedures assert that users provide lowercase names.
+Most `hbs::Set*` procedures assert that you provide lowercase names.
 
 
 == Cores and cores detection <cores-and-cores-detection>
 
-When the user calls `hbs`, all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
+When you call `hbs`, all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
 Files with the `.hbs` extension are regular Tcl files that are sourced by the `hbs` script.
 However, before sourcing hbs files, the file list is sorted so that scripts with shorter path depth are sourced as the first ones.
 For example, let us assume the following three hbs files were found:
@@ -94,9 +96,9 @@ Then, they would be sourced in the following order:
 + `a/b/c/foo.hbs`.
 
 Such an approach allows controlling when custom symbols (Tcl variables and procedures) are ready to use.
-For example, if the user has a custom procedure used in multiple hbs files, then the user can create separate `utils.hbs` file contaning utility procedures, and place it in the the project root directory.
+For example, if you have a custom procedure used in multiple hbs files, then the user can create separate `utils.hbs` file contaning utility procedures, and place it in the project root directory.
 This guarantees that `utils.hbs` will be sourced before any hbs file in subdirectories.
-Within hbs files, the user usually defines cores and targets, although the user is free to have any valid Tcl code in hbs files.
+Within hbs files, you usually define cores and targets, although you are free to have any valid Tcl code in hbs files.
 
 
 The following snippet presents a very basic flip-flop core definition:
@@ -111,9 +113,9 @@ namespace eval flip-flop {
 The flip-flop core has a single target named `src`.
 The core consists of a single VHDL file.
 
-To register a core, the user must explicitly call `hbs::Register` procedure at the end of the core namespace.
+To register a core, you must explicitly call `hbs::Register` procedure at the end of the core namespace.
 Such a mechanism helps to distinguish regular Tcl namespaces from Tcl namespaces representing core definitions.
-If the user forgets to register a core, the build system gives a potential hint.
+If you forget to register a core, the build system gives a potential hint.
 An example error message is presented in the following snippet:
 
 ```
@@ -126,7 +128,7 @@ checkTargetExists: core 'lib::core' not found, maybe the core is not:
 Each core is identified by its unique path.
 The core path is equivalent to the namespace path in which `hbs::Register` is called.
 Using the namespace path as the core path gives the following possibilities:
-+ The user can easily stick to the VLNV identifiers if required.
++ You can easily stick to the VLNV identifiers if required.
   This is presented in the following snippet:
   In this case, the flip-flop core path is `vendor::library::flip-flop::1.0`.
   ```tcl
@@ -137,7 +139,7 @@ Using the namespace path as the core path gives the following possibilities:
     hbs::Register
   }
   ```
-+ The user can define arbitrary deep core paths (limited by the Tcl shell).
++ You can define arbitrary deep core paths (limited by the Tcl shell).
   This is presented in the following snippet:
   In this case, the core path consists of seven parts.
   ```tcl
@@ -148,7 +150,7 @@ Using the namespace path as the core path gives the following possibilities:
     hbs::Register
   }
   ```
-+ The user can nest namespaces to imitate the structure of libraries and packages.
++ You can nest namespaces to imitate the structure of libraries and packages.
   This is presented in following snippet.
   ```tcl
   namespace eval lib {
