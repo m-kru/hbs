@@ -28,7 +28,7 @@ _Abstract_
 #set align(left)
 
 #par(justify: true)[
-This document serves as the official user manual for Hardware Build System (HBS).
+This document serves as the official user manual for the Hardware Build System (HBS).
 HBS is a Tcl-based, minimal common abstraction approach for build system for hardware designs.
 The main goals of the system include simplicity, readability, a minimal number of dependencies, and seamless integration with existing Electronic Design Automation (EDA) tools.
 ]

@@ -57,7 +57,7 @@ Some of them are formally defined because they are helpful when discussing, for 
 
 #block(breakable:false)[
 / hbs file:
-  A file with `.hbs` extension containing valid Tcl code.
+  A file with the `.hbs` extension containing valid Tcl code.
 ]
 
 #block(breakable:false)[
@@ -84,7 +84,7 @@ Some of them are formally defined because they are helpful when discussing, for 
 
 #block(breakable:false)[
 / target:
-  A proc, which name does not start with the floor character (\_), defined in core.
+  A proc, which name does not start with the floor character (\_), defined in a core.
 ]
 
 #block(breakable:false)[
