@@ -462,7 +462,7 @@ namespace eval hbs {
     lappend argsList $args
     dict set hbs::runTargets $targetPath $argsList
 
-    set ctx [hbs::saveContext]
+    set ctx [hbs::saveTargetContext]
 
     # Run dependency target.
     hbs::clearContext
@@ -473,7 +473,7 @@ namespace eval hbs {
 
     hbs::$targetPath {*}$args
 
-    hbs::restoreContext $ctx
+    hbs::restoreTargetContext $ctx
   }
 
   # Adds files to the tool flow.
@@ -1128,7 +1128,7 @@ namespace eval hbs {
     }
   }
 
-  proc saveContext {} {
+  proc saveTargetContext {} {
     set ctx [dict create \
       Lib $hbs::Lib \
       Std $hbs::Std \
@@ -1142,7 +1142,7 @@ namespace eval hbs {
     return $ctx
   }
 
-  proc restoreContext {ctx} {
+  proc restoreTargetContext {ctx} {
     set hbs::Lib [dict get $ctx Lib]
     set hbs::Std [dict get $ctx Std]
     set hbs::Top [dict get $ctx Top]
