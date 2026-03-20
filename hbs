@@ -3191,7 +3191,7 @@ proc hbs::CmdHelp {args} {
     "doc" {
       puts "Show documentation for cores."
       puts ""
-      puts "  hbs doc \[core-path-regex...\]"
+      puts "  hbs doc \[core-path-regex ...\]"
       puts ""
       puts "If core path regexes are not provided, documentation for all found cores"
       puts "is printed. If core path regexes are provided, then only cores whose path"
@@ -3242,7 +3242,7 @@ proc hbs::CmdHelp {args} {
     "ls-cores" {
       puts "List cores found in .hbs files."
       puts ""
-      puts "  hbs ls-cores \[core-path-regex...\]"
+      puts "  hbs ls-cores \[core-path-regex ...\]"
       puts ""
       puts "If core path regexes are not provided, all found cores are listed."
       puts "If core path regexes are provided, then only cores whose path"
@@ -3251,7 +3251,7 @@ proc hbs::CmdHelp {args} {
     "ls-targets" {
       puts "List targets for cores found in .hbs files."
       puts ""
-      puts "  hbs ls-targets \[target-path-regex...\]"
+      puts "  hbs ls-targets \[target-path-regex ...\]"
       puts ""
       puts "If target path regexes are not provided, all found targets are listed."
       puts "If target path regexes are provided, then only targets whose path"
@@ -3263,7 +3263,7 @@ proc hbs::CmdHelp {args} {
     "ls-tb" {
       puts "List testbench targets for cores found in .hbs files."
       puts ""
-      puts "  hbs ls-tb \[target-path-regex...\]"
+      puts "  hbs ls-tb \[target-path-regex ...\]"
       puts ""
       puts "If target path regexes are not provided, all found testbench targets are listed."
       puts "If target path regexes are provided, then only testbench targets whose path"
@@ -3275,7 +3275,7 @@ proc hbs::CmdHelp {args} {
     "run" {
       puts "Run provided target."
       puts ""
-      puts "  hbs run <target-path> \[target-args...\]"
+      puts "  hbs run <target-path> \[target-arg ...\]"
       puts ""
       puts "The target path must be absolute target path containing the core path"
       puts "and target name. Target arguments are forwarded to the target proc call."
@@ -3286,7 +3286,7 @@ proc hbs::CmdHelp {args} {
     "dry-run" {
       puts "Run provided target without executing and evaluating commands."
       puts ""
-      puts "  hbs dry-run <target-path> \[target-args...\]"
+      puts "  hbs dry-run <target-path> \[target-arg ...\]"
       puts ""
       puts "The commands are printed to the stdout. The dry-run command is useful"
       puts "for debugging build or for generatins standalone build scripts."
@@ -3294,7 +3294,7 @@ proc hbs::CmdHelp {args} {
     "test" {
       puts "Run testbench targets."
       puts ""
-      puts "  hbs test \[-no-color\] \[-workers N\] \[target-path-regex...\]"
+      puts "  hbs test \[-no-color\] \[-workers N\] \[target-path-regex ...\]"
       puts ""
       puts "Testbench targets are detected automatically."
       puts "A testbench target is a target which name:"
@@ -3330,7 +3330,7 @@ proc hbs::CmdHelp {args} {
     "where" {
       puts "Print where given cores are defined."
       puts ""
-      puts "  hbs where \[core-path-regex...\]"
+      puts "  hbs where \[core-path-regex ...\]"
       puts ""
       puts "If core path regexes are not provided, all found cores are printed."
       puts "If core path regexes are provided, then only cores whose path"
