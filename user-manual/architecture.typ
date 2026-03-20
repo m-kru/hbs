@@ -62,11 +62,11 @@ Public symbols start with an uppercase letter, and private symbols begin with a 
 The user should only use public symbols within hbs files.
 Although using private symbols is discouraged, it is not forbidden, and if you really know what you do, feel free to use them.
 
-The `hbs` namespace consists of variables and procs.
+The `hbs` namespace consists of variables and procedures.
 Even though some variables are public, the user shall not set them directly.
 They are public because they can be safely read from the hbs files.
 However, setting them might require some additional actions.
-For example, the `hbs::Tool` is a public variable, but you shall use `hbs::SetTool` proc for setting the tool.
+For example, the `hbs::Tool` is a public variable, but you shall use `hbs::SetTool` procedure for setting the tool.
 On the other hand, there is no such requirement for getting the value of a public variable.
 
 All variables representing choices (enumeration) use lowercase strings.
@@ -191,15 +191,15 @@ Using the namespace path as the core path gives the following possibilities:
 
 Sometimes a file with the `.hbs` extension is not a valid hbs file, or maybe you want to temporarily disable valid hbs files from being sourced.
 HBS provides a built-in mechanism for excluding files with the `.hbs` extension from being sourced.
-This is achieved using the `hbs::AddFileIgnoreRegex` proc.
-You just have to call this proc in one of valid hbs files.
-The proc will be executed once the file containing the call is sourced.
+This is achieved using the `hbs::AddFileIgnoreRegex` procedure.
+You just have to call this procedure in one of valid hbs files.
+The procedure will be executed once the file containing the call is sourced.
 
-Usually the hbs file containing calls to the `hbs::AddFileIgnoreRegex` proc is placed in the project root directory.
+Usually the hbs file containing calls to the `hbs::AddFileIgnoreRegex` procedure is placed in the project root directory.
 This is becuase hbs files placed in the project root directory are sourced before hbs files placed in subdirectories.
 Order of hbs files sourcing is described in @cores-and-cores-detection.
 
-Arguments provided to the `hbs::AddFileIgnoreRegex` proc are treated as regular expressions.
+Arguments provided to the `hbs::AddFileIgnoreRegex` procedure are treated as regular expressions.
 This allows for ignoring multiple paths using a single regex.
 However, you are free to provide multiple ignore regexes, and all of them will be checked while sourcing hbs files.
 

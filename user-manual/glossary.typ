@@ -18,7 +18,7 @@ Some of them are formally defined because they are helpful when discussing, for 
 
 #block(breakable:false)[
 / core:
-  Tcl namespace in which `hbs::Register` proc is called.
+  Tcl namespace in which `hbs::Register` procedure is called.
 ]
 
 #block(breakable:false)[
@@ -36,13 +36,13 @@ Some of them are formally defined because they are helpful when discussing, for 
 #block(breakable:false)[
 / dependency:
   A target on which at least one other target depends.
-  The dependency is an argument for at least one `hbs::AddDep` proc call.
+  The dependency is an argument for at least one `hbs::AddDep` procedure call.
 ]
 
 #block(breakable:false)[
 / depender:
   A target depending on at least one another target.
-  Within a depender body the `hbs::AddDep` proc is called at least once.
+  Within a depender body the `hbs::AddDep` procedure is called at least once.
 ]
 
 #block(breakable:false)[
@@ -58,11 +58,6 @@ Some of them are formally defined because they are helpful when discussing, for 
 #block(breakable:false)[
 / hbs file:
   A file with the `.hbs` extension containing valid Tcl code.
-]
-
-#block(breakable:false)[
-/ proc:
-  A Tcl procedure.
 ]
 
 #block(breakable:false)[
@@ -84,12 +79,12 @@ Some of them are formally defined because they are helpful when discussing, for 
 
 #block(breakable:false)[
 / target:
-  A proc, which name does not start with the floor character (\_), defined in a core.
+  A Tcl procedure, which name does not start with the floor character (\_), defined in a core.
 ]
 
 #block(breakable:false)[
 / target context:
-  An invariant environment constituting of HBS variables that are guaranteed to not implicitly change during the target proc evaluation.
+  An invariant environment constituting of HBS variables that are guaranteed to not implicitly change during the target procedure evaluation.
 ]
 
 #block(breakable:false)[
@@ -101,7 +96,7 @@ Some of them are formally defined because they are helpful when discussing, for 
 #block(breakable:false)[
 / target path:
   The Tcl path for the target.
-  For example, if proc `my-target` is defined in the core with the core path `lib::pkg::my-core`, then the target path is `lib::pkg::my-core::my-target`.
+  For example, if procedure `my-target` is defined in the core with the core path `lib::pkg::my-core`, then the target path is `lib::pkg::my-core::my-target`.
 ]
 
 #block(breakable:false)[

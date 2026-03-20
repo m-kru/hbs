@@ -19,7 +19,7 @@ tclreadline::Loop
 Not only you will get support for arrow keys and command history, but also improved prompt.
 
 
-== Passing variadic arguments to proc
+== Passing variadic arguments to procedure
 
 To pass variadic arguments to a procedure, the last procedure parameter must be called `args`.
 You can then easily iterate over the arguments using the `foreach` loop.

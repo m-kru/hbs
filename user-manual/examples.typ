@@ -54,7 +54,7 @@ nvc  --std=2019 -L. -r example --wave
 As can be seen, the returned status is 0.
 The simulation finished successfully.
 The HBS always forwards the EDA tool exist status to you.
-Thanks to this, you can easily check if the target proc you run succeeded.
+Thanks to this, you can easily check if the target procedure you run succeeded.
 
 === Placing the module in custom library
 
