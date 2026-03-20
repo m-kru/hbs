@@ -102,8 +102,8 @@ The following snippet presents an output for listing various bridge cores in the
 vhdl::amba5::apb::cdc-bridge
 vhdl::amba5::apb::serial-bridge
 ```
-Please note that you can provided arbitrary strings to the `ls-cores` command.
-The core is listed if its core path contains at least one string provided in arguments.
+Please note that you can provide arbitrary regex patterns to the `ls-cores` command.
+The core is listed if its core path contains at least one regex provided in arguments.
 For example, the following snippet presents an output for listing all cores containg the `bri` or `bar` string in the same APB library:
 ```
 [user@host apb] hbs ls-cores bri bar
@@ -128,7 +128,7 @@ vhdl::amba5::apb::pkg::src
 vhdl::amba5::apb::serial-bridge::src
 vhdl::amba5::apb::shared-bus::src
 ```
-The name "src" is preferred name for a core target if the core has only one target containing all sources required for core utilization.
+The name "src" is preferred name for a core target if the core has only one target containing all sources required for the core utilization.
 However, this is not a formal requirement, so feel free to name your targets however you want.
 
 == `ls-tb` - listing testbench targets
@@ -152,7 +152,7 @@ If no arguments are provided for the `ls-tb` command, then all testbench targets
 
 The `run` command allows running target procedures.
 Usually, targets are run to carry out the build process or simulation.
-However, the user is free to carry out any action in the target being run.
+However, you are free to carry out any action in the target being run.
 You can, for example, use targets for software recompilation.
 
 Running targets is described in @arch-running-targets, @arch-target-parameters, and @arch-target-context.
@@ -170,8 +170,8 @@ In the dry run, the following things change compared to the actual run:
 
 The `dry-run` command is useful in the following scenarios:
 + When you want to generate a dependency graph without running any tool flow.
-  Running targets including synthesis, or place and route, stages might be time-consuming.
-  A dry run allows for quickly dumping cores into `.json` file for further dependency graph generation.
+  Running targets including synthesis, or implementation, stages might be time-consuming.
+  A dry run allows for quickly dumping cores into Tcl dictionary format for further dependency graph generation.
 + When you debug your hbs files or the build flow.
   The `dry-run` command allows for a quick preview of all commands that are executed or evaluated during the actual run.
 + When you want to generate a Tcl or shell script for building a project or running a simulation.
@@ -202,7 +202,7 @@ invalid command name "set_msg_config"
 Your OS Tcl shell (`tclsh`) does not have the built-in `set_msg_config` command.
 This is a Vivado custom command.
 
-HBS provides three procedures supporting implementing dry run compatible user hbs files, the `hbs::Eval`, `hbs::Exec`, and `hbs::ExecInCoreDir`.
+HBS provides three procedures supporting implementing dry-run-compatible user hbs files, the `hbs::Eval`, `hbs::Exec`, and `hbs::ExecInCoreDir`.
 The `hbs::Eval` procedure prints the command to the standard output and evaluates it only if the current run is not a dry run.
 All you have to do is to prepend EDA tool custom command with a call to the `hbs::Eval` procedure and pass your command with arguments as a string.
 The following snippet presents an example:
@@ -210,11 +210,11 @@ The following snippet presents an example:
 hbs::Eval {set_msg_config -suppress -id "Synth 8-6014" -string {{REPORT_PREFIX}}}
 ```
 The `hbs::Eval` procedure has an optional `-force-in-dry` flag, which allows for forcing command evaluation in the dry run.
-See `'hbs doc Eval'` for more information.
+See `'hbs info Eval'` for more information.
 
 The `hbs::Exec` and `hbs::ExecInCoreDir` procedures work analogously, but they execute commands instead of evaluating them.
 Moreover, they return the exit status, allowing you to check if commands succeed.
-Check `'hbs doc Exec'` and `'hbs doc ExecInCoreDir'` for more details.
+Check `'hbs info Exec'` and `'hbs info ExecInCoreDir'` for more details.
 
 An alternative approach for writing dry-run-compatible hbs files is to explicitly execute some actions in your hbs files only if the current run is not a dry run.
 The following snippet presents an example:
@@ -240,8 +240,8 @@ Adapting dry run incompatible hbs files is quite simple, as dry runs simply fail
 The `test` command allows running all automatically discovered testbench targets.
 By default, testbench targets are run in parallel.
 The default number of workers equals the number of threads on your CPU.
-If you provide extra arguments to the `test` command, only testbench targets which path contain at least one of the provided strings are run.
-The following snippet presents an output for running all testbenched of the bus functional model in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
+If you provide extra arguments to the `test` command, only testbench targets which path contain at least one of the provided regex patterns are run.
+The following snippet presents an output for running all testbenches of the bus functional model in the #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library].
 ```
 [user@host ap] hbs test bfm
 running 4 targets with 16 workers
@@ -262,19 +262,19 @@ warnings: 4
 
 == `version` - displaying HBS version
 
-The `version` command displays version of installed HBS.
+The `version` command displays version of the installed HBS.
 This might be helpful if the same build procedure works on one machine, but does not work on another.
 Based on the versoin and changelog, you can quickly discover differences.
 The blow snippet shows an example output for the `version` command.
 ```
-[user@host ~ 0] hbs version
+[user@host ~] hbs version
 1.0
 ```
 
 
 == `where` - locating cores definition
 
-The `where` command allows easily locating .hbs files in which given cores are defined
+The `where` command allows easily locating hbs files in which given cores are defined.
 The following snippet presents an example of locating core definition:
 ```
 [user@host vsc8211-tester] hbs where serial-bridge
