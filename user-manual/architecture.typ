@@ -511,7 +511,7 @@ You can add a callback by calling a dedicated HBS API procedure.
 For example, to add a post synthesis callback you can call the `hbs::AddPostSynthCb` procedure.
 Callbacks can be added with custom argument values.
 
-The post stage callbacks and pre stage callbacks for adjacent stages were added for two reasons.
+The post stage callbacks and pre stage callbacks for adjacent stages were added for the following two reasons:
 + To clearly communicate which stage the callback refers to.
   For example, configuring implementation settings based on the synthesis results can be done in a post-synthesis callback or pre-implementation callback.
   However, as the callback modifies the implementation settings, it is probably better to add it using the `hbs::AddPreImplCb`, than `hbs::AddPostSynthCb`.
@@ -527,10 +527,10 @@ However, the primary purpose of stage callbacks is to adjust the design build ba
 For example, you might want to configure additional implementation settings based on the synthesis results.
 You might even terminate the tool flow in a given callback and report an error if certain conditions are not met.
 
-To get to know stages supported by a given EDA tool you can call `'hbs doc <tool>'` command.
+To get to know stages supported by a given EDA tool you can call `'hbs info <tool>'` command.
 The following snippet presents documentation message for the GHDL simulator.
 ```
-[user@host tmp] hbs doc ghdl
+[user@host tmp] hbs info ghdl
 # GHDL simulator
 #
 # HBS requires that GHDL is compiled with the LLVM or GCC backend.
@@ -556,7 +556,7 @@ In such a case, there are two possible solutions.
   The drawback of this approach is that the user must manually handle the current context.
   For example, when adding an HDL file, the user must manually specify the library or standard revision.
   Bypassing HBS API also bypasses the target context!
-+ The second option is to set the underlying command arguments prefix or suffix.
++ The second option is to set the underlying command argument prefix or suffix.
   This can be achieved with the `hbs::SetArgPrefix` and `hbs::SetArgSuffix` procedures.
   The argument prefix is always appended after the command name, and the argument suffix is always appended after all command arguments.
 
@@ -587,7 +587,7 @@ Nvc report messages occupy multiple lines by default.
 However, this can be changed by specifying the `--messages=compact` argument when running the simulation.
 As running the simulation is the last stage of the nvc flow, the call to `hbs::SetArgPrefix` must be wrapped by the call to the `hbs::AddPostElabCb` procedure.
 
-The following snippet shows commands executed by the HBS to run the simulation:
+The following snippet shows commands executed by the `hbs` to run the simulation:
 ```
 [user@host vhdl-ethernet]$ hbs run vhdl::ethernet::mdio::tb
 nvc --std=2019 -L. --work=ethernet -a vhdl/vhdl-ethernet/mdio.vhd
@@ -601,10 +601,10 @@ The `--messages=compact` argument was appended right after the `nvc` command.
 == HBS API extra symbols
 
 The HBS API consists not only of symbols related to the common EDA abstraction layer.
-For example, there are extra `hbs::Exec` and `hbs::ThisCoreDir` procedures.
+For example, there are extra `hbs::ExecInCoreDir` and `hbs::ThisCoreDir` procedures.
 The first one is a wrapper for the Tcl standard `exec` procedure.
-Before calling `exec`, the `hbs::Exec` changes the working directory to the directory where the currently evaluated core is defined.
-When `exec` returns, the `hbs::Exec` restores the working directory.
+Before calling `exec`, the `hbs::ExecInCoreDir` changes the working directory to the directory where the currently evaluated core is defined.
+When `exec` returns, the `hbs::ExecInCoreDir` restores the working directory.
 The `hbs::ThisCoreDir` procedure allows the user to get the path of the directory in which the currently evaluated core is defined.
 
 HBS also provides users with the following extra variables:
@@ -618,7 +618,7 @@ HBS also provides users with the following extra variables:
 + `hbs::RunTargetName` - the name of the run target,
 + `hbs::RunTargetArgs` - the list with command line arguments passed to the run target.
 
-To get the list of all HBS public symbols you can run `'hbs doc'` command in the shell.
+To get the list of all HBS public symbols you can run `'hbs info'` command in the shell.
 
 
 == Code generation <code-generation>
@@ -699,7 +699,7 @@ For Verilog/SystemVerilog, the default standard revision is 2012.
 This revision probably has the widest adoption.
 Moreover, UVM was designed to work with revision 2012.
 Some tools come with the standard revision 2017 being the default one.
-However, most of them support only part of the things introduced in this revision.
+However, most of them support only part of the features introduced in this revision.
 
 When you set standard revision (`hbs::SetStd` procedure) in your hbs files, it might turn out that a particular tool does not support this standard, even if the set revision is a valid revision for a given language.
 Two things might happen in this scenario.
@@ -717,7 +717,7 @@ Two things might happen in this scenario.
 == HBS environment variables
 
 HBS utilizes some environment variables.
-Some of them are used internally, for example, `HBS_TOOL_BOOTSTRAP`, and some can be set by the user to control HBS behavior.
+Some of them are used internally, for example, `HBS_TOOL_BOOTSTRAP`, and some can be set by the user to control the `hbs` behavior.
 
 === HBS\_TOOL\_BOOTSTRAP - hbs bootstraps itself
 
@@ -735,7 +735,7 @@ This means that you can enable debug messages in dry runs and still be able to r
 You can extend debug messages with custom messages from your hbs files.
 There is `hbs::Debug` procedure which you can use for conditionally printing messages when the `HBS_DEBUG` environment variable is set.
 Messages printed with the `hbs::Debug` are always prefixed with the path of the procedure in which `hbs::Debug` is called.
-See `'hbs doc Debug'` for more details.
+See `'hbs info Debug'` for more details.
 
 If you need a more advanced logging mechanism with multiple levels, you can implement it on top of `hbs::Debug`.
 Alternatively, you can implement a custom logging mechanism.
@@ -806,4 +806,4 @@ The `HBS_STD` environment variable is rather handy for quickly checking if a giv
 By setting the `HBS_BUILD_DIR` environment variable, you can enforce the value of the `hbs::BuildDir`.
 If `HBS_BUILD_DIR` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::BuildDir` to the value of `HBS_BUILD_DIR`.
 If `HBS_BUILD_DIR` is set, any call to the `hbs::SetBuildDir` is ignored.
-The usefulness and functionality of `HBS_BUILD_DIR` are described in @hbs-tool
+The usefulness and functionality of the `HBS_BUILD_DIR` are described in @hbs-tool
