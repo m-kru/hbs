@@ -407,9 +407,9 @@ As can be seen, setting library in a target of one core, does not affect library
 In HBS, targets might depend on other targets instead of cores depending on cores.
 Such an approach allows for fine-grained control of dependencies.
 
-To declare target dependency, you must call the `hbs::AddDep` procedure within the target procedure.
-The first argument is the dependency path.
-The remaining arguments are optional and are passed to the dependency procedure as arguments.
+To declare a target dependency, you must call the `hbs::AddDep` procedure within the target procedure.
+The first argument is the dependency target path.
+The remaining arguments are optional and are forwarded to the dependency procedure as arguments.
 
 To add multiple distinct dependencies, the user must call `hbs::AddDep` multiple times.
 The ability to pass custom arguments to dependency was evaluated as much more advantageous than the ability to add multiple dependencies with a single `hbs::AddDep` call.
@@ -418,10 +418,10 @@ The `hbs::AddDep` internally calls the dependency procedure with the provided ar
 It also tracks dependencies so that generating a dependency graph is possible.
 Within a single flow, each target procedure can be run at most once with a particular set of arguments.
 This implies that if multiple target procedures add the same dependency with the same arguments, the dependency procedure is run only once during the first `hbs::AddDep` call.
-To enforce some target procedure rerun, the user can always directly call the target.
+To enforce some target procedure rerun, the user can always directly call the target procedure.
 However, enforcing target procedure rerun usually is an alert that a regular Tcl procedure shall be used instead of the core target procedure.
 
-The bloew snippet contains an example core definitions for presenting target dependency rules.
+The below snippet contains an example core definitions for presenting target dependency rules.
 ```tcl
 namespace eval core-a {
   proc target {} {
