@@ -2,7 +2,7 @@
 
 This section contains some examples of HBS usage.
 It barely presents some primary features of HBS.
-If you want to discover full capabilities of HBS, then run `hbs doc` command.
+If you want to discover full capabilities of HBS, then run `'hbs info'` command.
 The command lists all HBS API public symbols.
 To get more information on a given symbol, run `'hbs run <symbol>'` command.
 
@@ -51,14 +51,14 @@ nvc  --std=2019 -L. -r example --wave
 [user@host test] echo $?
 0
 ```
-As can be seen the returned status is 0.
+As can be seen, the returned status is 0.
 The simulation finished successfully.
 The HBS always forwards the EDA tool exist status to you.
 Thanks to this, you can easily check if the target proc you run succeeded.
 
 === Placing the module in custom library
 
-Low, let us assume we want to place our module in a custom library named `lib`.
+Now, let us assume we want to place our module in a custom library named `lib`.
 All we need is to add a call to the `hbs::SetLib` procedure.
 A new hbs file is presented in the following snippet:
 ```tcl
@@ -90,7 +90,7 @@ As can be seen, the library has been changed to `lib` (`--work=lib`).
 
 === Changing the simulator via command line
 
-Low, let us assume we want to be able to easily change the simulator.
+Now, let us assume we want to be able to easily change the simulator.
 We would like to define the simulator when executing the target.
 The simplest way is to add a parameter to the target.
 The following snippet presents modified hbs files:
@@ -172,7 +172,7 @@ The constraint file is not required for simulation.
 
 HBS tracks the type of set EDA tool in the `hbs::ToolType` variable.
 This is very useful, as some cores might require one set of build actions for simulation, and completely different set of actions for synthesis.
-To obtain more information on tool types run `'hbs doc ToolType'` in the shell.
+To obtain more information on tool types run `'hbs info ToolType'` in the shell.
 
 
 == Sharing actions between core targets
@@ -223,9 +223,9 @@ Testbench targets only pass the testbench top entity name to the `_tb` procedure
 
 == More examples
 
-If you have some interesting exmaple of HBS usage, feel free to prepare a pull request with extension the following list:
+If you have some interesting exmaple of HBS usage, feel free to prepare a pull request with extension to the following list:
 
-- #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library],
+- #link("https://github.com/m-kru/vhdl-amba5/tree/master/apb")[VHDL APB library] - contains an example with constraints scoped to the module and cells,
 - #link("https://github.com/m-kru/vsc8211-tester")[VSC8211 Tester],
 - #link("https://github.com/m-kru/zturn-linux")[zturn-linux] - presents how to add block design to Vivado project, make HDL wrapper, and write hardware platform.
 
