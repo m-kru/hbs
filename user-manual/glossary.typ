@@ -56,6 +56,11 @@ Some of them are formally defined because they are helpful when discussing, for 
 ]
 
 #block(breakable:false)[
+/ HBS:
+  Hardware Build System
+]
+
+#block(breakable:false)[
 / hbs file:
   A file with the `.hbs` extension containing valid Tcl code.
 ]
