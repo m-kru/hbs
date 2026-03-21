@@ -1081,8 +1081,8 @@ namespace eval hbs {
 
     if {[dict exists $hbs::cores ::hbs::$core] == 0} {
       hbs::panic "core '$core' not found, maybe the core is not:\n \
-        1. registered 'hbs doc hbs::Register',\n \
-        2. sourced 'hbs doc hbs::FileIgnoreRegexes'."
+        1. registered 'hbs info hbs::Register',\n \
+        2. sourced 'hbs info hbs::FileIgnoreRegexes'."
     }
     if {[dict exists $hbs::cores ::hbs::$core targets $target] == 0} {
       puts stderr "core '$core' found, but it doesn't have target '$target', '$core' has following targets:"
@@ -1661,7 +1661,7 @@ namespace eval hbs {
 # GHDL simulator
 #
 # HBS requires that GHDL is compiled with the LLVM or GCC backend.
-# It does not support GHDL with mcode backend.
+# It does not support GHDL with the mcode backend.
 #
 # GHDL supports the following stages:
 #   - analysis,
@@ -3532,6 +3532,7 @@ proc hbs::CmdTest {args} {
     # No testbenches to run
     return
   }
+  set tbCount [llength $tbTargets]
   set maxTbTargetPathLen 0
   foreach tbPath $tbTargets {
     set pathLen [string length $tbPath]
@@ -3544,12 +3545,14 @@ proc hbs::CmdTest {args} {
     activeCount 0 \
     workerCount $workerCount \
     tbTargets $tbTargets \
-    tbCount [llength $tbTargets] \
+    tbCount $tbCount \
     tbIdx 0 \
     maxTbTargetPathLen $maxTbTargetPathLen \
     noColor $noColor ]
 
   set startTime [clock seconds]
+
+  puts "running $tbCount targets with $workerCount workers\n"
 
   # Run testbenches
   for {set i 0} {$i < $workerCount} {incr i} {
