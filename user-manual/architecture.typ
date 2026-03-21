@@ -10,10 +10,11 @@ It was decided that HBS will be implemented using the Tcl language because of th
 + Executing arbitrary programs in arbitrary places in Tcl is very simple.
   There is a dedicated `exec` command for invoking subprocesses.
   If executing a subprocess requires prior dynamic arguments evaluation, the `exec` command call must be prepended with the `eval` command.
+  If you have to catch the exit status, you simply wrap the `exec` command in the `catch` command.
   Even in Python, invoking a subprocess is not so straighforward.
 
 One of the most important things while designing the HBS was the separation of common build process operations that would constitute a common abstraction layer over EDA tools.
-At the end, it was decided that the following actions should constitute the common abstraction layer:
+Currently, the following actions constitute the common abstraction layer:
 + Target device setting - some EDA tools use the term “part” instead of “device,” for example, Vivado.
   Simulation EDA tools do not require a device setting.
   However, all synthesis EDA tools require information on the target device.
@@ -25,7 +26,7 @@ At the end, it was decided that the following actions should constitute the comm
   In such a case, the build system must decide what the common standard revision shall be used for analyzing all HDL files.
 + Dependency specification - this is the core feature of any build system.
 + Generics/parameters setting - configuring parametric designs must be an inherent feature of any hardware build system.
-+ Design top module setting - all EDA tools carrying out simulation or synthesis requires information on the top module.
++ Design top module setting - all EDA tools carrying out simulation or synthesis require information on the top module.
 + Exit severity setting - testbenches are designed to exit with an error code when a specific severity message occurs.
   This is independent of the simulator being used, hence it should be hidden under the build system abstraction.
 + Code generation - a hardware build system must provide a simple way for automatic arbitrary code generation.
@@ -56,23 +57,23 @@ All HBS code is hidden under the `hbs` namespace.
 Code related to a particular tool is further hidden in the `hbs::{tool}` namespace.
 
 Tcl does not allow defining private symbols within namespaces; all symbols are public.
-However, `hbs` differentiates between public and private symbols.
+However, HBS differentiates between public and private symbols.
 Public symbols start with an uppercase letter, and private symbols begin with a lowercase letter.
 
-The user should only use public symbols within hbs files.
+You should only use public symbols within hbs files.
 Although using private symbols is discouraged, it is not forbidden, and if you really know what you do, feel free to use them.
 
 The `hbs` namespace consists of variables and procedures.
 Even though some variables are public, the user shall not set them directly.
 They are public because they can be safely read from the hbs files.
 However, setting them might require some additional actions.
-For example, the `hbs::Tool` is a public variable, but you shall use `hbs::SetTool` procedure for setting the tool.
+For example, the `hbs::Tool` is a public variable, but you shall use the `hbs::SetTool` procedure for setting the tool.
 On the other hand, there is no such requirement for getting the value of a public variable.
 
 All variables representing choices (enumeration) use lowercase strings.
-For example, the `hbs::Tool` can be `"ghdl"`, `"vivado-prj"`, etc.
+For example, the `hbs::Tool` can equal `"ghdl"`, `"vivado-prj"`, etc.
 The `hbs::ToolType` can equal `"formal"`, `"simulation"`, or `"synthesis"`.
-The point of this is to avoid error cases when one core maintainer sets the tool to GHDL, but another core maintainer has, for example, the following condition in one of the targets:
+The point of this is to avoid error cases when one core maintainer sets the tool to `"GHDL"`, but another core maintainer has, for example, the following condition in one of the targets:
 ```tcl
 if {$hbs::Tool eq "ghdl"}
 ```
@@ -82,8 +83,8 @@ Most `hbs::Set*` procedures assert that you provide lowercase names.
 
 == Cores and cores detection <cores-and-cores-detection>
 
-When you call `hbs`, all directories, starting from the working directory, are recursively scanned to discover all files with the `.hbs` extension (symbolic links are also scanned).
-Files with the `.hbs` extension are regular Tcl files that are sourced by the `hbs` script.
+When you call `hbs`, all directories, starting from the working directory, are recursively scanned to discover all files with the `'.hbs'` extension (symbolic links are also scanned).
+Files with the `'.hbs'` extension are regular Tcl files that are sourced by the `hbs` script.
 However, before sourcing hbs files, the file list is sorted so that scripts with shorter path depth are sourced as the first ones.
 For example, let us assume the following three hbs files were found:
 - `a/b/c/foo.hbs`,
@@ -113,7 +114,7 @@ namespace eval flip-flop {
 The flip-flop core has a single target named `src`.
 The core consists of a single VHDL file.
 
-To register a core, you must explicitly call `hbs::Register` procedure at the end of the core namespace.
+To register a core, you must explicitly call the `hbs::Register` procedure at the end of the core namespace.
 Such a mechanism helps to distinguish regular Tcl namespaces from Tcl namespaces representing core definitions.
 If you forget to register a core, the build system gives a potential hint.
 An example error message is presented in the following snippet:
@@ -121,12 +122,12 @@ An example error message is presented in the following snippet:
 ```
 [user@host tmp] hbs run lib::core::tb
 checkTargetExists: core 'lib::core' not found, maybe the core is not:
-  1. registered 'hbs doc hbs::Register',
-  2. sourced 'hbs doc hbs::FileIgnoreRegexes'.
+  1. registered 'hbs info hbs::Register',
+  2. sourced 'hbs info hbs::FileIgnoreRegexes'.
 ```
 
 Each core is identified by its unique path.
-The core path is equivalent to the namespace path in which `hbs::Register` is called.
+The core path is equivalent to the namespace path in which the `hbs::Register` procedure is called.
 Using the namespace path as the core path gives the following possibilities:
 + You can easily stick to the VLNV identifiers if required.
   This is presented in the following snippet:
@@ -141,7 +142,6 @@ Using the namespace path as the core path gives the following possibilities:
   ```
 + You can define arbitrary deep core paths (limited by the Tcl shell).
   This is presented in the following snippet:
-  In this case, the core path consists of seven parts.
   ```tcl
   namespace eval a::b::c::d::e::f::flip-flop {
     proc src {} {
@@ -150,8 +150,9 @@ Using the namespace path as the core path gives the following possibilities:
     hbs::Register
   }
   ```
+  In this case, the core path consists of seven parts.
 + You can nest namespaces to imitate the structure of libraries and packages.
-  This is presented in following snippet.
+  This is presented in the following snippet:
   ```tcl
   namespace eval lib {
     namespace eval pkg1 {
@@ -189,8 +190,8 @@ Using the namespace path as the core path gives the following possibilities:
 
 === Excluding hbs files from being sourced
 
-Sometimes a file with the `.hbs` extension is not a valid hbs file, or maybe you want to temporarily disable valid hbs files from being sourced.
-HBS provides a built-in mechanism for excluding files with the `.hbs` extension from being sourced.
+Sometimes a file with the `'.hbs'` extension is not a valid hbs file, or maybe you want to temporarily disable valid hbs files from being sourced.
+The HBS provides a built-in mechanism for excluding files with the `'.hbs'` extension from being sourced.
 This is achieved using the `hbs::AddFileIgnoreRegex` procedure.
 You just have to call this procedure in one of valid hbs files.
 The procedure will be executed once the file containing the call is sourced.
@@ -215,8 +216,8 @@ Simply use the Tcl built-in `source` command.
 
 == Targets and targets detection
 
-The `hbs` automatically detects targets.
-Targets are all Tcl procedures defined in the scope of core namespaces (namespaces with a call to `hbs::Register`).
+The HBS automatically detects targets.
+Targets are all Tcl procedures defined in the scope of core namespaces (namespaces with a call to the `hbs::Register` procedure).
 However, to allow users to define custom utility procedures within cores, procedures with names starting with the floor character (`_`) are not treated as core targets.
 The following snippet presents an example edge detector core definition:
 ```tcl
@@ -259,7 +260,7 @@ For example, the `src` target of the edge detector has the following target path
 
 == Testbench targets
 
-The `hbs` is capable of automatically detecting testbench targets.
+The HBS is capable of automatically detecting testbench targets.
 Testbench targets are targets which names:
 + start with the `"tb-"` or `"tb_"` prefix,
 + end with the `"-tb"` or `"_tb"` suffix,
@@ -280,7 +281,7 @@ namespace eval my-core {
   hbs::Register
 }
 ```
-The `hbs` program detects the following testbench targets:
+The HBS detects the following testbench targets:
 ```
 [user@host tmp] hbs ls-tb
 my-core::my-tb
@@ -291,7 +292,7 @@ my-core::tb_my
 
 == Running targets <arch-running-targets>
 
-The `hbs` allows running any target of registered cores.
+The HBS allows running any target of registered cores.
 Even if the target itself has nothing to do with the hardware design.
 For example, running target `print` from the following snippet:
 ```tcl
@@ -312,8 +313,8 @@ However, in most cases, you want to run a target related to the flow of the set 
 In such a case, instead of manually calling all of the required tool commands, you can call the `hbs::Run` procedure in the core target procedure.
 The `hbs::Run` procedure has an optional argument accepting the stage after which the tool flow should stop.
 This is further described in @eda-tool-flow-and-stages.
-After `hbs::Run` returns, the user can continue processing.
-For example, the user can run scripts analyzing code coverage or preparing additional reports.
+After `hbs::Run` returns, you can continue processing.
+For example, you can run scripts analyzing code coverage or preparing additional reports.
 
 
 == Target parameters <arch-target-parameters>
@@ -322,13 +323,13 @@ As core targets are just Tcl procedures, they can have parameters.
 Moreover, parameters can have optional default values.
 Additionally, HBS allows to provide command line arguments to the run target.
 This is a very convenient feature in build systems.
-The blow snippet presents a very simplified example.
+The following snippet presents a very simplified example:
 ```tcl
 namespace eval core {
   proc target {{stage "bitstream"}} {
     puts "Running until $stage"
     # hbs::Run commented out because this is just an example.
-    #hbs::Run $stage
+    # hbs::Run $stage
   }
   hbs::Register
 }
@@ -336,7 +337,7 @@ namespace eval core {
 
 The core does not build any hardware design.
 However, the example shows how the build stage can be passed from the command line to an EDA tool.
-The blow snippet presents output from running the target with different `stage` parameter values.
+The following snippet presents output from running the target with different `stage` parameter values:
 ```
 [user@host tmp]$ hbs run core::target
 Running until bitstream
@@ -411,17 +412,17 @@ To declare a target dependency, you must call the `hbs::AddDep` procedure within
 The first argument is the dependency target path.
 The remaining arguments are optional and are forwarded to the dependency procedure as arguments.
 
-To add multiple distinct dependencies, the user must call `hbs::AddDep` multiple times.
+To add multiple distinct dependencies, you must call the `hbs::AddDep` procedure multiple times.
 The ability to pass custom arguments to dependency was evaluated as much more advantageous than the ability to add multiple dependencies with a single `hbs::AddDep` call.
 
-The `hbs::AddDep` internally calls the dependency procedure with the provided arguments.
+The `hbs::AddDep` procedure internally calls the dependency procedure with the provided arguments.
 It also tracks dependencies so that generating a dependency graph is possible.
 Within a single flow, each target procedure can be run at most once with a particular set of arguments.
 This implies that if multiple target procedures add the same dependency with the same arguments, the dependency procedure is run only once during the first `hbs::AddDep` call.
-To enforce some target procedure rerun, the user can always directly call the target procedure.
+To enforce some target procedure rerun, you can always directly call the target procedure.
 However, enforcing target procedure rerun usually is an alert that a regular Tcl procedure shall be used instead of the core target procedure.
 
-The below snippet contains an example core definitions for presenting target dependency rules.
+The following snippet contains an example core definitions for presenting target dependency rules:
 ```tcl
 namespace eval core-a {
   proc target {} {
@@ -455,7 +456,7 @@ namespace eval generator-core {
   hbs::Register
 }
 ```
-There are four cores: `core-a`, `core-b`, `core-c`, `generator-core`.
+There are four cores: `core-a`, `core-b`, `core-c`, and `generator-core`.
 `core-a` depends on `core-b` and `core-c`.
 `core-b` depends on `core-c`.
 Moreover, cores `core-a` and `core-b` depend on the `generator-core`.
@@ -487,7 +488,7 @@ To mimic this behavior, HBS supports the following stages (alphabetical order):
 + analysis - HDL files analysis,
 + bitstream - device bitstream generation,
 + elaboration - design elaboration,
-+ implementation - design implementation,
++ implementation - design implementation (sometiems called placed and route),
 + project - project creation,
 + simulation - design simulation,
 + synthesis - design synthesis.
@@ -520,7 +521,7 @@ The post stage callbacks and pre stage callbacks for adjacent stages were added 
   If some nested dependencies add callbacks for the same pre or post stage, then the order of callbacks execution depends on the order of `hbs::AddDep` calls.
   However, if the result of one of the callbacks depends on the result of the other one, then relying on a user to call the `hbs::AddDep` procedures in proper order is error prone.
   In such a case, the callback that must be executed as the first one can be added to the post-synthesis callbacks, and the second callback can be added to the pre-implementation callbacks.
-  Such an approach is immune to the order of `hbs::AddDep` calls.
+  Such an approach is immune to the order of `hbs::AddDep` procedure calls.
 
 You can utilize stage callbacks in any desired way.
 However, the primary purpose of stage callbacks is to adjust the design build based on the results from a particular stage.
@@ -528,13 +529,13 @@ For example, you might want to configure additional implementation settings base
 You might even terminate the tool flow in a given callback and report an error if certain conditions are not met.
 
 To get to know stages supported by a given EDA tool you can call `'hbs info <tool>'` command.
-The following snippet presents documentation message for the GHDL simulator.
+The following snippet presents information message for the GHDL simulator.
 ```
 [user@host tmp] hbs info ghdl
 # GHDL simulator
 #
 # HBS requires that GHDL is compiled with the LLVM or GCC backend.
-# It does not support GHDL with mcode backend.
+# It does not support GHDL with the mcode backend.
 #
 # GHDL supports the following stages:
 #   - analysis,
@@ -555,7 +556,7 @@ In such a case, there are two possible solutions.
 + The first option is to bypass the HBS API and directly call the underlying EDA tool command.
   The drawback of this approach is that the user must manually handle the current context.
   For example, when adding an HDL file, the user must manually specify the library or standard revision.
-  Bypassing HBS API also bypasses the target context!
+  *Bypassing HBS API also bypasses the target context!*
 + The second option is to set the underlying command argument prefix or suffix.
   This can be achieved with the `hbs::SetArgPrefix` and `hbs::SetArgSuffix` procedures.
   The argument prefix is always appended after the command name, and the argument suffix is always appended after all command arguments.
@@ -607,7 +608,7 @@ Before calling `exec`, the `hbs::ExecInCoreDir` changes the working directory to
 When `exec` returns, the `hbs::ExecInCoreDir` restores the working directory.
 The `hbs::ThisCoreDir` procedure allows the user to get the path of the directory in which the currently evaluated core is defined.
 
-HBS also provides users with the following extra variables:
+HBS also provides you with the following extra variables:
 + `hbs::ThisCorePath` - the path of the core which target is currently being run,
 + `hbs::ThisCoreName` - the name of the core which target is currently being run,
 + `hbs::ThisTargetPath` - the path of the target which is currently being run,
@@ -642,7 +643,7 @@ In HBS, there is no formal concept of generator.
 Anything can be a generator, as generators are just regular Tcl procedures.
 This means that generators can be target procedures (tracked by dependency system) or core internal Tcl procedures (not tracked by the dependnecy system).
 
-The bellow snippet presents an example of calling an external code generator tracked by the dependnecy system:
+The following snippet presents an example of calling an external code generator tracked by the dependnecy system:
 ```tcl
 namespace eval core {
   proc top {} {
@@ -664,7 +665,7 @@ namespace eval generator {
 In actual usage, the call to the shell `echo` command would be replaced with a call to the proper code generator program.
 Calls to the `hbs::AddFile` are commented out because no EDA tool was set.
 
-The following snippet presents how to achieve the same result without tracking the generator as a dependency.
+The following snippet presents how to achieve the same result without tracking the generator as a dependency:
 ```tcl
 namespace eval core {
   proc top {} {
@@ -701,9 +702,9 @@ Moreover, UVM was designed to work with revision 2012.
 Some tools come with the standard revision 2017 being the default one.
 However, most of them support only part of the features introduced in this revision.
 
-When you set standard revision (`hbs::SetStd` procedure) in your hbs files, it might turn out that a particular tool does not support this standard, even if the set revision is a valid revision for a given language.
+When you set standard revision (`hbs::SetStd` procedure) in your hbs files, it might turn out that a particular tool does not support this standard revision, even if the set revision is a valid revision for a given language.
 Two things might happen in this scenario.
-+ If the tool does not support the standard revision you set and any higher standard revision, `hbs` will exit with an error.
++ If the tool does not support the standard revision you set and any higher standard revision, the HBS will exit with an error.
   An example error message is presented in the following snippet:
   ```
   core::target: hbs::ghdl::addVhdlFile: /home/user/workspace/hbs-tests/SetStd/ghdl-unsupported-std/abc.vhd: ghdl doesn't support VHDL standard '2019'
@@ -711,12 +712,12 @@ Two things might happen in this scenario.
 + If the tool supports any higher standard revision, the set standard revision will be automatically upgraded to the nearest standard supporting features present in the standard you set.
   For example, you cannot enforce compatibility with SystemVerilog standard revisions 2005, 2009, and 2012 in Gowin.
   However, Gowin claims support for SystemVerilog standard revision 2017.
-  In such a case, if you set the standard to 2005, 2009, or 2012, it will be automatically upgraded to 2017.
+  In such a case, if you set the standard revision to 2005, 2009, or 2012, it will be automatically upgraded to 2017.
 
 
 == HBS environment variables
 
-HBS utilizes some environment variables.
+The HBS utilizes some environment variables.
 Some of them are used internally, for example, `HBS_TOOL_BOOTSTRAP`, and some can be set by the user to control the `hbs` behavior.
 
 === HBS\_TOOL\_BOOTSTRAP - hbs bootstraps itself
@@ -733,20 +734,20 @@ Debug messages are printed to the standard error.
 This means that you can enable debug messages in dry runs and still be able to redirect debug messages and tool commands independently.
 
 You can extend debug messages with custom messages from your hbs files.
-There is `hbs::Debug` procedure which you can use for conditionally printing messages when the `HBS_DEBUG` environment variable is set.
+There is the `hbs::Debug` procedure which you can use for conditionally printing messages when the `HBS_DEBUG` environment variable is set.
 Messages printed with the `hbs::Debug` are always prefixed with the path of the procedure in which `hbs::Debug` is called.
 See `'hbs info Debug'` for more details.
 
-If you need a more advanced logging mechanism with multiple levels, you can implement it on top of `hbs::Debug`.
+If you need a more advanced logging mechanism with multiple levels, you can implement it on top of the `hbs::Debug` procedure.
 Alternatively, you can implement a custom logging mechanism.
 To check if the `HBS_DEBUG` environment variable is set you can check the value of the `hbs::DebugEnvSet` variable instead of calling `[info exists ::env(HBS_DEBUG)]`.
-HBS is not planned to natively support multi-level logging mechanism.
+The HBS is not planned to natively support multi-level logging mechanism.
 The dry runs and `HBS_DEBUG` are probably more than enough for debugging build flows.
 
 === HBS\_DEVICE - enforcing device
 
 By setting the `HBS_DEVICE` environment variable, you can enforce the value of the `hbs::Device`.
-If `HBS_DEVICE` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::Device` to the value of `HBS_DEVICE`.
+If `HBS_DEVICE` is set, then HBS during initialization (before any hbs file is sourced) sets the value of the `hbs::Device` variable to the value of `HBS_DEVICE`.
 If `HBS_DEVICE` is set, any call to the `hbs::SetDevice` is ignored.
 
 The `HBS_DEVICE` variable might be useful for determining the target device for the build from the shell.
@@ -756,7 +757,7 @@ However, you may want to utilize target parameters for different purposes.
 === HBS\_EXIT\_SEVERITY - enforcing exit severity
 
 By setting the `HBS_EXIT_SEVERITY` environment variable, you can enforce the value of the `hbs::ExitSeverity`.
-If `HBS_EXIT_SEVERITY` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::ExitSeverity` to the value of `HBS_EXIT_SEVERITY`.
+If `HBS_EXIT_SEVERITY` is set, then HBS during initialization (before any hbs file is sourced) sets the value of `hbs::ExitSeverity` to the value of `HBS_EXIT_SEVERITY`.
 If `HBS_EXIT_SEVERITY` is set, any call to the `hbs::ExitSeverity` is ignored.
 
 The `HBS_EXIT_SEVERITY` environment variable is useful for quickly running testbenches with modified exit severity.
@@ -765,7 +766,7 @@ For example, your simulation suddenly starts failing, and you would like to stop
 === HBS\_TOOL - enforcing tool <hbs-tool>
 
 By setting the `HBS_TOOL` environment variable, you can enforce the value of the `hbs::Tool`.
-If `HBS_TOOL` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::Tool` to the value of `HBS_TOOL`.
+If `HBS_TOOL` is set, then HBS during initialization (before any hbs file is sourced) sets the value of `hbs::Tool` to the value of `HBS_TOOL`.
 If `HBS_TOOL` is set, any call to the `hbs::SetTool` is ignored.
 
 The `HBS_TOOL` environment variable is helpful in running testbench targets with different simulators.
@@ -774,7 +775,7 @@ However, if you want to run multiple testbench targets using the `'hbs test'` co
 This is because `'hbs test'` does not support passing arguments to testbench targets.
 
 *Be careful!*
-Some simulators, for example, `nvc` and `questa`, might share some directories or file names.
+Some simulators, for example, nvc and questa, might share some directories or file names.
 If you run a testbench with one simulator, then running the same testbench with a different simulator in the same directory without cleaning it might result in errors.
 It is advised to clean the build directory before running the same testbench with a different simulator.
 If you run your testbenches with multiple simulators in the continuous integration pipeline, then you probably want to store all build results for all simulators.
@@ -794,7 +795,7 @@ hbs test
 === HBS\_STD - enforcing HDL standard revision
 
 By setting the `HBS_STD` environment variable, you can enforce the value of the `hbs::Std`.
-If `HBS_STD` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::Std` to the value of `HBS_STD`.
+If `HBS_STD` is set, then HBS during initialization (before any hbs file is sourced) sets the value of `hbs::Std` to the value of `HBS_STD`.
 If `HBS_STD` is set, any call to the `hbs::SetStd` is ignored.
 
 The `HBS_STD` environment variable is analogous to the `HBS_TOOL` environment variable.
@@ -804,6 +805,6 @@ The `HBS_STD` environment variable is rather handy for quickly checking if a giv
 === HBS\_BUILD\_DIR - changing build directory
 
 By setting the `HBS_BUILD_DIR` environment variable, you can enforce the value of the `hbs::BuildDir`.
-If `HBS_BUILD_DIR` is set, then `hbs` during initialization (before any hbs file is sourced) sets the value of `hbs::BuildDir` to the value of `HBS_BUILD_DIR`.
+If `HBS_BUILD_DIR` is set, then HBS during initialization (before any hbs file is sourced) sets the value of `hbs::BuildDir` to the value of `HBS_BUILD_DIR`.
 If `HBS_BUILD_DIR` is set, any call to the `hbs::SetBuildDir` is ignored.
 The usefulness and functionality of the `HBS_BUILD_DIR` are described in @hbs-tool

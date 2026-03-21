@@ -2,7 +2,7 @@
 
 == `doc` - viewing documentation for cores
 
-The `doc` command allows viewing documentation for coers automatically discovered by the `hbs`.
+The `doc` command allows viewing documentation for coers automatically discovered by the HBS.
 The command displays the message passed to the `hbs::Register` procedure during the core registration.
 
 
@@ -28,7 +28,7 @@ To generate the graph in a graphical format you can use the `dot` program which 
 
 
 The `graph` command requires information about cores in the Tcl dictionary format.
-This implies that the user must execute the `dump`, `run` or `dry-run` command before generating a dependency graph.
+This implies that you must execute the `dump`, `run` or `dry-run` command before generating a dependency graph.
 However, this is not a major issue in practice.
 Dumping cores, even for large designs, does not take more than a few seconds, as the `dump` command does not run the target tool flow.
 The `dry-run` command is also very fast, as it does not execute or evaluate any commands.
@@ -202,7 +202,7 @@ invalid command name "set_msg_config"
 Your OS Tcl shell (`tclsh`) does not have the built-in `set_msg_config` command.
 This is a Vivado custom command.
 
-HBS provides three procedures supporting implementing dry-run-compatible user hbs files, the `hbs::Eval`, `hbs::Exec`, and `hbs::ExecInCoreDir`.
+The HBS provides three procedures supporting implementing dry-run-compatible user hbs files, the `hbs::Eval`, `hbs::Exec`, and `hbs::ExecInCoreDir`.
 The `hbs::Eval` procedure prints the command to the standard output and evaluates it only if the current run is not a dry run.
 All you have to do is to prepend EDA tool custom command with a call to the `hbs::Eval` procedure and pass your command with arguments as a string.
 The following snippet presents an example:
@@ -281,6 +281,7 @@ The following snippet presents an example of locating core definition:
 vhdl::amba5::apb::serial-bridge  /tmp/vsc8211-tester/gw/apb/apb.hbs
 ```
 You can locate multiple cores in a single call by providing multiple arguments to the command.
+The core is listed if its core path contains at least one regex provided in arguments.
 The following snippet presents an example:
 ```
 [user@host vsc8211-tester] hbs where bridge mdio
