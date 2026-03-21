@@ -112,7 +112,7 @@ Some of them are formally defined because they are helpful when discussing, for 
 
 #block(breakable:false)[
 / to execute a target:
-  To execute the target procedure code by explicitly or implicitly calling the target procedure, for example, by calling `hbs::AddDep`.
+  To execute the target procedure code by explicitly or implicitly calling the target procedure, for example, by calling the `hbs::AddDep` procedure.
 ]
 
 #block(breakable:false)[
