@@ -23,6 +23,8 @@ Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/ma
 
 ## [Unreleased]
 
+## [1.2] - 2026-03-25
+
 ### Added
 
 - Support for Quartus.
