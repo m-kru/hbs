@@ -1644,8 +1644,11 @@ namespace eval hbs {
     # By default assume error status.
     dict set hbs::testResults $tbPath [dict create status 1 errorCount 0 warningCount 0]
 
+    set scriptDir [file normalize [file dirname [info script]]]
+    set hbsPath [file join $scriptDir "hbs"]
+
     # Run subprocess for given testbench
-    set cmd "hbs run $tbPath 2>@1"
+    set cmd "$hbsPath run $tbPath 2>@1"
     if {[catch {open "|$cmd" r} pipe]} {
       hbs::panic "failed to run subprocess for testbench $tbPath: $pipe"
     }
