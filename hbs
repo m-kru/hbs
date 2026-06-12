@@ -1647,7 +1647,7 @@ namespace eval hbs {
     # Run subprocess for given testbench
     set cmd "hbs run $tbPath 2>@1"
     if {[catch {open "|$cmd" r} pipe]} {
-      return
+      hbs::panic "failed to run subprocess for testbench $tbPath"
     }
     fconfigure $pipe -blocking 0 -buffering line
     fileevent $pipe readable [list hbs::testHandleFileEvent $pipe $tbPath]
