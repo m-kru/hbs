@@ -4,9 +4,29 @@
 
 HBS is a Tcl-based, minimal common abstraction build system for hardware design projects.
 
+## Citation
+
+If you find HBS useful, and write any academic publication on a project utilizing HBS please consider citing.
+
+```
+@Article{electronics15153292,
+  AUTHOR = {Kruszewski, Michał},
+  TITLE = {Characterizing and Comparing Direct-Tcl and Indirect-Abstract Approaches for Hardware Build Systems},
+  JOURNAL = {Electronics},
+  VOLUME = {15},
+  YEAR = {2026},
+  NUMBER = {15},
+  ARTICLE-NUMBER = {3292},
+  URL = {https://www.mdpi.com/2079-9292/15/15/3292},
+  ISSN = {2079-9292},
+  DOI = {10.3390/electronics15153292}
+}
+```
+
 ## Documentation
 
 Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/master/user-manual/hbs-user-manual.pdf).
+There is also an article ([Characterizing and Comparing Direct-Tcl and Indirect-Abstract Approaches for Hardware Build Systems](https://www.mdpi.com/2079-9292/15/15/3292)) explaining why HBS was designed in such a way and how it compares to other hardware build systems.
 
 ## Supported tools
 
