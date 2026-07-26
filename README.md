@@ -26,7 +26,7 @@ If you find HBS useful, and write any academic publication on a project utilizin
 ## Documentation
 
 Please check the official [HBS user manual](https://github.com/m-kru/hbs/blob/master/user-manual/hbs-user-manual.pdf).
-There is also an article ([Characterizing and Comparing Direct-Tcl and Indirect-Abstract Approaches for Hardware Build Systems](https://www.mdpi.com/2079-9292/15/15/3292)) explaining why HBS was designed in such a way and how it compares to other hardware build systems.
+There is also the article ([Characterizing and Comparing Direct-Tcl and Indirect-Abstract Approaches for Hardware Build Systems](https://www.mdpi.com/2079-9292/15/15/3292)) explaining why HBS was designed in such a way and how it compares to other hardware build systems.
 
 ## Supported tools
 
