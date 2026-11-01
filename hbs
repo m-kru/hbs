@@ -621,6 +621,16 @@ namespace eval hbs {
   proc SetGeneric {name value} {
     hbs::Debug "setting generic '$name' to '$value'"
 
+    # Only these tools store generics in Tcl dictionaries for later use.
+    # Other tools set generics directly through tool commands and have no
+    # generics dictionary to check for an overwritten value.
+    if {$hbs::Tool in {ghdl nvc questa xsim}} {
+      set generics [set ::hbs::${hbs::Tool}::generics]
+      if {[dict exists $generics $name]} {
+        hbs::Debug "overwriting generic '$name' from '[dict get $generics $name]' to '$value'"
+      }
+    }
+
     switch $hbs::Tool {
       "" {
         hbs::panic "cannnot set generic '$name', hbs::Tool not set"
