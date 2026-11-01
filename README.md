@@ -50,6 +50,7 @@ There is also the article ([Characterizing and Comparing Direct-Tcl and Indirect
 ### Fixed
 
 - Running testbench subprocesses when hbs is not in PATH.
+- Failed test command returns 1.
 
 ## [1.2] - 2026-03-25
 

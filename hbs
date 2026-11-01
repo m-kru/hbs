@@ -3608,6 +3608,10 @@ proc hbs::CmdTest {args} {
   }
   puts "errors:   $errorCount"
   puts "warnings: $warningCount"
+
+  if {$failedCount > 0} {
+    exit 1
+  }
 }
 
 
