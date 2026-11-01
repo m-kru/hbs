@@ -1,0 +1,8 @@
+ghdl
+ghdl -a NewPrefix --std=08  -Pnewlib --work=newlib --workdir=newlib NewSuffix a.vhd
+nvc
+nvc NewPrefix --std=2008 -L. --work=newlib -a a.vhd NewSuffix
+questa
+vcom NewPrefix -work newlib -2008 a.vhd NewSuffix
+xsim
+xvhdl NewPrefix -work newlib --2008 a.vhd NewSuffix

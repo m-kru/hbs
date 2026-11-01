@@ -1,0 +1,19 @@
+namespace eval core {
+  proc target {tool} {
+    hbs::SetTool $tool
+    hbs::SetLib oldlib
+    hbs::SetStd 1993
+    hbs::SetArgPrefix OldPrefix
+    hbs::SetArgSuffix OldSuffix
+    hbs::AddFile a.vhd
+
+    hbs::SetLib newlib
+    hbs::SetStd 2008
+    hbs::SetArgPrefix NewPrefix
+    hbs::SetArgSuffix NewSuffix
+    hbs::AddFile a.vhd
+    hbs::AddFile a.vhd
+    hbs::Run analysis
+  }
+  hbs::Register
+}

@@ -1763,7 +1763,7 @@ namespace eval hbs::ghdl {
     }
 
     set lib [hbs::ghdl::library]
-    dict append hbs::ghdl::vhdlFiles $file \
+    dict set hbs::ghdl::vhdlFiles $file \
         [dict create \
         std [hbs::ghdl::std] \
         lib $lib \
@@ -2125,7 +2125,7 @@ namespace eval hbs::nvc {
     }
 
     set lib [hbs::nvc::library]
-    dict append hbs::nvc::vhdlFiles $file \
+    dict set hbs::nvc::vhdlFiles $file \
         [dict create \
         lib $lib \
         std $hbs::Std \
@@ -2540,7 +2540,7 @@ namespace eval hbs::xsim {
       set std [hbs::xsim::verilogStd $hbs::Std]
     }
 
-    dict append hbs::xsim::hdlFiles $file \
+    dict set hbs::xsim::hdlFiles $file \
         [dict create \
         std $std \
         lib $lib \
@@ -3069,7 +3069,7 @@ namespace eval hbs::questa {
       set std [hbs::questa::verilogStd]
     }
 
-    dict append hbs::questa::hdlFiles $file \
+    dict set hbs::questa::hdlFiles $file \
         [dict create \
         std $std \
         lib $lib \
