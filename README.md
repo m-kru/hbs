@@ -55,6 +55,7 @@ There is also the article ([Characterizing and Comparing Direct-Tcl and Indirect
 - Failed test command returns 1.
 - Setting the same generic again replaces the previous value.
 - Adding the same file again replaces its compilation metadata instead of corrupting it.
+- Calls to `SetTool` with `HBS_TOOL` set no longer initialize the requested tool or reinitialize the enforced tool.
 
 ## [1.2] - 2026-03-25
 
