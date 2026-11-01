@@ -47,6 +47,7 @@ There is also the article ([Characterizing and Comparing Direct-Tcl and Indirect
 
 - Assert `-workers` argument is a positive integer.
 - Overwriting generic prints a message in debug mode.
+- Readding the same file prints a message in debug mode when its compilation metadata is replaced.
 
 ### Fixed
 

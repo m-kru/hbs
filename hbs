@@ -1763,6 +1763,9 @@ namespace eval hbs::ghdl {
     }
 
     set lib [hbs::ghdl::library]
+    if {[dict exists $hbs::ghdl::vhdlFiles $file]} {
+      hbs::Debug "readding file '$file', replacing compilation metadata"
+    }
     dict set hbs::ghdl::vhdlFiles $file \
         [dict create \
         std [hbs::ghdl::std] \
@@ -2125,6 +2128,9 @@ namespace eval hbs::nvc {
     }
 
     set lib [hbs::nvc::library]
+    if {[dict exists $hbs::nvc::vhdlFiles $file]} {
+      hbs::Debug "readding file '$file', replacing compilation metadata"
+    }
     dict set hbs::nvc::vhdlFiles $file \
         [dict create \
         lib $lib \
@@ -2540,6 +2546,9 @@ namespace eval hbs::xsim {
       set std [hbs::xsim::verilogStd $hbs::Std]
     }
 
+    if {[dict exists $hbs::xsim::hdlFiles $file]} {
+      hbs::Debug "readding file '$file', replacing compilation metadata"
+    }
     dict set hbs::xsim::hdlFiles $file \
         [dict create \
         std $std \
@@ -3069,6 +3078,9 @@ namespace eval hbs::questa {
       set std [hbs::questa::verilogStd]
     }
 
+    if {[dict exists $hbs::questa::hdlFiles $file]} {
+      hbs::Debug "readding file '$file', replacing compilation metadata"
+    }
     dict set hbs::questa::hdlFiles $file \
         [dict create \
         std $std \
