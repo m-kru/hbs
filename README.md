@@ -43,6 +43,10 @@ There is also the article ([Characterizing and Comparing Direct-Tcl and Indirect
 
 ## [Unreleased]
 
+### Added
+
+- Assert `-workers` argument is a positive integer.
+
 ### Fixed
 
 - Running testbench subprocesses when hbs is not in PATH.
