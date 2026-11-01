@@ -1,0 +1,2 @@
+-workers argument must be a positive integer, current value '0'
+-workers argument must be a positive integer, current value '-1'

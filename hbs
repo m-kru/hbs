@@ -3530,6 +3530,11 @@ proc hbs::CmdTest {args} {
     set workerCount [hbs::cpuCount]
   }
 
+  if {$workerCount <= 0} {
+    puts stderr "-workers argument must be a positive integer, current value '$workerCount'"
+    exit 1
+  }
+
   set tbTargets [hbs::findTbTargets $hbs::cores {*}$args]
   if {[llength $tbTargets] == 0} {
     # No testbenches to run
