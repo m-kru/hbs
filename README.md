@@ -46,6 +46,7 @@ There is also the article ([Characterizing and Comparing Direct-Tcl and Indirect
 ### Added
 
 - Assert `-workers` argument is a positive integer.
+- Overwriting generic prints a message in debug mode.
 
 ### Fixed
 
