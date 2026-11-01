@@ -611,6 +611,7 @@ namespace eval hbs {
   # Sets generic (Verilog parameter) value. The actual action might
   # be postponed, as for example, for GHDL the generic values are provided
   # as command line arguments when running the simulation.
+  # Setting the same generic again replaces its previous value.
   #
   # The proc is named "SetGeneric", not "SetParam" or "SetParameters", because
   # the term parameter often refers to the EDA tool internal parameters.
@@ -625,25 +626,25 @@ namespace eval hbs {
         hbs::panic "cannnot set generic '$name', hbs::Tool not set"
       }
       "ghdl" {
-        dict append hbs::ghdl::generics $name $value
+        dict set hbs::ghdl::generics $name $value
       }
       "gowin" {
         hbs::Eval "set_option -generic {$name=$value}"
       }
       "nvc" {
-        dict append hbs::nvc::generics $name $value
+        dict set hbs::nvc::generics $name $value
       }
       "quartus" {
         hbs::Eval "set_parameter -name $name $value $hbs::ArgSuffix"
       }
       "questa" {
-        dict append hbs::questa::generics $name $value
+        dict set hbs::questa::generics $name $value
       }
       "vivado-prj" {
         hbs::Eval "set_property generic $name=$value \[current_fileset\]"
       }
       "xsim" {
-        dict append hbs::xsim::generics $name $value
+        dict set hbs::xsim::generics $name $value
       }
       default {
         hbs::panic [hbs::invalidToolMsg $hbs::Tool]
