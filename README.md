@@ -43,6 +43,8 @@ There is also the article ([Characterizing and Comparing Direct-Tcl and Indirect
 
 ## [Unreleased]
 
+## [1.3] - 2026-11-01
+
 ### Added
 
 - Assert `-workers` argument is a positive integer.
